@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
+import { defaultPairs } from "@/lib/pairs-default";
 
 export const signUpCredentials = async (
   prevState: unknown,
@@ -14,15 +15,19 @@ export const signUpCredentials = async (
   const validatedFields = RegisterSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
+
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
+
   const { name, username, email, password } = validatedFields.data;
   const hashedPassword = hashSync(password, 10);
+
   try {
-    await prisma.user.create({
+    // 1. Buat user baru
+    const user = await prisma.user.create({
       data: {
         name,
         username,
@@ -30,12 +35,23 @@ export const signUpCredentials = async (
         password: hashedPassword,
       },
     });
-  } catch {
+
+    // 2. Buat pairs default untuk user baru
+    await prisma.pair.createMany({
+      data: defaultPairs.map(pair => ({
+        symbol: pair.symbol,
+        userId: user.id,
+      })),
+    });
+
+  } catch (error) {
+    console.error("Sign up error:", error);
     return {
-      message: "Pendaftaran Gagal ! Akun sudah ada.",
+      message: "Pendaftaran Gagal! Akun sudah ada atau terjadi kesalahan.",
     };
   }
 
+  // 3. Redirect ke login
   redirect("/login");
 };
 
@@ -70,7 +86,7 @@ export const signInCredentials = async (
         case "CredentialsSignin":
           return { message: "Email atau password salah." };
         default:
-          return { message: "Terjadi kesalahan server." };
+          return { message: "Akun belum terdaftar" };
       }
     }
     throw error;

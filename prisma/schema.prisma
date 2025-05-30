@@ -30,6 +30,7 @@ model User {
   subscriptions  Subscription[]
   payments       Payment[]
   accounts       Account[]
+  pairs          Pair[]
 }
 
 model Account {
@@ -72,24 +73,56 @@ model Subscription {
   @@index([userId])
 }
 
+model Pair {
+  id        String   @id @default(cuid())
+  symbol    String // e.g., BTCUSD
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  Trade     Trade[]
+
+  @@unique([symbol, userId]) // agar 1 user tidak duplikat pair yang sama
+}
+
 model Trade {
   id            String         @id @default(uuid())
   user          User           @relation(fields: [userId], references: [id])
   userId        String
-  pair          String
-  entryPrice    Decimal
-  exitPrice     Decimal
-  lotSize       Decimal
+  pairId        String
   direction     TradeDirection
-  result        Decimal
-  setupNote     String?
+  entryPrice    Decimal
+  stoploss      Decimal
+  takeProfit    Decimal
+  lotSize       Decimal
+  exitPrice     Decimal
+  result        Result
+  profitLoss    Decimal
+  riskRatio     Decimal
+  psychology    String?
+  strategi      String?
+  notes         String?
   screenshotUrl String?
   openedAt      DateTime
   closedAt      DateTime
 
-  tags TradeTag[]
+  pair         Pair          @relation(fields: [pairId], references: [id])
+  journalEntry JournalEntry? @relation("TradeJournal")
+  tags         TradeTag[]
 
   @@index([userId])
+}
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+
+  trade   Trade  @relation("TradeJournal", fields: [tradeId], references: [id])
+  tradeId String @unique
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
 }
 
 model Tag {
@@ -111,16 +144,6 @@ model TradeTag {
   tagId   String
 
   @@unique([tradeId, tagId])
-}
-
-model JournalEntry {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
 }
 
 model Payment {
@@ -151,6 +174,12 @@ enum PaymentStatus {
 enum TradeDirection {
   buy
   sell
+}
+
+enum Result {
+  win
+  loss
+  bep
 }
 
 enum SubscriptionTier {

@@ -19,9 +19,9 @@ import { Separator } from "../ui/separator";
 import {
   ArrowTrendingUpIcon,
   ChatBubbleLeftRightIcon,
-  PresentationChartLineIcon,
   RectangleStackIcon,
   Squares2X2Icon,
+  TableCellsIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 
@@ -33,18 +33,18 @@ const MainItems = [
     icon: Squares2X2Icon,
   },
   {
-    title: "Trade",
-    url: "/trade",
-    icon: PresentationChartLineIcon,
+    title: "Journal",
+    url: "/dashboard/journal",
+    icon: TableCellsIcon,
   },
   {
     title: "Statistik",
-    url: "/statistik",
+    url: "/dashboard/statistik",
     icon: ArrowTrendingUpIcon,
   },
   {
     title: "Setup Trade",
-    url: "/setup",
+    url: "/dashboard/setup",
     icon: RectangleStackIcon,
   },
 ];
@@ -52,12 +52,12 @@ const MainItems = [
 const OthersItems = [
   {
     title: "Settings",
-    url: "#",
+    url: "/dashboard/settings",
     icon: WrenchScrewdriverIcon,
   },
   {
     title: "Support",
-    url: "#",
+    url: "/dashboard/support",
     icon: ChatBubbleLeftRightIcon,
   },
 ];

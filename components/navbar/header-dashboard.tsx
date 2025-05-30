@@ -49,7 +49,7 @@ export function Headerdashboard() {
   return (
     <>
       <header
-        className="fixed top-0 right-0 z-50 h-16 transition-all duration-300"
+        className="fixed top-0 right-0 bg-background h-16 transition-all duration-300"
         style={{
           marginLeft: sidebarWidth,
           width: `calc(100% - ${sidebarWidth})`,
