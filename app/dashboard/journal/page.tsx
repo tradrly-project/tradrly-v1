@@ -17,8 +17,19 @@ export default async function JournalPage() {
     include: {
       pair: true,
     },
-    orderBy: { closedAt: "desc" },
+    orderBy: { date: "desc" },
   });
 
-  return <JournalClient trades={trades} />; // ✅ jangan typo
+   const pairs = await prisma.pair.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      symbol: true,
+    },
+    orderBy: {
+      symbol: "asc",
+    },
+  });
+
+  return <JournalClient trades={trades} pairs={pairs} />; // ✅ jangan typo
 }

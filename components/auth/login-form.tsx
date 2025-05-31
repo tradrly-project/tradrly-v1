@@ -4,10 +4,10 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { LoginButton } from "@/components/button";
 import Link from "next/link";
-import { signInCredentials } from "@/lib/actions";
+import { signInCredentials } from "@/lib/actions/auth";
 import { useActionState } from "react";
 import { ShineBorder } from "../magicui/shine-border";
-import { Input } from "@/components/navbar/input-glow";
+import { Input } from "@/components/input-glow";
 
 export default function LoginForm() {
   const [state, formAction, isPending] = useActionState(
@@ -68,8 +68,6 @@ export default function LoginForm() {
               Sign Up
             </Link>
           </div>
-
-          
         </form>
       </div>
     </div>

@@ -35,13 +35,13 @@ export function AccountSwitcher({
       <DropdownMenuTrigger asChild>
         <Button className="py-5 cursor-pointer pointer-events-auto border w-auto rounded-lg bg-black focus:outline-none focus:ring-0 transform-gpu will-change-transform transition duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:shadow-[0_0_8px_1px_rgba(59,130,246,0.2)] hover:bg-black">
           <div className="bg-black text-white flex aspect-square size-6 items-center justify-center rounded-md  ">
-            <Wallet className="size-4" />
+            <Wallet className="size-5" />
           </div>
-          <div className="grid flex-1 text-left text-[11px] leading-tight text-white">
+          <div className="grid flex-1 text-left text-[13px] leading-tight text-white">
             <span className="truncate font-medium mb-1">
               {activeAccount.name}
             </span>
-            <span className="truncate text-[10px]">
+            <span className="truncate text-[11px]">
               {showBalance ? activeAccount.balance : "* * * * *"}
             </span>
           </div>
