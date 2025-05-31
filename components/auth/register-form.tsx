@@ -1,12 +1,12 @@
 "use client";
 
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/navbar/input-glow";
+import { Input } from "@/components/input-glow";
 import { cn } from "@/lib/utils";
 import { IconBrandGoogle } from "@tabler/icons-react";
 import { RegisterButton } from "@/components/button";
 import Link from "next/link";
-import { signUpCredentials } from "@/lib/actions";
+import { signUpCredentials } from "@/lib/actions/auth";
 import { useActionState } from "react";
 import { ShineBorder } from "../magicui/shine-border";
 

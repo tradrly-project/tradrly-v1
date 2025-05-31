@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Sidebar,
   SidebarContent,
@@ -11,7 +9,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useSession } from "next-auth/react";
 import { NavUser } from "./nav-user";
 import Link from "next/link";
 import Image from "next/image";
@@ -24,6 +21,8 @@ import {
   TableCellsIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 // Menu items.
 const MainItems = [
@@ -62,14 +61,20 @@ const OthersItems = [
   },
 ];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session } = useSession();
+export async function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+  }
+
   const user = {
     name: session?.user?.name ?? "Unknown",
     userName: session?.user.userName ?? "@Unknown",
     avatar: session?.user?.image ?? "/avatars/default.jpg",
   };
-  
+
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
       <SidebarHeader className="items-center">

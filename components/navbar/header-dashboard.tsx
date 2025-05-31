@@ -100,7 +100,7 @@ export function Headerdashboard() {
         </div>
       </header>
       <Separator
-        className="absolute top-16 left-0 mt-2 bg-zinc-800"
+        className="absolute top-16 left-0 mt-4 bg-zinc-800"
         style={{
           marginLeft: sidebarWidth,
           width: `calc(100% - ${sidebarWidth})`,
