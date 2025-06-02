@@ -29,7 +29,7 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
   return (
     <div
       className="h-full p-4 transition-all ease-in-out duration-400"
-      style={{ width: `calc(100vw - ${sidebarWidth})` }}
+      style={{ width: `calc(100vw - ${sidebarWidth})`}}
     >
       <h1 className="text-2xl font-semibold mb-4">Jurnal Trade</h1>
 
@@ -42,7 +42,7 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Tambah Jurnal Trade</DialogTitle>
+              <DialogTitle>Tambah Jurnal</DialogTitle>
               <DialogDescription />
             </DialogHeader>
             <TradeForm pairs={pairs} />

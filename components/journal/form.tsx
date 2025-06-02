@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import React from "react";
+import { DatePickerWithPresets } from "../asset/date-picker-with-presets";
 
 const initialState = {
   message: "",
@@ -18,13 +20,18 @@ type TradeFormProps = {
 
 export default function TradeForm({ pairs }: TradeFormProps) {
   const [state, formAction] = useActionState(createTrade, initialState);
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
 
   return (
     <form action={formAction} className="space-y-3">
       <div className="flex gap-2">
         <LabelInputContainer>
-          <Input name="date" type="date" />
-          <FieldError>{state.errors?.date}</FieldError>
+          <DatePickerWithPresets
+            name="date"
+            value={date}
+            onChange={setDate}
+            error={state.errors?.date}
+          />
         </LabelInputContainer>
         <LabelInputContainer>
           <Input name="direction" placeholder="Posisi (buy/sell)" />
