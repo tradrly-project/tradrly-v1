@@ -9,9 +9,13 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-*::-webkit-scrollbar {
+::-webkit-scrollbar {
   display: none;
   /* Untuk Chrome, Safari, dan Opera */
+}
+
+[data-slot="popover-content"] {
+  overscroll-behavior: contain;
 }
 
 @theme inline {
@@ -53,15 +57,18 @@ html {
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --animate-shine: shine var(--duration) infinite linear;
+
   @keyframes shine {
-  0% {
-    background-position: 0% 0%;
+    0% {
+      background-position: 0% 0%;
     }
-  50% {
-    background-position: 100% 100%;
+
+    50% {
+      background-position: 100% 100%;
     }
-  to {
-    background-position: 0% 0%;
+
+    to {
+      background-position: 0% 0%;
     }
   }
 }
@@ -140,6 +147,7 @@ html {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

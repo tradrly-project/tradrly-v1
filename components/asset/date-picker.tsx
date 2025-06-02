@@ -70,8 +70,9 @@ export function DatePickerWithPresets({ name, value, onChange, error }: Props) {
                             const selected = presetOptions.find(opt => opt.value === v)
                             setPresetLabel(selected?.label ?? null)
                         }}
+
                     >
-                        <SelectTrigger className="group cursor-pointer border-none bg-white/5 hover:bg-white/10 data-[state=open]:bg-white/20 px-3 py-2">
+                        <SelectTrigger className="pointer-events-auto group cursor-pointer border-none bg-white/5 hover:bg-white/10 data-[state=open]:bg-white/20 px-3 py-2" size="sm">
                             <span
                                 className={cn(
                                     "transition-colors",

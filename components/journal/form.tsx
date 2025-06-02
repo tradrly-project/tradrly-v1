@@ -1,30 +1,43 @@
 "use client";
 
+import React from "react";
 import { useActionState } from "react";
 import { createTrade } from "@/lib/actions/trade";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import React from "react";
-import { DatePickerWithPresets } from "../asset/date-picker-with-presets";
-
-const initialState = {
-  message: "",
-  errors: {},
-};
+import { DatePickerWithPresets } from "@/components/asset/date-picker";
+import { DropdownMenuSelect } from "../asset/dropdown-menu";
+import { ComboBox } from "../asset/combo-box";
 
 type TradeFormProps = {
   pairs: { id: string; symbol: string }[];
 };
 
 export default function TradeForm({ pairs }: TradeFormProps) {
+  const initialState = {
+    message: "",
+    errors: {} as Record<string, string[] | string>,
+    values: {
+      pairId: "",
+      direction: "",
+      date: new Date().toISOString(),
+    },
+  };
+
   const [state, formAction] = useActionState(createTrade, initialState);
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [date, setDate] = React.useState<Date>(
+    state.values.date ? new Date(state.values.date) : new Date()
+  );
+  const [direction, setDirection] = React.useState<string>(
+    state.values.direction || ""
+  );
+  const [pairId, setPairId] = React.useState<string>(state.values.pairId || "");
 
   return (
-    <form action={formAction} className="space-y-3">
-      <div className="flex gap-2">
+    <form action={formAction} className="space-y-4">
+      <div className="flex gap-4">
         <LabelInputContainer>
           <DatePickerWithPresets
             name="date"
@@ -32,26 +45,39 @@ export default function TradeForm({ pairs }: TradeFormProps) {
             onChange={setDate}
             error={state.errors?.date}
           />
+          <input type="hidden" name="date" value={date.toISOString()} />
         </LabelInputContainer>
+
         <LabelInputContainer>
-          <Input name="direction" placeholder="Posisi (buy/sell)" />
-          <FieldError>{state.errors?.direction}</FieldError>
+          <DropdownMenuSelect
+            name="direction"
+            value={direction}
+            onChange={setDirection}
+            options={[
+              { label: "Buy", value: "buy" },
+              { label: "Sell", value: "sell" },
+            ]}
+            error={state.errors?.direction}
+          />
+          <input type="hidden" name="direction" value={direction} />
         </LabelInputContainer>
       </div>
 
       <LabelInputContainer>
-        <select name="pairId" id="pairId" className="border rounded px-2 py-1">
-          <option value="">-- Pilih Pair --</option>
-          {pairs.map((pair) => (
-            <option key={pair.id} value={pair.id}>
-              {pair.symbol}
-            </option>
-          ))}
-        </select>
-        <FieldError>{state.errors?.pairId}</FieldError>
+        <ComboBox
+          name="pairId"
+          value={pairId}
+          onChange={setPairId}
+          options={pairs.map((pair) => ({
+            value: pair.id,
+            label: pair.symbol,
+          }))}
+          error={state.errors?.pairId}
+        />
+        <input type="hidden" name="pairId" value={pairId} />
       </LabelInputContainer>
 
-      <div className="flex gap-2">
+      <div className="flex gap-4">
         <LabelInputContainer>
           <Input name="entryPrice" type="number" placeholder="Entry" />
           <FieldError>{state.errors?.entryPrice}</FieldError>
@@ -62,7 +88,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
         </LabelInputContainer>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-4">
         <LabelInputContainer>
           <Input name="stoploss" type="number" placeholder="StopLoss" />
           <FieldError>{state.errors?.stoploss}</FieldError>
@@ -73,7 +99,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
         </LabelInputContainer>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-4">
         <LabelInputContainer>
           <Input name="result" placeholder="Result (win/loss/bep)" />
           <FieldError>{state.errors?.result}</FieldError>
@@ -88,7 +114,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
         </LabelInputContainer>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-4">
         <LabelInputContainer>
           <Input name="psychology" placeholder="Psikologi" />
           <FieldError>{state.errors?.psychology}</FieldError>
@@ -109,9 +135,11 @@ export default function TradeForm({ pairs }: TradeFormProps) {
         <FieldError>{state.errors?.screenshotUrl}</FieldError>
       </LabelInputContainer>
 
-      {state.message && <p className="text-sm text-red-600">{state.message}</p>}
+      {state.message && (
+        <p className="text-sm text-red-600">{state.message}</p>
+      )}
 
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex justify-end gap-3 pt-4">
         <Button type="reset" variant="outline">
           Batal
         </Button>
@@ -120,6 +148,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
     </form>
   );
 }
+
 const LabelInputContainer = ({
   children,
   className,
@@ -127,15 +156,13 @@ const LabelInputContainer = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>
-    {children}
-  </div>
+  <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>
 );
 
 const FieldError = ({ children }: { children?: string | string[] }) => {
   if (!children) return null;
   return (
-    <div className="-mt-3 ml-2">
+    <div className="-mt-3 ml-1">
       <span className="text-xs text-red-700">
         {Array.isArray(children) ? children.join(", ") : children}
       </span>
