@@ -13,33 +13,77 @@ export async function createTrade(
   const session = await auth();
   const userId = session?.user?.id;
 
-  // Ambil dan simpan semua nilai dari FormData
-  const rawValues = Object.fromEntries(formData.entries());
-  const values: TradeFormValues = {
-    pairId: rawValues.pairId?.toString(),
-    direction: rawValues.direction?.toString(),
-    entryPrice: rawValues.entryPrice?.toString(),
-    stoploss: rawValues.stoploss?.toString(),
-    exitPrice: rawValues.exitPrice?.toString(),
-    takeProfit: rawValues.takeProfit?.toString(),
-    result: rawValues.result?.toString(),
-    riskRatio: rawValues.riskRatio?.toString(),
-    profitLoss: rawValues.profitLoss?.toString(),
-    psychology: rawValues.psychology?.toString(),
-    strategi: rawValues.strategi?.toString(),
-    notes: rawValues.notes?.toString(),
-    screenshotUrl: rawValues.screenshotUrl?.toString(),
-    date: rawValues.date?.toString(),
-  };
-
   if (!userId) {
     return {
       message: "Unauthorized",
+      values: {},
+    };
+  }
+
+  // Ambil raw string values dari form
+  const raw = Object.fromEntries(formData.entries());
+
+  const values: TradeFormValues = {
+    pairId: raw.pairId?.toString(),
+    direction: raw.direction?.toString(),
+    entryPrice: raw.entryPrice?.toString(),
+    stoploss: raw.stoploss?.toString(),
+    exitPrice: raw.exitPrice?.toString(),
+    takeProfit: raw.takeProfit?.toString(),
+    lotSize: raw.lotSize?.toString(),
+    result: raw.result?.toString(),
+    riskRatio: raw.riskRatio?.toString(),
+    profitLoss: raw.profitLoss?.toString(),
+    psychology: raw.psychology?.toString(),
+    strategi: raw.strategi?.toString(),
+    notes: raw.notes?.toString(),
+    screenshotUrl: raw.screenshotUrl?.toString(),
+    date: raw.date?.toString(),
+  };
+
+  // Validasi dependensi manual
+  const angkaFields = [
+    values.entryPrice,
+    values.takeProfit,
+    values.stoploss,
+    values.exitPrice,
+    values.lotSize,
+  ];
+
+  const angkaDiisi = angkaFields.some((val) => val && val.trim() !== "");
+
+  if (angkaDiisi && (!values.direction || !values.pairId)) {
+    return {
+      errors: {
+        direction: !values.direction ? ["Posisi wajib diisi terlebih dahulu."] : undefined,
+        pairId: !values.pairId ? ["Pair wajib diisi terlebih dahulu."] : undefined,
+      },
+      message: "Lengkapi Pair/Posisi terlebih dahulu.",
       values,
     };
   }
 
-  const validated = TradeCreateSchema.safeParse(values);
+  // ✅ Parse dan siapkan untuk validasi dengan schema Zod
+  const parsedValues = {
+    userId,
+    pairId: values.pairId,
+    direction: values.direction,
+    entryPrice: values.entryPrice ? Number(values.entryPrice) : undefined,
+    stoploss: values.stoploss ? Number(values.stoploss) : undefined,
+    exitPrice: values.exitPrice ? Number(values.exitPrice) : undefined,
+    takeProfit: values.takeProfit ? Number(values.takeProfit) : undefined,
+    lotSize: values.lotSize ? Number(values.lotSize) : undefined,
+    result: values.result,
+    riskRatio: values.riskRatio ? Number(values.riskRatio) : undefined,
+    profitLoss: values.profitLoss ? Number(values.profitLoss) : undefined,
+    psychology: values.psychology || undefined,
+    strategi: values.strategi || undefined,
+    notes: values.notes || undefined,
+    screenshotUrl: values.screenshotUrl || undefined,
+    date: values.date ? new Date(values.date) : undefined,
+  };
+
+  const validated = TradeCreateSchema.safeParse(parsedValues);
 
   if (!validated.success) {
     return {
@@ -51,17 +95,14 @@ export async function createTrade(
 
   try {
     await prisma.trade.create({
-      data: {
-        ...validated.data,
-        userId,
-      },
+      data: validated.data,
     });
 
     revalidatePath("/dashboard/journal");
 
     return {
       message: "Berhasil menambahkan trade",
-      values: {}, // Kosongkan values setelah berhasil submit
+      values: {},
     };
   } catch (error) {
     console.error(error);

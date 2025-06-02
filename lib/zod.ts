@@ -22,11 +22,11 @@ export const SigninSchema = object({
     .max(5, "Password harus lebih dari 5 karakter"),
 });
 
-export const TradeDirectionEnum = zEnum(["buy", "sell"])
-export const ResultEnum = zEnum(["win", "loss", "bep"])
+export const TradeDirectionEnum = zEnum(["buy", "sell"]);
+export const ResultEnum = zEnum(["win", "loss", "bep"]);
 
-// Trade Schema
-export const TradeSchema = object({
+// Base schema tanpa refine dulu
+export const TradeBaseSchema = object({
   userId: string().uuid({ message: "User ID harus berupa UUID" }),
   pairId: string().uuid({ message: "Pair ID harus berupa UUID" }),
   direction: TradeDirectionEnum,
@@ -43,8 +43,29 @@ export const TradeSchema = object({
   notes: string().optional().nullable(),
   screenshotUrl: string().url("URL tidak valid").optional().nullable(),
   date: date({ required_error: "Tanggal buka wajib diisi" }),
-})
+});
 
+// Tambahkan .refine untuk validasi ekstra (direction/pairId harus diisi jika field angka terisi)
+export const TradeSchema = TradeBaseSchema.refine(
+  (data) => {
+    const angkaDiisi =
+      data.entryPrice || data.stoploss || data.takeProfit || data.exitPrice || data.lotSize;
 
+    const missingDirection = !data.direction;
+    const missingPair = !data.pairId;
+
+    if (angkaDiisi && (missingDirection || missingPair)) {
+      return false;
+    }
+
+    return true;
+  },
+  {
+    message: "Pair dan Direction wajib diisi jika field harga/lot diisi",
+    path: ["direction"], // tampilkan error di field direction
+  }
+);
+
+// Buat schema create dan update
 export const TradeCreateSchema = TradeSchema;
-export const TradeUpdateSchema = TradeSchema.partial();
+export const TradeUpdateSchema = TradeBaseSchema.partial();

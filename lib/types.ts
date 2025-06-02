@@ -25,6 +25,7 @@ export type TradeFormValues = {
   stoploss?: string;
   exitPrice?: string;
   takeProfit?: string;
+  lotSize?: string;
   result?: string;
   riskRatio?: string;
   profitLoss?: string;

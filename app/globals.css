@@ -11,11 +11,23 @@ html {
 
 ::-webkit-scrollbar {
   display: none;
+  -webkit-appearance: none;
   /* Untuk Chrome, Safari, dan Opera */
 }
 
 [data-slot="popover-content"] {
   overscroll-behavior: contain;
+}
+
+.no-spinner::-webkit-inner-spin-button,
+.no-spinner::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Untuk Firefox */
+.no-spinner {
+  -moz-appearance: textfield;
 }
 
 @theme inline {

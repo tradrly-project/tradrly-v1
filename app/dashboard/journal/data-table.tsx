@@ -18,11 +18,12 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  filterValue: string;
+  onFilterChange: (value: string) => void;
 };
 
 export function DataTable<TData, TValue>({
@@ -40,18 +41,6 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4 gap-2">
-        <Input
-          placeholder="Cari Trade..."
-          value={
-            (table.getColumn("entryPrice")?.getFilterValue() as string) ?? ""
-          }
-          onChange={(e) =>
-            table.getColumn("entryPrice")?.setFilterValue(e.target.value)
-          }
-          className="max-w-[200px] focus-visible:ring-[2px]"
-        />
-      </div>
 
       <div className="rounded-md border">
         <Table>

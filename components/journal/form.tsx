@@ -27,6 +27,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   };
 
   const [state, formAction] = useActionState(createTrade, initialState);
+
   const [date, setDate] = React.useState<Date>(
     state.values.date ? new Date(state.values.date) : new Date()
   );
@@ -35,8 +36,51 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   );
   const [pairId, setPairId] = React.useState<string>(state.values.pairId || "");
 
+  // Input states
+  const [entryPrice, setEntryPrice] = React.useState<number>(0);
+  const [exitPrice, setExitPrice] = React.useState<number>(0);
+  const [lotSize, setLotSize] = React.useState<number>(1);
+  const [takeProfit, setTakeProfit] = React.useState<number>(0);
+  const [stoploss, setStoploss] = React.useState<number>(0);
+
+  // Auto-calculated fields
+  const [result, setResult] = React.useState<string>("");
+  const [riskRatio, setRiskRatio] = React.useState<string>("");
+  const [profitLoss, setProfitLoss] = React.useState<string>("");
+
+  React.useEffect(() => {
+    // Result
+    let _result = "bep";
+    if (entryPrice && exitPrice) {
+      if (direction === "buy") {
+        if (exitPrice > entryPrice) _result = "win";
+        else if (exitPrice < entryPrice) _result = "loss";
+      } else if (direction === "sell") {
+        if (exitPrice < entryPrice) _result = "win";
+        else if (exitPrice > entryPrice) _result = "loss";
+      }
+    }
+
+    // RR
+    const rr = Math.abs(takeProfit - entryPrice) / Math.abs(entryPrice - stoploss);
+    const _rr = isFinite(rr) ? rr.toFixed(2) : "";
+
+    // P/L
+    const priceDiff =
+      direction === "buy"
+        ? exitPrice - entryPrice
+        : entryPrice - exitPrice;
+    const pl = priceDiff * lotSize;
+    const _pl = isFinite(pl) ? pl.toFixed(2) : "";
+
+    setResult(_result);
+    setRiskRatio(_rr);
+    setProfitLoss(_pl);
+  }, [entryPrice, exitPrice, lotSize, takeProfit, stoploss, direction]);
+
   return (
     <form action={formAction} className="space-y-4">
+      {/* Date + Direction */}
       <div className="flex gap-4">
         <LabelInputContainer>
           <DatePickerWithPresets
@@ -57,12 +101,17 @@ export default function TradeForm({ pairs }: TradeFormProps) {
               { label: "Buy", value: "buy" },
               { label: "Sell", value: "sell" },
             ]}
-            error={state.errors?.direction}
           />
           <input type="hidden" name="direction" value={direction} />
+
+          {state.errors?.direction && (
+            <p className="text-[10px] text-red-600 font-light -mt-1.5">{state.errors.direction}</p>
+          )}
         </LabelInputContainer>
+
       </div>
 
+      {/* Pair */}
       <LabelInputContainer>
         <ComboBox
           name="pairId"
@@ -72,48 +121,106 @@ export default function TradeForm({ pairs }: TradeFormProps) {
             value: pair.id,
             label: pair.symbol,
           }))}
-          error={state.errors?.pairId}
         />
         <input type="hidden" name="pairId" value={pairId} />
+        {state.errors?.direction && (
+          <p className="text-[10px] text-red-600 font-light -mt-1.5">{state.errors.pairId}</p>
+        )}
       </LabelInputContainer>
 
+      {/* Entry & Exit */}
       <div className="flex gap-4">
         <LabelInputContainer>
-          <Input name="entryPrice" type="number" placeholder="Entry" />
+          <Input
+            name="entryPrice"
+            type="number"
+            placeholder="Entry"
+            className="no-spinner"
+            onChange={(e) => setEntryPrice(parseFloat(e.target.value))}
+          />
           <FieldError>{state.errors?.entryPrice}</FieldError>
         </LabelInputContainer>
         <LabelInputContainer>
-          <Input name="takeProfit" type="number" placeholder="TakeProfit" />
-          <FieldError>{state.errors?.takeProfit}</FieldError>
-        </LabelInputContainer>
-      </div>
-
-      <div className="flex gap-4">
-        <LabelInputContainer>
-          <Input name="stoploss" type="number" placeholder="StopLoss" />
-          <FieldError>{state.errors?.stoploss}</FieldError>
-        </LabelInputContainer>
-        <LabelInputContainer>
-          <Input name="exitPrice" type="number" placeholder="Exit" />
+          <Input
+            name="exitPrice"
+            type="number"
+            placeholder="Exit"
+            className="no-spinner"
+            onChange={(e) => setExitPrice(parseFloat(e.target.value))}
+          />
           <FieldError>{state.errors?.exitPrice}</FieldError>
         </LabelInputContainer>
       </div>
 
+      {/* Lot, TP, SL */}
       <div className="flex gap-4">
         <LabelInputContainer>
-          <Input name="result" placeholder="Result (win/loss/bep)" />
+          <Input
+            name="lotSize"
+            type="number"
+            placeholder="Lot"
+            className="no-spinner"
+            value={lotSize}
+            onChange={(e) => setLotSize(parseFloat(e.target.value))}
+          />
+          <FieldError>{state.errors?.lotSize}</FieldError>
+        </LabelInputContainer>
+        <LabelInputContainer>
+          <Input
+            name="takeProfit"
+            type="number"
+            placeholder="TakeProfit"
+            className="no-spinner"
+            onChange={(e) => setTakeProfit(parseFloat(e.target.value))}
+          />
+          <FieldError>{state.errors?.takeProfit}</FieldError>
+        </LabelInputContainer>
+        <LabelInputContainer>
+          <Input
+            name="stoploss"
+            type="number"
+            placeholder="StopLoss"
+            className="no-spinner"
+            onChange={(e) => setStoploss(parseFloat(e.target.value))}
+          />
+          <FieldError>{state.errors?.stoploss}</FieldError>
+        </LabelInputContainer>
+      </div>
+
+      {/* Result, RR, P/L */}
+      <div className="flex gap-4">
+        <LabelInputContainer>
+          <Input
+            name="result"
+            placeholder="Result"
+            value={result}
+            readOnly
+          />
           <FieldError>{state.errors?.result}</FieldError>
         </LabelInputContainer>
         <LabelInputContainer>
-          <Input name="riskRatio" type="number" placeholder="RR" />
+          <Input
+            name="riskRatio"
+            type="number"
+            placeholder="RR"
+            value={riskRatio}
+            readOnly
+          />
           <FieldError>{state.errors?.riskRatio}</FieldError>
         </LabelInputContainer>
         <LabelInputContainer>
-          <Input name="profitLoss" type="number" placeholder="P/L" />
+          <Input
+            name="profitLoss"
+            type="number"
+            placeholder="P/L"
+            value={profitLoss}
+            readOnly
+          />
           <FieldError>{state.errors?.profitLoss}</FieldError>
         </LabelInputContainer>
       </div>
 
+      {/* Psychology & Strategi */}
       <div className="flex gap-4">
         <LabelInputContainer>
           <Input name="psychology" placeholder="Psikologi" />
@@ -125,20 +232,19 @@ export default function TradeForm({ pairs }: TradeFormProps) {
         </LabelInputContainer>
       </div>
 
+      {/* Notes */}
       <LabelInputContainer>
         <Textarea name="notes" placeholder="Catatan" />
         <FieldError>{state.errors?.notes}</FieldError>
       </LabelInputContainer>
 
+      {/* Screenshot URL */}
       <LabelInputContainer>
         <Input name="screenshotUrl" type="url" placeholder="URL Gambar" />
         <FieldError>{state.errors?.screenshotUrl}</FieldError>
       </LabelInputContainer>
 
-      {state.message && (
-        <p className="text-sm text-red-600">{state.message}</p>
-      )}
-
+      {/* Buttons */}
       <div className="flex justify-end gap-3 pt-4">
         <Button type="reset" variant="outline">
           Batal
@@ -149,6 +255,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   );
 }
 
+// Shared UI layout
 const LabelInputContainer = ({
   children,
   className,
