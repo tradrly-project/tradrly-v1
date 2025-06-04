@@ -16,7 +16,7 @@ export default function LoginForm() {
   );
 
   return (
-    <div className="relative mt-6 w-full max-w-md p-[2px] rounded-2xl overflow-hidden">
+    <div className="relative mt-0 w-full max-w-md p-[2px] rounded-2xl overflow-y-hidden">
       <ShineBorder shineColor={"white"} />
       <div className=" relative z-10 rounded-2xl bg-black p-4 md:p-8 shadow-input">
         <h2 className="md: text-5xl font-bold text-white">Tradrly</h2>
@@ -65,7 +65,7 @@ export default function LoginForm() {
           <div className="my-7 text-sm text-zinc-200">
             Belum punya akun?
             <Link href="/register" className="ml-2 text-sky-400">
-              Sign Up
+              Daftar
             </Link>
           </div>
         </form>

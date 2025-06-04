@@ -1,12 +1,11 @@
-import LoginForm from "@/components/auth/login-form"
-
+import LoginForm from "@/components/auth/login-form";
 
 const LogIn = () => {
     return (
-        <div className="">
+        <div className="mt-4 flex items-center justify-center">
             <LoginForm />
         </div>
-    )
-}
+    );
+};
 
-export default LogIn
+export default LogIn;

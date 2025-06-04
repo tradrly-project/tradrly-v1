@@ -19,6 +19,18 @@ html {
   overscroll-behavior: contain;
 }
 
+input:-webkit-autofill,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: white !important;
+  box-shadow: 0 0 0px 1000px #18181b inset !important;
+  background-color: #18181b !important;
+  color: white !important;
+  caret-color: white !important;
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+
 .no-spinner::-webkit-inner-spin-button,
 .no-spinner::-webkit-outer-spin-button {
   -webkit-appearance: none;

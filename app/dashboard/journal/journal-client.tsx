@@ -58,9 +58,9 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
               <PlusIcon className="mr-1 h-4 w-4" /> Jurnal
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] overflow-y-auto py-10 px-7">
+          <DialogContent className="max-h-[90vh] overflow-y-auto py-10 px-7 rounded-3xl">
             <DialogHeader>
-              <DialogTitle>Tambah Jurnal</DialogTitle>
+              <DialogTitle className="text-2xl font-bold">Tambah Jurnal</DialogTitle>
               <DialogDescription />
             </DialogHeader>
 

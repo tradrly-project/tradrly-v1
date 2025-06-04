@@ -39,6 +39,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       >
         <input
           type={type}
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="off"
           onChange={(e) => {
             setFilled(!!e.target.value);
             props.onChange?.(e); // penting: agar tetap bisa handle dari luar
@@ -46,11 +49,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             `shadow-input dark:placeholder-text-neutral-600 flex h-10 w-full rounded-md border-none px-3 py-2 text-sm transition duration-400 group-hover/input:shadow-none
              file:border-0 file:bg-transparent file:text-sm file:font-medium
-             placeholder:text-neutral-400 focus-visible:ring-[2px] focus-visible:ring-sky-500 focus-visible:outline-none
+             placeholder:text-neutral-400 focus-visible:ring-[1.5px] focus-visible:ring-cyan-400 focus-visible:outline-none
              disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-[0px_0px_1px_1px_#404040] dark:focus-visible:ring-neutral-600`,
             // Conditional color based on filled
             filled
-              ? "bg-zinc-800 text-white dark:bg-white dark:text-black"
+              ? "bg-zinc-800 text-white dark:bg-white dark:text-white"
               : "bg-zinc-900 text-white dark:bg-zinc-800 dark:text-white",
             className
           )}

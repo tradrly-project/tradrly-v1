@@ -17,10 +17,9 @@ export default function RegisterForm() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="relative w-full max-w-3xl p-[20px] rounded-2xl overflow-hidden">
+    <div className="relative rounded-3xl w-full flex items-center justify-center bg-background p-[2.5px]">
         <ShineBorder shineColor={"white"} />
-        <div className="relative z-10 rounded-2xl bg-background p-6 shadow-input w-full">
+      <div className="relative z-10 rounded-2xl p-8 -px-0.5 shadow-input w-full bg-background">
           <h2 className="text-4xl font-bold text-white">Tradrly</h2>
           <p className="mt-1 text-sm text-white">
             Buat akun Anda untuk memulai pengalaman Anda dengan Tradrly!
@@ -126,7 +125,6 @@ export default function RegisterForm() {
             </div>
           </form>
         </div>
-      </div>
     </div>
   );
 }

@@ -16,6 +16,11 @@ type LoginButtonProps = {
   isLoading?: boolean;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
+type MainButtonProps = {
+    children: React.ReactNode;
+    className?: string;
+} & React.ButtonHTMLAttributes<HTMLButtonElement>;
+
 export function RegisterButton({
   children,
   className,
@@ -76,4 +81,17 @@ export function LoginButton({
       )}
     </HoverBorderGradient>
   );
+}
+
+export function MainButton({ children, className, ...props }: MainButtonProps) {
+    return (
+        <HoverBorderGradient
+            containerClassName="rounded-full w-full"
+            as="button"
+            className={`flex items-center justify-center space-x-2 cursor-pointer ${className ?? ""}`}
+            {...props}
+        >
+            {children}
+        </HoverBorderGradient>
+    );
 }
