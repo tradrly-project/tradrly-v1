@@ -98,7 +98,7 @@ export function ComboBox({
                         <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-2" sideOffset={4} align="start">
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-2 bg-background text-foreground" sideOffset={4} align="start">
                     <Input
                         ref={inputRef}
                         value={search}
@@ -107,6 +107,7 @@ export function ComboBox({
                         placeholder="Cari..."
                         className="mb-2"
                         autoFocus
+                        
                     />
                     <div className="max-h-[170px] overflow-y-auto">
                         {filteredOptions.length === 0 ? (
@@ -122,7 +123,7 @@ export function ComboBox({
                                         handleSelect(item)
                                     }}
                                     className={cn(
-                                        "cursor-pointer px-2 py-1 text-sm flex items-center justify-between rounded",
+                                        "cursor-pointer px-2 py-1 text-sm flex items-center justify-between rounded hover:bg-foreground hover:text-background",
                                         idx === highlightedIndex && "bg-muted"
                                     )}
                                 >

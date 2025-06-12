@@ -5,12 +5,13 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { TradeWithPair } from "@/lib/types";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { XIcon } from "lucide-react";
 
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -58,16 +59,29 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
               <PlusIcon className="mr-1 h-4 w-4" /> Jurnal
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] overflow-y-auto py-10 px-7 rounded-3xl">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">Tambah Jurnal</DialogTitle>
-              <DialogDescription />
-            </DialogHeader>
 
+          <DialogContent
+            className="max-h-[90vh] overflow-y-auto pb-10 px-2 rounded-3xl pt-0"
+            showCloseButton={false}
+          >
+            {/* Sticky Header */}
+            <div className="sticky top-0 z-50 bg-background px-7.5 pt-6 pb-4 mb-5 -mx-10">
+              <div className="flex justify-between items-center">
+                <DialogTitle className="text-2xl font-bold text-white">Tambah Jurnal</DialogTitle>
+                <DialogPrimitive.Close asChild>
+                  <button className="cursor-pointer text-white">
+                    <XIcon className="w-5 h-5" />
+                  </button>
+                </DialogPrimitive.Close>
+              </div>
+              <DialogDescription className="text-white/90 mt-1" />
+            </div>
+
+            {/* Form Content */}
             <TradeForm pairs={pairs} />
           </DialogContent>
-
         </Dialog>
+
       </div>
 
       {/* Tabel */}

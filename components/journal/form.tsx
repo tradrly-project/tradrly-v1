@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils";
 import { DatePickerWithPresets } from "@/components/asset/date-picker";
 import { DropdownMenuSelect } from "../asset/dropdown-menu";
 import { ComboBox } from "../asset/combo-box";
+import { FloatingLabelInput } from "../asset/floating-placeholder";
+import { RightPlaceholderInput } from "../asset/placeholder-right";
+import { LeftPlaceholderInput } from "../asset/placeholder-left";
 
 type TradeFormProps = {
   pairs: { id: string; symbol: string }[];
@@ -31,52 +34,60 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   const [date, setDate] = React.useState<Date>(
     state.values.date ? new Date(state.values.date) : new Date()
   );
-  const [direction, setDirection] = React.useState<string>(
-    state.values.direction || ""
-  );
+  const [direction, setDirection] = React.useState<string>(state.values.direction || "");
   const [pairId, setPairId] = React.useState<string>(state.values.pairId || "");
 
-  // Input states
   const [entryPrice, setEntryPrice] = React.useState<number>(0);
   const [exitPrice, setExitPrice] = React.useState<number>(0);
-  const [lotSize, setLotSize] = React.useState<number>(1);
+  const [lotSize, setLotSize] = React.useState<number | "">(0.01);
   const [takeProfit, setTakeProfit] = React.useState<number>(0);
   const [stoploss, setStoploss] = React.useState<number>(0);
 
-  // Auto-calculated fields
   const [result, setResult] = React.useState<string>("");
   const [riskRatio, setRiskRatio] = React.useState<string>("");
   const [profitLoss, setProfitLoss] = React.useState<string>("");
 
   React.useEffect(() => {
-    // Result
-    let _result = "bep";
-    if (entryPrice && exitPrice) {
-      if (direction === "buy") {
-        if (exitPrice > entryPrice) _result = "win";
-        else if (exitPrice < entryPrice) _result = "loss";
-      } else if (direction === "sell") {
-        if (exitPrice < entryPrice) _result = "win";
-        else if (exitPrice > entryPrice) _result = "loss";
-      }
+    const allFilled =
+      direction &&
+      pairId &&
+      date &&
+      entryPrice > 0 &&
+      exitPrice > 0 &&
+      lotSize !== "" &&
+      lotSize >= 0.01 &&
+      takeProfit > 0 &&
+      stoploss > 0;
+
+    if (!allFilled) {
+      setResult("");
+      setRiskRatio("");
+      setProfitLoss("");
+      return;
     }
 
-    // RR
+    let _result = "bep";
+    if (direction === "buy") {
+      if (exitPrice > entryPrice) _result = "win";
+      else if (exitPrice < entryPrice) _result = "loss";
+    } else if (direction === "sell") {
+      if (exitPrice < entryPrice) _result = "win";
+      else if (exitPrice > entryPrice) _result = "loss";
+    }
+
     const rr = Math.abs(takeProfit - entryPrice) / Math.abs(entryPrice - stoploss);
     const _rr = isFinite(rr) ? rr.toFixed(2) : "";
 
-    // P/L
     const priceDiff =
-      direction === "buy"
-        ? exitPrice - entryPrice
-        : entryPrice - exitPrice;
-    const pl = priceDiff * lotSize;
+      direction === "buy" ? exitPrice - entryPrice : entryPrice - exitPrice;
+    const validLotSize = typeof lotSize === "number" ? lotSize : 0;
+    const pl = priceDiff * validLotSize;
     const _pl = isFinite(pl) ? pl.toFixed(2) : "";
 
     setResult(_result);
     setRiskRatio(_rr);
     setProfitLoss(_pl);
-  }, [entryPrice, exitPrice, lotSize, takeProfit, stoploss, direction]);
+  }, [entryPrice, exitPrice, lotSize, takeProfit, stoploss, direction, pairId, date]);
 
   return (
     <form action={formAction} className="space-y-4">
@@ -103,12 +114,8 @@ export default function TradeForm({ pairs }: TradeFormProps) {
             ]}
           />
           <input type="hidden" name="direction" value={direction} />
-
-          {state.errors?.direction && (
-            <p className="text-[10px] text-red-600 font-light -mt-1.5">{state.errors.direction}</p>
-          )}
+          <FieldError>{state.errors?.direction}</FieldError>
         </LabelInputContainer>
-
       </div>
 
       {/* Pair */}
@@ -123,29 +130,29 @@ export default function TradeForm({ pairs }: TradeFormProps) {
           }))}
         />
         <input type="hidden" name="pairId" value={pairId} />
-        {state.errors?.direction && (
-          <p className="text-[10px] text-red-600 font-light -mt-1.5">{state.errors.pairId}</p>
-        )}
+        <FieldError>{state.errors?.pairId}</FieldError>
       </LabelInputContainer>
 
       {/* Entry & Exit */}
       <div className="flex gap-4">
         <LabelInputContainer>
-          <Input
+          <FloatingLabelInput
             name="entryPrice"
             type="number"
-            placeholder="Entry"
-            className="no-spinner"
+            label="Entry Price"
+            className="no-spinner h-auto"
+            value={entryPrice || ""}
             onChange={(e) => setEntryPrice(parseFloat(e.target.value))}
           />
           <FieldError>{state.errors?.entryPrice}</FieldError>
         </LabelInputContainer>
         <LabelInputContainer>
-          <Input
+          <FloatingLabelInput
             name="exitPrice"
             type="number"
-            placeholder="Exit"
-            className="no-spinner"
+            label="Exit Price"
+            className="no-spinner h-auto"
+            value={exitPrice || ""}
             onChange={(e) => setExitPrice(parseFloat(e.target.value))}
           />
           <FieldError>{state.errors?.exitPrice}</FieldError>
@@ -155,32 +162,53 @@ export default function TradeForm({ pairs }: TradeFormProps) {
       {/* Lot, TP, SL */}
       <div className="flex gap-4">
         <LabelInputContainer>
-          <Input
+          <RightPlaceholderInput
             name="lotSize"
             type="number"
-            placeholder="Lot"
+            unit="Lot"
+            step="0.01"
+            min={0.01}
             className="no-spinner"
-            value={lotSize}
-            onChange={(e) => setLotSize(parseFloat(e.target.value))}
+            value={lotSize === "" ? "" : lotSize}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === "") {
+                setLotSize("");
+              } else {
+                const parsed = parseFloat(raw);
+                if (!isNaN(parsed)) {
+                  setLotSize(parsed);
+                }
+              }
+            }}
+            onBlur={() => {
+              if (lotSize === "" || lotSize < 0.01) {
+                setLotSize(0.01);
+              }
+            }}
           />
           <FieldError>{state.errors?.lotSize}</FieldError>
         </LabelInputContainer>
+
         <LabelInputContainer>
-          <Input
+          <LeftPlaceholderInput
+            className="no-spinner"
             name="takeProfit"
             type="number"
-            placeholder="TakeProfit"
-            className="no-spinner"
+            unit="TP"
+            value={takeProfit || ""}
             onChange={(e) => setTakeProfit(parseFloat(e.target.value))}
           />
           <FieldError>{state.errors?.takeProfit}</FieldError>
         </LabelInputContainer>
+
         <LabelInputContainer>
-          <Input
+          <LeftPlaceholderInput
+            className="no-spinner"
             name="stoploss"
             type="number"
-            placeholder="StopLoss"
-            className="no-spinner"
+            unit="SL"
+            value={stoploss || ""}
             onChange={(e) => setStoploss(parseFloat(e.target.value))}
           />
           <FieldError>{state.errors?.stoploss}</FieldError>
@@ -190,29 +218,24 @@ export default function TradeForm({ pairs }: TradeFormProps) {
       {/* Result, RR, P/L */}
       <div className="flex gap-4">
         <LabelInputContainer>
-          <Input
-            name="result"
-            placeholder="Result"
-            value={result}
-            readOnly
-          />
+          <Input name="result" placeholder="Result" value={result} readOnly />
           <FieldError>{state.errors?.result}</FieldError>
         </LabelInputContainer>
         <LabelInputContainer>
-          <Input
+          <LeftPlaceholderInput
             name="riskRatio"
             type="number"
-            placeholder="RR"
+            unit="RR"
             value={riskRatio}
             readOnly
           />
           <FieldError>{state.errors?.riskRatio}</FieldError>
         </LabelInputContainer>
         <LabelInputContainer>
-          <Input
+          <LeftPlaceholderInput
             name="profitLoss"
             type="number"
-            placeholder="P/L"
+            unit="P/L"
             value={profitLoss}
             readOnly
           />
@@ -246,16 +269,14 @@ export default function TradeForm({ pairs }: TradeFormProps) {
 
       {/* Buttons */}
       <div className="flex justify-end gap-3 pt-4">
-        <Button type="reset" variant="outline">
-          Batal
-        </Button>
+        <Button type="reset" variant="outline">Batal</Button>
         <Button type="submit">Simpan</Button>
       </div>
     </form>
   );
 }
 
-// Shared UI layout
+// Shared layout
 const LabelInputContainer = ({
   children,
   className,

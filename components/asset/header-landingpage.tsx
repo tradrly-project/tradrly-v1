@@ -64,9 +64,7 @@ export default function Header() {
                             onMouseLeave={() => hasSubmenu && handleMouseLeave()}
                         >
                             <div
-                                className="cursor-pointer relative text-white antialiased font-medium px-2 py-1 group/btn 
-                  transition-colors duration-200 ease-out hover:text-cyan-500 
-                  hover:-translate-y-[1px] transform-gpu will-change-transform flex items-center gap-2.5"
+                                className="cursor-pointer relative text-white antialiased font-medium px-2 py-1 group/btn transition-colors duration-200 ease-out hover:text-cyan-500 hover:-translate-y-[1px] transform-gpu will-change-transform flex items-center gap-2.5 text-sm"
                             >
                                 {menu.title}
                                 {Icon && (
@@ -80,7 +78,7 @@ export default function Header() {
 
                             {hasSubmenu && isOpen && (
                                 <div
-                                    className="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50"
+                                    className="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50 text-sm"
                                     onMouseEnter={() => {
                                         if (closeTimeout.current) {
                                             clearTimeout(closeTimeout.current);
