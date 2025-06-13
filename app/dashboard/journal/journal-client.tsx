@@ -39,7 +39,7 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
 
   return (
     <div
-      className="h-full p-4 transition-all ease-in-out duration-400 "
+      className="h-full p-4 transition-all ease-in-out duration-400"
       style={{ width: `calc(100vw - ${sidebarWidth})` }}
     >
       <h1 className="text-2xl font-semibold mb-4">Jurnal Trade</h1>
