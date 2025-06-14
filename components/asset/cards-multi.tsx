@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
     AreaChart,
     Area,
@@ -395,14 +395,10 @@ export function TradeHistoryCard() {
             </div>
             <CardContent className="overflow-auto">
                 <Table className="w-full table-fixed">
+                    {/* Colgroup — semua <col> HARUS tanpa spasi/enter antar elemen */}
                     <colgroup>
-                        <col className="w-[18%]" /> {/* Tanggal */}
-                        <col className="w-[14%]" /> {/* Pair */}
-                        <col className="w-[14%]" /> {/* Posisi */}
-                        <col className="w-[8%]" /> {/* Qty */}
-                        <col className="w-[12%]" /> {/* Entry */}
-                        <col className="w-[12%]" /> {/* Exit */}
-                        <col className="w-[12%]" /> {/* Profit/Loss */}
+                        <col className="w-[18%]" /><col className="w-[14%]" /><col className="w-[14%]" />
+                        <col className="w-[8%]" /><col className="w-[12%]" /><col className="w-[12%]" /><col className="w-[12%]" />
                     </colgroup>
                     <TableHeader>
                         <TableRow className="hover:bg-transparent border-b border-zinc-700">
@@ -433,6 +429,7 @@ export function TradeHistoryCard() {
                 </Table>
             </CardContent>
         </Card>
+
 
 
     )

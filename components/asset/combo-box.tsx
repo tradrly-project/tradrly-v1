@@ -31,7 +31,7 @@ export function ComboBox({
     value,
     onChange,
     options,
-    placeholder = "Pilih salah satu...",
+    placeholder = "Pilih Pair",
     error,
     className,
 }: ComboBoxProps) {
@@ -98,7 +98,10 @@ export function ComboBox({
                         <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-2 bg-background text-foreground" sideOffset={4} align="start">
+                <PopoverContent disablePortal
+                    className="w-[--radix-popover-trigger-width] p-2 bg-background text-foreground"
+                    sideOffset={4}
+                    align="start">
                     <Input
                         ref={inputRef}
                         value={search}
@@ -107,7 +110,7 @@ export function ComboBox({
                         placeholder="Cari..."
                         className="mb-2"
                         autoFocus
-                        
+
                     />
                     <div className="max-h-[170px] overflow-y-auto">
                         {filteredOptions.length === 0 ? (
@@ -118,22 +121,29 @@ export function ComboBox({
                             filteredOptions.map((item, idx) => (
                                 <div
                                     key={item.value}
+                                    ref={(el) => {
+                                        if (idx === highlightedIndex && el) {
+                                            el.scrollIntoView({ block: "nearest" })
+                                        }
+                                    }}
                                     onMouseDown={(e) => {
                                         e.preventDefault()
                                         handleSelect(item)
                                     }}
                                     className={cn(
-                                        "cursor-pointer px-2 py-1 text-sm flex items-center justify-between rounded hover:bg-foreground hover:text-background",
-                                        idx === highlightedIndex && "bg-muted"
+                                        "cursor-pointer px-2 py-1 text-sm flex items-center justify-between rounded text-foreground",
+                                        idx === highlightedIndex && "bg-foreground text-background",
+                                        "hover:bg-foreground hover:text-background"
                                     )}
                                 >
                                     {item.label}
                                     {value === item.value && (
-                                        <Check className="h-4 w-4 text-primary" />
+                                        <Check className="h-4 w-4 text-foreground" />
                                     )}
                                 </div>
                             ))
                         )}
+
                     </div>
                 </PopoverContent>
             </Popover>

@@ -13,6 +13,7 @@ import { ComboBox } from "../asset/combo-box";
 import { FloatingLabelInput } from "../asset/floating-placeholder";
 import { RightPlaceholderInput } from "../asset/placeholder-right";
 import { LeftPlaceholderInput } from "../asset/placeholder-left";
+import { FileUpload } from "../ui/file-upload";
 
 type TradeFormProps = {
   pairs: { id: string; symbol: string }[];
@@ -90,7 +91,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   }, [entryPrice, exitPrice, lotSize, takeProfit, stoploss, direction, pairId, date]);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-4 h-full">
       {/* Date + Direction */}
       <div className="flex gap-4">
         <LabelInputContainer>
@@ -263,7 +264,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
 
       {/* Screenshot URL */}
       <LabelInputContainer>
-        <Input name="screenshotUrl" type="url" placeholder="URL Gambar" />
+        <FileUpload />
         <FieldError>{state.errors?.screenshotUrl}</FieldError>
       </LabelInputContainer>
 

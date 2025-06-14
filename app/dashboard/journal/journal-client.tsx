@@ -6,8 +6,6 @@ import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { TradeWithPair } from "@/lib/types";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { XIcon } from "lucide-react";
-
 import {
   Dialog,
   DialogContent,
@@ -15,11 +13,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
 import { Input } from "@/components/ui/input";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import TradeForm from "@/components/journal/form";
+import { XIcon } from "lucide-react";
 
 interface JournalClientProps {
   trades: TradeWithPair[];
@@ -61,25 +59,30 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
           </DialogTrigger>
 
           <DialogContent
-            className="max-h-[90vh] overflow-y-auto pb-10 px-2 rounded-3xl pt-0"
+            className="p-0 rounded-3xl overflow-hidden"
+            style={{ height: '90vh' }} // kunci tinggi dialog
             showCloseButton={false}
           >
-            {/* Sticky Header */}
-            <div className="sticky top-0 z-50 bg-background px-7.5 pt-6 pb-4 mb-5 -mx-10">
-              <div className="flex justify-between items-center">
-                <DialogTitle className="text-2xl font-bold text-white">Tambah Jurnal</DialogTitle>
-                <DialogPrimitive.Close asChild>
-                  <button className="cursor-pointer text-white">
-                    <XIcon className="w-5 h-5" />
-                  </button>
-                </DialogPrimitive.Close>
+            <div className="flex flex-col h-full">
+              <div className="sticky top-0 z-50 bg-background py-6 px-1">
+                <div className="flex justify-between items-center">
+                  <DialogTitle className="text-2xl font-bold text-white">Tambah Jurnal</DialogTitle>
+                  <DialogPrimitive.Close asChild>
+                    <button className="cursor-pointer text-white">
+                      <XIcon className="w-5 h-5" />
+                    </button>
+                  </DialogPrimitive.Close>
+                </div>
+                <DialogDescription className="text-white/90 mt-1" />
               </div>
-              <DialogDescription className="text-white/90 mt-1" />
-            </div>
 
-            {/* Form Content */}
-            <TradeForm pairs={pairs} />
+              <div className="overflow-y-auto px-2 pb-6 space-y-4 flex-1">
+                <TradeForm pairs={pairs} />
+              </div>
+            </div>
           </DialogContent>
+
+
         </Dialog>
 
       </div>
