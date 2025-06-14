@@ -88,7 +88,7 @@ export function MainButton({ children, className, ...props }: MainButtonProps) {
         <HoverBorderGradient
             containerClassName="rounded-full w-full"
             as="button"
-            className={`flex items-center justify-center space-x-2 cursor-pointer ${className ?? ""}`}
+            className={`flex font-semibold items-center justify-center space-x-2 cursor-pointer ${className ?? ""}`}
             {...props}
         >
             {children}

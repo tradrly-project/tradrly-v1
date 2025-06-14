@@ -12,9 +12,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <AppSidebar />
           <div className="flex-1 flex flex-col">
             <Headerdashboard />
-            <main className="flex-1 mt-18.5 p-4 flex flex-col min-h-[calc(100vh-4rem)]">
-              <header className="flex h-8 shrink-0 items-center mb-2 justify-between">
-                <DynamicBreadcrumb />
+            <main className="flex-1 mt-11 p-4 flex flex-col min-h-[calc(100vh-4rem)]">
+              <header className="sticky top-[78px] z-20 bg-background pt-2 bg-red- mb-4">
+                <div className="flex h-8 items-center px-1">
+                  <DynamicBreadcrumb />
+                </div>
               </header>
               <div className="flex-1">{children}</div>
             </main>

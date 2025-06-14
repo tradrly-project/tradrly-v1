@@ -39,7 +39,7 @@ export function DynamicBreadcrumb() {
       <BreadcrumbList>
         {/* Statis awal: Dashboard */}
         <BreadcrumbItem>
-          <BreadcrumbLink asChild className="text-sm">
+          <BreadcrumbLink asChild className="text-[16px] font-medium">
             <Link href="/dashboard">Dashboard</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -56,7 +56,7 @@ export function DynamicBreadcrumb() {
               .replace(/\b\w/g, (char) => char.toUpperCase());
 
           return (
-            <div key={href} className="flex items-center text-sm">
+            <div key={href} className="flex items-center text-[16px]">
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {isLast ? (

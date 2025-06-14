@@ -1,23 +1,33 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
+import { Card, CardContent} from "@/components/ui/card"
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+    ReferenceLine,
+    TooltipProps,
+} from "recharts";
+
 import {
     CircularProgressbarWithChildren,
     buildStyles,
 } from "react-circular-progressbar"
 import "react-circular-progressbar/dist/styles.css"
-
-// Dummy Data (replace with real data via props or hooks)
-const chartData = [
-    { day: 1, profit: 120 },
-    { day: 5, profit: 300 },
-    { day: 10, profit: 600 },
-    { day: 15, profit: 800 },
-    { day: 20, profit: 400 },
-    { day: 25, profit: 900 },
-    { day: 30, profit: 700 },
-]
+import { Calendar } from "../ui/calendar"
+import { format } from "date-fns";
+import { max, min } from "d3-array";
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableHead,
+    TableCell,
+} from "../ui/table";
 
 export function PerformanceCard() {
     const winrate = 93.3
@@ -26,47 +36,39 @@ export function PerformanceCard() {
     const totalLoss = 3
 
     return (
-        <Card className="bg-background text-white rounded-3xl p-5 w-[300px] h-[215px]">
-            {/* Header */}
-            <div>
-                <p className="text-md font-semibold text-white">Performance</p>
-                <p className="text-xs text-gray-400">Bulan ini</p>
-            </div>
+        <Card className="bg-foreground/5 text-white rounded-3xl px-6 py-5 h-[180px] border-none">
+            <div className="flex w-full h-full relative">
+                {/* Kiri: Header + Total Trade */}
+                <div className="flex flex-col justify-start w-[40%] bg-blue-">
+                    {/* Header */}
+                    <div className="mb-5.5">
+                        <p className="text-md font-semibold text-white">Performance</p>
+                        <p className="text-xs text-gray-400">Bulan ini</p>
+                    </div>
 
-            {/* Wrapper Flex untuk layout horizontal */}
-            <div className="relative w-full -mt-3">
-                {/* === WRAPPER UTAMA KIRI (bg-blue-900) === */}
-                <div className="flex items-center bg-blue- w-full pr-36 rounded-xl">
-                    {/* === BAGIAN KIRI === */}
-                    <div className="">
-                        <div className="flex flex-col">
-                            {/* Total Trade */}
-                            <div className="bg-foreground/7 rounded-lg py-1.5 pl-2.5 pr-4 w-fit mb-1.5">
-                                <p className="text-xs font-bold text-gray-400 mb-2">Total Trade</p>
-                                <div className="flex items-baseline space-x-8 ml-3">
-                                    <p className="text-sm font-bold text-white">{totalTrade}</p>
-                                    <span className="text-xs text-white">Trade</span>
-                                </div>
-                            </div>
-
-                            {/* Profit / Loss */}
-                            <div className="flex space-x-14 bg-foreground/7 py-1.5 px-3 rounded-lg w-fit">
-                                <div className="text-green-400 text-center text-xs font-bold">
-                                    <p>Profit</p>
-                                    <p className="text-white text-sm font-bold mt-2">{totalWin}</p>
-                                </div>
-                                <div className="text-red-400 text-center text-xs font-bold">
-                                    <p>Loss</p>
-                                    <p className="text-white text-sm font-bold mt-2">{totalLoss}</p>
-                                </div>
-                            </div>
-                        </div>
+                    {/* Total Trade */}
+                    <div className="flex flex-col justify-start">
+                        <p className="text-[14px] font-bold text-gray-400 mb-1">Total Trade</p>
+                        <p className="text-[20px] font-bold text-white">{totalTrade}</p>
+                        <span className="text-[16px] font-semibold text-white">Trade</span>
                     </div>
                 </div>
 
-                {/* === BAGIAN WINRATE (DI LUAR DIV BIRU, DI SISI KANAN CARD) === */}
-                <div className="absolute -right-1 top-1/2 -translate-y-17">
-                    <div className="w-20 h-20 md:h-26 md:w-26">
+                {/* Tengah: Profit & Loss (sama tinggi dengan kiri) */}
+                <div className="flex flex-col justify-between w-[30%] px-2 space-y-4">
+                    <div className="bg-foreground/6 rounded-md py-1 px-3 text-left">
+                        <p className="text-[16px] text-green-400 font-bold mb-2">Profit</p>
+                        <p className="text-white text-md font-semibold">{totalWin}</p>
+                    </div>
+                    <div className="bg-foreground/6 rounded-md py-1 px-3 text-left">
+                        <p className="text-[16px] text-red-500 font-bold mb-2">Loss</p>
+                        <p className="text-white text-md font-semibold">{totalLoss}</p>
+                    </div>
+                </div>
+
+                {/* Kanan: Grafik Winrate (tinggi sama seperti tengah) */}
+                <div className="flex items-center ml-6 bg-yellow- h-full">
+                    <div className="w-32 h-32">
                         <CircularProgressbarWithChildren
                             value={winrate}
                             styles={buildStyles({
@@ -75,22 +77,23 @@ export function PerformanceCard() {
                             })}
                         >
                             <div className="flex flex-col items-center justify-center">
-                                <div className="text-md font-bold text-white">
+                                <div className="text-lg font-bold text-white">
                                     {winrate.toFixed(1)}%
                                 </div>
-                                <p className="text-sm text-gray-400 mt-0.5">Winrate</p>
+                                <p className="text-[14px] text-gray-400 mt-0.5">Winrate</p>
                             </div>
                         </CircularProgressbarWithChildren>
                     </div>
                 </div>
             </div>
         </Card>
+
     )
 }
 
 export function ProfitLossCard() {
     return (
-        <Card className="bg-background text-white rounded-3xl p-5 w-[190px] h-[215px]">
+        <Card className="bg-foreground/5 text-white rounded-3xl p-4 h-[180px] border-none">
             {/* Header */}
             <div>
                 <p className="text-md font-semibold text-white">Profit and Loss</p>
@@ -98,116 +101,340 @@ export function ProfitLossCard() {
             </div>
 
             {/* Content */}
-            <div className="-mt-3">
-                <span className="text-emerald-400 font-bold">Profit</span>
-                <p>$ 1.000.000</p>
+            <div className="-mt-4.5">
+                <span className="text-emerald-400 font-bold text-sm">Profit</span>
+                <p className="text-sm font-semibold">$ 1,293.00</p>
+            </div>
+            <div className="-mt-4.5">
+                <span className="text-red-500 font-bold text-sm">Loss</span>
+                <p className="text-sm font-semibold">-$ 293.00</p>
             </div>
         </Card>
     )
 }
 
 export function PositionSummaryCard() {
+    const riskRatio = 78.5;
+    const longPosition = 65;    // misalnya persen
+    const shortPosition = 35;
+    const avgWin = 58;
+    const avgLoss = 42;
+
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Position Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                    <div>
-                        <p>LONG</p>
-                        <p className="text-green-500">80%</p>
+        <Card className="bg-foreground/5 text-white rounded-3xl px-6 py-2 h-[180px] border-none">
+            <div className="flex w-full h-full">
+                {/* Kiri: Risk Ratio */}
+                <div className="flex flex-col justify-start w-[40%] bg-red- py-3">
+                    {/* Header */}
+                    <div className="mb-1.5">
+                        <p className="text-md font-semibold text-white">Histori Posisi</p>
+                        <p className="text-xs text-gray-400">Bulan ini</p>
                     </div>
-                    <div>
-                        <p>SHORT</p>
-                        <p className="text-red-500">20%</p>
+
+                    {/* Grafik Risk Ratio */}
+                    <div className="w-24 h-24 ml-8">
+                        <CircularProgressbarWithChildren
+                            value={riskRatio}
+                            styles={buildStyles({
+                                pathColor: "#00C2FF",
+                                trailColor: "#000000",
+                            })}
+                        >
+                            <div className="flex flex-col items-center justify-center">
+                                <div className="text-md font-bold text-white">
+                                    {riskRatio.toFixed(1)}%
+                                </div>
+                                <p className="text-[12px] text-gray-400 mt-0.5">Risk Ratio</p>
+                            </div>
+                        </CircularProgressbarWithChildren>
                     </div>
                 </div>
-                <div className="flex justify-between">
-                    <div>
-                        <p>Avg. WIN</p>
-                        <p className="text-green-500">80%</p>
+
+                {/* Tengah: Long & Avg Win */}
+                <div className="flex flex-col items-center justify-between w-[30%] space-y-2 bg-yellow- py-1">
+                    {/* Long */}
+                    <div className="w-18 h-18">
+                        <CircularProgressbarWithChildren
+                            value={longPosition}
+                            styles={buildStyles({
+                                pathColor: "#4ade80",
+                                trailColor: "#111827",
+                            })}
+                        >
+                            <div className="text-xs font-semibold text-white">{longPosition}%</div>
+                            <p className="text-[10px] text-gray-400 mt-0.5">Long</p>
+                        </CircularProgressbarWithChildren>
                     </div>
-                    <div>
-                        <p>Avg. LOSS</p>
-                        <p className="text-red-500">40%</p>
+
+                    {/* Avg Win */}
+                    <div className="w-18 h-18">
+                        <CircularProgressbarWithChildren
+                            value={avgWin}
+                            styles={buildStyles({
+                                pathColor: "#4ade80",
+                                trailColor: "#111827",
+                            })}
+                        >
+                            <div className="text-xs font-semibold text-white">{avgWin}%</div>
+                            <p className="text-[10px] text-gray-400 mt-0.5">Avg Win</p>
+                        </CircularProgressbarWithChildren>
                     </div>
                 </div>
-                <div>
-                    <p>Risk : Ratio</p>
-                    <p className="text-blue-400 text-lg font-bold">1 : 2</p>
+
+                {/* Kanan: Short & Avg Loss */}
+                <div className="flex flex-col items-center justify-between w-[30%] space-y-1.5 bg-blue- py-1">
+                    {/* Short */}
+                    <div className="w-18 h-18">
+                        <CircularProgressbarWithChildren
+                            value={shortPosition}
+                            styles={buildStyles({
+                                pathColor: "#ef4444",
+                                trailColor: "#111827",
+                            })}
+                        >
+                            <div className="text-xs font-semibold text-white">{shortPosition}%</div>
+                            <p className="text-[10px] text-gray-400 mt-0.5">Short</p>
+                        </CircularProgressbarWithChildren>
+                    </div>
+
+                    {/* Avg Loss */}
+                    <div className="w-18 h-18">
+                        <CircularProgressbarWithChildren
+                            value={avgLoss}
+                            styles={buildStyles({
+                                pathColor: "#ef4444",
+                                trailColor: "#111827",
+                            })}
+                        >
+                            <div className="text-xs font-semibold text-white">{avgLoss}%</div>
+                            <p className="text-[10px] text-gray-400 mt-0.5">Avg Loss</p>
+                        </CircularProgressbarWithChildren>
+                    </div>
                 </div>
-            </CardContent>
+            </div>
         </Card>
-    )
+    );
+}
+
+const profits: { [date: string]: number } = {
+    "01-05-2025": 12.5,
+    "02-05-2025": -48.45,
+    "03-05-2025": 79.65,
+    "04-05-2025": 84.12,
+    "07-05-2025": 0,
+
+};
+
+
+function CustomDayContent({ day }: { day: Date }) {
+    const dateStr = format(day, "dd-MM-yyyy");
+    const profit = profits[dateStr];
+
+    return (
+        <div className="flex flex-col items-center justify-between w-full h-full mt-1">
+            <span className="text-[16px]">{day.getDate()}</span>
+            {profit !== undefined && (
+                <span
+                    className={`text-[11px] font-semibold mb-1.5 ${profit > 0
+                        ? "text-emerald-400"
+                        : profit < 0
+                            ? "text-red-500"
+                            : "text-zinc-400"
+                        }`}
+                >
+                    {profit === 0 ? "$ --" : `$${Math.abs(profit).toFixed(2)}`}
+                </span>
+            )}
+        </div>
+    );
 }
 
 export function CalendarCard() {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Kalender - Mei 2025</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p className="text-sm text-muted-foreground">Integrasi dengan kalender dan data harian profit/loss</p>
-                {/* Placeholder atau integrasi dengan kalender seperti react-calendar */}
-            </CardContent>
+        <Card className="bg-foreground/5 text-white rounded-3xl border-none h-[400px] flex flex-col">
+            <Calendar
+                month={new Date(2025, 4, 1)}
+                components={{
+                    DayContent: (props) => <CustomDayContent day={props.date} />,
+                }}
+                className="h-full text-white bg-transparent"
+                classNames={{
+                    month: "w-full h-full",
+                    table: "w-full h-full table-fixed",
+                    head_row: "",
+                    head_cell:
+                        "text-foreground text-lg font-semibold text-center pt-1 pb-4",
+                    row: "",
+                    cell: "h-[52px] w-[52px] text-center align-top",
+                    day:
+                        "w-full h-full text-[16px] rounded-md cursor-pointer flex flex-col items-center justify-center hover:bg-foreground/10",
+                    day_selected: "bg-white text-black",
+                    caption_label: "text-lg font-bold text-center",
+                    caption: "flex relative justify-center -mt-4 mb-6",
+                    nav_button_previous: "absolute left-4",
+                    nav_button_next: "absolute right-4",
+                }}
+            />
         </Card>
-    )
+
+    );
 }
 
+const chartData = [
+    { day: 1, profit: 0 },
+    { day: 5, profit: 320 },
+    { day: 10, profit: 450 },
+    { day: 15, profit: -800 },
+    { day: 20, profit: 1000 },
+    { day: 22, profit: 889.59 },
+    { day: 25, profit: 0 },
+    { day: 30, profit: -300 },
+];
+
+const CustomTooltip = ({
+    active,
+    payload,
+    label,
+}: TooltipProps<number, string>) => {
+    if (active && payload && payload.length) {
+        const value = payload[0].value?.toFixed(2);
+        return (
+            <div className="bg-black text-white p-4 rounded-lg shadow-md text-sm">
+                <div className="text-muted-foreground mb-1">Bulan Ini</div>
+                <div className="text-lg font-semibold">${value}</div>
+                <div className="text-xs mt-1">{label} Mei 2025</div>
+            </div>
+        );
+    }
+    return null;
+};
+
 export function ProfitLossChartCard() {
+    const profits = chartData.map((d) => d.profit);
+    const dataMin = Math.min(0, min(profits) ?? 0);
+    const dataMax = Math.max(0, max(profits) ?? 100);
+
+    // Buat kelipatan adaptif
+    const range = dataMax - dataMin;
+    const step = range > 5000 ? 1000 : range > 2000 ? 500 : 250;
+
+    // Bulatkan ke bawah & atas agar tidak mepet
+    const yMin = Math.floor(dataMin / step) * step;
+    const yMax = Math.ceil(dataMax / step) * step;
+
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Total Profit/Loss</CardTitle>
-            </CardHeader>
-            <CardContent className="h-48">
+        <Card className="py-4 px-6 bg-foreground/5 text-white rounded-3xl border-none h-[400px] flex flex-col">
+            {/* Header */}
+            <div>
+                <p className="text-md font-semibold text-white">Profit and Loss</p>
+                <p className="text-xs text-gray-400">Bulan ini</p>
+            </div>
+
+            {/* Chart */}
+            <div className="flex-1 -mt-2">
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                        <XAxis dataKey="day" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="profit" stroke="#3b82f6" strokeWidth={2} />
-                    </LineChart>
+                    <AreaChart
+                        data={chartData}
+                        margin={{ top: 30, right: 10, bottom: 30, left: 0 }}
+                    >
+                        <defs>
+                            <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#00C2FF" stopOpacity={0.5} />
+                                <stop offset="70%" stopColor="#000000" stopOpacity={0.15} />
+                            </linearGradient>
+                        </defs>
+
+                        <XAxis
+                            dataKey="day"
+                            tick={{ fill: "#ccc", fontSize: 14 }}
+                            axisLine={false}
+                            tickLine={false}
+                            padding={{ left: 8, right: 8 }}
+                            tickMargin={20}
+                        />
+                        <YAxis
+                            domain={[yMin, yMax]}
+                            tick={{ fill: "#ccc", fontSize: 12 }}
+                            axisLine={false}
+                            tickLine={false}
+                            tickFormatter={(val) => `$${val}`}
+                            interval="preserveStartEnd"
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <ReferenceLine y={0} stroke="#e5e5e5" strokeWidth={1} />
+                        <Area
+                            type="monotone"
+                            dataKey="profit"
+                            stroke="#00C2FF"
+                            fill="url(#colorProfit)"
+                            strokeWidth={3}
+                            dot={{ r: 3, stroke: "white", strokeWidth: 1.5 }}
+                            activeDot={{ r: 6 }}
+                        />
+                    </AreaChart>
                 </ResponsiveContainer>
-            </CardContent>
+            </div>
         </Card>
-    )
+    );
 }
 
 export function TradeHistoryCard() {
     const trades = [
-        { date: "14-Mei-2025", pair: "XAUUSD", pos: "LONG", status: "CLOSED", entry: 1.3, exit: 1.36, pnl: 64.46 },
-        { date: "14-Mei-2025", pair: "US100", pos: "LONG", status: "CLOSED", entry: 1.3, exit: 1.36, pnl: 64.46 },
+        { date: "14-Mei-2025", pair: "XAUUSD", pos: "LONG", status: "CLOSED", qty: 0.1, entry: 3.300, exit: 3.350, pnl: 64.46 },
+        { date: "14-Mei-2025", pair: "XAUUSD", pos: "LONG", status: "CLOSED", qty: 0.1, entry: 3.300, exit: 3.350, pnl: 64.46 },
+        { date: "14-Mei-2025", pair: "XAUUSD", pos: "LONG", status: "CLOSED", qty: 0.1, entry: 3.300, exit: 3.350, pnl: 64.46 },
+        { date: "14-Mei-2025", pair: "XAUUSD", pos: "LONG", status: "CLOSED", qty: 0.1, entry: 3.300, exit: 3.350, pnl: 64.46 },
+        { date: "14-Mei-2025", pair: "XAUUSD", pos: "LONG", status: "CLOSED", qty: 0.1, entry: 3.300, exit: 3.350, pnl: 64.46 },
+        { date: "14-Mei-2025", pair: "XAUUSD", pos: "LONG", status: "CLOSED", qty: 0.1, entry: 3.300, exit: 3.350, pnl: 64.46 },
     ]
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>History Trade</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr className="text-left border-b">
-                            <th>Tanggal</th><th>Pair</th><th>Posisi</th><th>Status</th><th>P/L</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+        <Card className="py-4 px-4 bg-foreground/5 text-white rounded-3xl border-none h-[350px] flex flex-col">
+            <div className="pl-4 -mb-3 mt-1">
+                <p className="text-2xl font-bold text-white">History Trade</p>
+            </div>
+            <CardContent className="overflow-auto">
+                <Table className="w-full table-fixed">
+                    <colgroup>
+                        <col className="w-[18%]" /> {/* Tanggal */}
+                        <col className="w-[14%]" /> {/* Pair */}
+                        <col className="w-[14%]" /> {/* Posisi */}
+                        <col className="w-[8%]" /> {/* Qty */}
+                        <col className="w-[12%]" /> {/* Entry */}
+                        <col className="w-[12%]" /> {/* Exit */}
+                        <col className="w-[12%]" /> {/* Profit/Loss */}
+                    </colgroup>
+                    <TableHeader>
+                        <TableRow className="hover:bg-transparent border-b border-zinc-700">
+                            <TableHead className="text-left px-2">Tanggal</TableHead>
+                            <TableHead className="text-left px-2">Pair</TableHead>
+                            <TableHead className="text-left px-2">Posisi</TableHead>
+                            <TableHead className="text-center px-2">Qty</TableHead>
+                            <TableHead className="text-right px-2">Entry</TableHead>
+                            <TableHead className="text-right px-2">Exit</TableHead>
+                            <TableHead className="text-right px-2">PnL</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {trades.map((t, i) => (
-                            <tr key={i} className="border-b last:border-none">
-                                <td>{t.date}</td>
-                                <td>{t.pair}</td>
-                                <td>{t.pos}</td>
-                                <td>{t.status}</td>
-                                <td className={t.pnl >= 0 ? "text-green-500" : "text-red-500"}>${t.pnl.toFixed(2)}</td>
-                            </tr>
+                            <TableRow key={i} className="hover:bg-white/5 border-0">
+                                <TableCell className="text-left px-2">{t.date}</TableCell>
+                                <TableCell className="text-left px-2">{t.pair}</TableCell>
+                                <TableCell className="text-left px-2">{t.pos}</TableCell>
+                                <TableCell className="text-center px-2">{t.qty} Lot</TableCell>
+                                <TableCell className="text-right px-2">${t.entry}</TableCell>
+                                <TableCell className="text-right px-2">${t.exit}</TableCell>
+                                <TableCell className={`${t.pnl >= 0 ? "text-green-500" : "text-red-500"} text-right px-2`}>
+                                    ${t.pnl.toFixed(2)}
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </CardContent>
         </Card>
+
+
     )
 }
 
@@ -220,12 +447,12 @@ export function TopGainerCard() {
         { pair: "AUDJPY", gain: 25.54 },
     ]
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Top 5 Gainer</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <ul className="text-sm space-y-1">
+        <Card className="bg-foreground/5 text-white rounded-3xl px-4 py-6 h-[350px] border-none">
+            <div className="bg-red- mt-2 pl-1">
+                <p className="text-lg font-bold text-white">Top 5 Gainers</p>
+            </div>
+            <div className="w-full mt-2 pl-1">
+                <ul className="text-md font-semibold space-y-6 flex flex-col">
                     {gainers.map((item, i) => (
                         <li key={i} className="flex justify-between">
                             <span>{i + 1}. {item.pair}</span>
@@ -233,7 +460,7 @@ export function TopGainerCard() {
                         </li>
                     ))}
                 </ul>
-            </CardContent>
+            </div>
         </Card>
     )
 }
@@ -247,12 +474,12 @@ export function TopLoserCard() {
         { pair: "AUDJPY", loss: 25.54 },
     ]
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Top 5 Loser</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <ul className="text-sm space-y-1">
+        <Card className="bg-foreground/5 text-white rounded-3xl px-4 py-6 h-[350px] border-none">
+            <div className="bg-red- mt-2 pl-1">
+                <p className="text-lg font-bold text-white">Top 5 Lossers</p>
+            </div>
+            <div className="w-full mt-2 pl-1">
+                <ul className="text-md font-semibold space-y-6 flex flex-col ">
                     {losers.map((item, i) => (
                         <li key={i} className="flex justify-between">
                             <span>{i + 1}. {item.pair}</span>
@@ -260,7 +487,7 @@ export function TopLoserCard() {
                         </li>
                     ))}
                 </ul>
-            </CardContent>
+            </div>
         </Card>
     )
 }

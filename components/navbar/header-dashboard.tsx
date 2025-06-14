@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 import {
   BellIcon,
   EyeIcon,
@@ -49,7 +48,7 @@ export function Headerdashboard() {
   return (
     <>
       <header
-        className="fixed top-0 right-0 bg-background h-16 transition-all duration-300"
+        className="fixed top-0 right-0 bg-background h-fit transition-all duration-300 z-30 border-b-1 border-zinc-800 py-4"
         style={{
           marginLeft: sidebarWidth,
           width: `calc(100% - ${sidebarWidth})`,
@@ -99,13 +98,6 @@ export function Headerdashboard() {
           </div>
         </div>
       </header>
-      <Separator
-        className="absolute top-16 left-0 mt-4 bg-zinc-800"
-        style={{
-          marginLeft: sidebarWidth,
-          width: `calc(100% - ${sidebarWidth})`,
-        }}
-      />
     </>
   );
 }
