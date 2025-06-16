@@ -28,7 +28,7 @@ export const ResultEnum = zEnum(["win", "loss", "bep"]);
 // Base schema tanpa refine dulu
 export const TradeBaseSchema = object({
   userId: string().uuid({ message: "User ID harus berupa UUID" }),
-  pairId: string().uuid({ message: "Pair ID harus berupa UUID" }),
+  pairId: string().min(1, "Pair ID wajib diisi"),
   direction: TradeDirectionEnum,
   entryPrice: number({ required_error: "Harga entry wajib diisi" }),
   stoploss: number({ required_error: "Stoploss wajib diisi" }),

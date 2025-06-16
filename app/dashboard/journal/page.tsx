@@ -2,7 +2,17 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import JournalClient from "@/app/dashboard/journal/journal-client";
-import { TradeWithPair } from "@/lib/types";  // digunakan untuk type safety
+import { TradeWithPair } from "@/lib/types";
+
+function serializeDecimals<T>(data: T): T {
+  return JSON.parse(
+    JSON.stringify(data, (key, value) =>
+      typeof value === "object" && value !== null && value.constructor?.name === "Decimal"
+        ? Number(value)
+        : value
+    )
+  );
+}
 
 export default async function JournalPage() {
   const session = await auth();
@@ -12,7 +22,7 @@ export default async function JournalPage() {
     throw new Error("User tidak terautentikasi");
   }
 
-  const trades: TradeWithPair[] = await prisma.trade.findMany({
+  const tradesRaw: TradeWithPair[] = await prisma.trade.findMany({
     where: { userId },
     include: {
       pair: true,
@@ -20,7 +30,7 @@ export default async function JournalPage() {
     orderBy: { date: "desc" },
   });
 
-   const pairs = await prisma.pair.findMany({
+  const pairs = await prisma.pair.findMany({
     where: { userId },
     select: {
       id: true,
@@ -31,5 +41,7 @@ export default async function JournalPage() {
     },
   });
 
-  return <JournalClient trades={trades} pairs={pairs} />; // ✅ jangan typo
+  const trades = serializeDecimals(tradesRaw); // ✅ konversi semua Decimal
+
+  return <JournalClient trades={trades} pairs={pairs} />;
 }

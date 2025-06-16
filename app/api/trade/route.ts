@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const trade = await prisma.trade.create({
       data: {
         ...parsed.data,
-        userId, // pastikan userId sesuai session
+        userId,
       },
     })
 

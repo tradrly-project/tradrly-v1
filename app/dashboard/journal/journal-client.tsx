@@ -31,9 +31,15 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
   const [filter, setFilter] = useState("");
 
   // Filter berdasarkan entryPrice, bisa disesuaikan ke kolom lain
-  const filteredTrades = trades.filter((trade) =>
-    trade.entryPrice.toString().toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredTrades = trades.filter((trade) => {
+  const pair = trade.pair?.symbol?.toLowerCase() || "";
+  const result = trade.result?.toLowerCase() || "";
+  const direction = trade.direction?.toLowerCase() || "";
+  const keyword = filter.toLowerCase();
+
+  return pair.includes(keyword) || result.includes(keyword) || direction.includes(keyword);
+});
+
 
   return (
     <div
@@ -90,9 +96,7 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
       {/* Tabel */}
       <DataTable
         columns={columns}
-        data={filteredTrades}
-        filterValue={filter}
-        onFilterChange={setFilter}
+        data={filteredTrades} 
       />
     </div>
   );

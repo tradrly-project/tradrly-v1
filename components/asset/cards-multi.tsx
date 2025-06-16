@@ -57,7 +57,7 @@ export function PerformanceCard() {
                 {/* Tengah: Profit & Loss (sama tinggi dengan kiri) */}
                 <div className="flex flex-col justify-between w-[30%] px-2 space-y-4">
                     <div className="bg-foreground/6 rounded-md py-1 px-3 text-left">
-                        <p className="text-[16px] text-green-400 font-bold mb-2">Profit</p>
+                        <p className="text-[16px] text-sky-400 font-bold mb-2">Profit</p>
                         <p className="text-white text-md font-semibold">{totalWin}</p>
                     </div>
                     <div className="bg-foreground/6 rounded-md py-1 px-3 text-left">
@@ -102,7 +102,7 @@ export function ProfitLossCard() {
 
             {/* Content */}
             <div className="-mt-4.5">
-                <span className="text-emerald-400 font-bold text-sm">Profit</span>
+                <span className="text-sky-400 font-bold text-sm">Profit</span>
                 <p className="text-sm font-semibold">$ 1,293.00</p>
             </div>
             <div className="-mt-4.5">
