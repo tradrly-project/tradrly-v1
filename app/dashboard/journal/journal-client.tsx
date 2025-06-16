@@ -87,12 +87,8 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
               </div>
             </div>
           </DialogContent>
-
-
         </Dialog>
-
       </div>
-
       {/* Tabel */}
       <DataTable
         columns={columns}

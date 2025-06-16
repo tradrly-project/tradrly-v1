@@ -48,7 +48,7 @@ export const columns: ColumnDef<TradeWithPair>[] = [
       return (
         <div className="text-center">
           <Badge
-            className={isBuy ? "bg-green-500 text-white" : "bg-red-500 text-white"}
+            className={isBuy ? "bg-sky-500 text-white" : "bg-red-500 text-white"}
           >
             {formatted}
           </Badge>
@@ -134,7 +134,7 @@ export const columns: ColumnDef<TradeWithPair>[] = [
       const formatted = result.toUpperCase();
 
       let colorClass = ""; // default: no class
-      if (result === "win") colorClass = "bg-sky-600 text-white";
+      if (result === "win") colorClass = "bg-sky-500 text-white";
       else if (result === "loss") colorClass = "bg-red-500 text-white";
       // BEP: no custom class (uses Badge default)
 
@@ -165,7 +165,7 @@ export const columns: ColumnDef<TradeWithPair>[] = [
     header: () => <div className="text-center px-2 py-2" />,
     cell: () => (
       <div className="flex justify-end px-2 py-2">
-        <Button variant="ghost" size="icon" className="h-6 w-6 p-0 cursor-pointer">
+        <Button variant="ghost" size="icon" className="h-8 w-8 p-0 cursor-pointer">
           <EyeIcon className="h-4 w-4" />
         </Button>
       </div>

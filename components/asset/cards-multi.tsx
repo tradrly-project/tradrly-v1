@@ -57,7 +57,7 @@ export function PerformanceCard() {
                 {/* Tengah: Profit & Loss (sama tinggi dengan kiri) */}
                 <div className="flex flex-col justify-between w-[30%] px-2 space-y-4">
                     <div className="bg-foreground/6 rounded-md py-1 px-3 text-left">
-                        <p className="text-[16px] text-sky-400 font-bold mb-2">Profit</p>
+                        <p className="text-[16px] text-sky-500 font-bold mb-2">Profit</p>
                         <p className="text-white text-md font-semibold">{totalWin}</p>
                     </div>
                     <div className="bg-foreground/6 rounded-md py-1 px-3 text-left">
@@ -102,7 +102,7 @@ export function ProfitLossCard() {
 
             {/* Content */}
             <div className="-mt-4.5">
-                <span className="text-sky-400 font-bold text-sm">Profit</span>
+                <span className="text-sky-500 font-bold text-sm">Profit</span>
                 <p className="text-sm font-semibold">$ 1,293.00</p>
             </div>
             <div className="-mt-4.5">
@@ -157,7 +157,7 @@ export function PositionSummaryCard() {
                         <CircularProgressbarWithChildren
                             value={longPosition}
                             styles={buildStyles({
-                                pathColor: "#4ade80",
+                                pathColor: "#00C2FF",
                                 trailColor: "#111827",
                             })}
                         >
@@ -171,7 +171,7 @@ export function PositionSummaryCard() {
                         <CircularProgressbarWithChildren
                             value={avgWin}
                             styles={buildStyles({
-                                pathColor: "#4ade80",
+                                pathColor: "#00C2FF",
                                 trailColor: "#111827",
                             })}
                         >
@@ -236,7 +236,7 @@ function CustomDayContent({ day }: { day: Date }) {
             {profit !== undefined && (
                 <span
                     className={`text-[11px] font-semibold mb-1.5 ${profit > 0
-                        ? "text-emerald-400"
+                        ? "text-sky-500"
                         : profit < 0
                             ? "text-red-500"
                             : "text-zinc-400"
@@ -420,7 +420,7 @@ export function TradeHistoryCard() {
                                 <TableCell className="text-center px-2">{t.qty} Lot</TableCell>
                                 <TableCell className="text-right px-2">${t.entry}</TableCell>
                                 <TableCell className="text-right px-2">${t.exit}</TableCell>
-                                <TableCell className={`${t.pnl >= 0 ? "text-green-500" : "text-red-500"} text-right px-2`}>
+                                <TableCell className={`${t.pnl >= 0 ? "text-sky-500" : "text-red-500"} text-right px-2`}>
                                     ${t.pnl.toFixed(2)}
                                 </TableCell>
                             </TableRow>
@@ -453,7 +453,7 @@ export function TopGainerCard() {
                     {gainers.map((item, i) => (
                         <li key={i} className="flex justify-between">
                             <span>{i + 1}. {item.pair}</span>
-                            <span className="text-green-500">${item.gain}</span>
+                            <span className="text-sky-500">${item.gain}</span>
                         </li>
                     ))}
                 </ul>

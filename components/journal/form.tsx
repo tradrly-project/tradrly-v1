@@ -270,8 +270,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
 
       {/* Buttons */}
       <div className="flex justify-end gap-3 pt-4">
-        <Button type="reset" variant="outline">Batal</Button>
-        <Button type="submit">Simpan</Button>
+        <Button type="submit" className="cursor-pointer">Simpan</Button>
       </div>
     </form>
   );
