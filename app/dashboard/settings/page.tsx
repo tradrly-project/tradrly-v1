@@ -1,9 +1,10 @@
-import React from 'react'
 
-const Settingspage = () => {
+
+
+export default function SettingsPage() {
   return (
-    <div>page</div>
-  )
+    <main>
+      {/* konten lain */}
+    </main>
+  );
 }
-
-export default Settingspage

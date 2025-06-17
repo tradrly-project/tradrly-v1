@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Input } from "../ui/input";
 import { AccountSwitcher } from "./switcher-account";
+import TradingViewTicker from "../asset/ticker";
 
 export function Headerdashboard() {
   // toggle mata
@@ -54,8 +55,12 @@ export function Headerdashboard() {
           width: `calc(100% - ${sidebarWidth})`,
         }}
       >
+        <div className="z-100">
+          <TradingViewTicker/>
+        </div>
         <div className="flex h-full items-center justify-between mr-5 mt-1">
           {/* SidebarTrigger di kiri */}
+          
           <div className="flex items-center space-x-4">
             <SidebarTrigger />
 

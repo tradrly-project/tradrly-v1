@@ -52,63 +52,70 @@ export default function Header() {
             <div />
             <nav className="relative flex items-center justify-center bg-background border-2 border-zinc-900 rounded-full py-1.5 space-x-4.5">
                 {mainMenu.map((menu) => {
-                    const Icon = menu.icon;
-                    const isOpen = openMenu === menu.title;
-                    const hasSubmenu = !!menu.submenu;
+  const Icon = menu.icon;
+  const isOpen = openMenu === menu.title;
+  const hasSubmenu = !!menu.submenu;
 
-                    return (
-                        <div
-                            key={menu.title}
-                            className="relative"
-                            onMouseEnter={() => hasSubmenu && handleMouseEnter(menu.title)}
-                            onMouseLeave={() => hasSubmenu && handleMouseLeave()}
-                        >
-                            <div
-                                className="cursor-pointer relative text-white antialiased font-medium px-2 py-1 group/btn transition-colors duration-200 ease-out hover:text-cyan-500 hover:-translate-y-[1px] transform-gpu will-change-transform flex items-center gap-2.5 text-sm"
-                            >
-                                {menu.title}
-                                {Icon && (
-                                    <Icon
-                                        className={`w-4 h-4 transition-transform duration-75 ${isOpen ? "rotate-180" : ""
-                                            }`}
-                                    />
-                                )}
-                                <LineGradient active={isOpen} />
-                            </div>
+  const menuContent = (
+    <div
+      className="cursor-pointer relative text-white antialiased font-medium px-2 py-1 group/btn transition-colors duration-200 ease-out hover:text-cyan-500 hover:-translate-y-[1px] transform-gpu will-change-transform flex items-center gap-2.5 text-sm"
+    >
+      {menu.title}
+      {Icon && (
+        <Icon
+          className={`w-4 h-4 transition-transform duration-75 ${isOpen ? "rotate-180" : ""
+            }`}
+        />
+      )}
+      <LineGradient active={isOpen} />
+    </div>
+  );
 
-                            {hasSubmenu && isOpen && (
-                                <div
-                                    className="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50 text-sm"
-                                    onMouseEnter={() => {
-                                        if (closeTimeout.current) {
-                                            clearTimeout(closeTimeout.current);
-                                            closeTimeout.current = null;
-                                        }
-                                    }}
-                                    onMouseLeave={handleMouseLeave}
-                                >
-                                    <div
-                                        className="bg-background text-foreground border-zinc-800 border py-4 px-3 
-                      rounded-lg shadow-lg w-40 transition-all duration-300 ease-out"
-                                    >
-                                        <ul className="space-y-1.5">
-                                            {menu.submenu.map((item) => (
-                                                <li
-                                                    key={item}
-                                                    className="relative group/btn rounded-md px-2 py-1 cursor-pointer 
-                            transition-colors duration-200 "
-                                                >
-                                                    {item}
-                                                    <LineGradient active={false} />
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
+  return (
+    <div
+      key={menu.title}
+      className="relative"
+      onMouseEnter={() => hasSubmenu && handleMouseEnter(menu.title)}
+      onMouseLeave={() => hasSubmenu && handleMouseLeave()}
+    >
+      {hasSubmenu ? (
+        menuContent
+      ) : (
+        <Link href={menu.href || "#"}>{menuContent}</Link>
+      )}
+
+      {hasSubmenu && isOpen && (
+        <div
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50 text-sm"
+          onMouseEnter={() => {
+            if (closeTimeout.current) {
+              clearTimeout(closeTimeout.current);
+              closeTimeout.current = null;
+            }
+          }}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div
+            className="bg-background text-foreground border-zinc-800 border py-4 px-3 rounded-lg shadow-lg w-40 transition-all duration-300 ease-out"
+          >
+            <ul className="space-y-1.5">
+              {menu.submenu.map((item) => (
+                <li
+                  key={item}
+                  className="relative group/btn rounded-md px-2 py-1 cursor-pointer transition-colors duration-200"
+                >
+                  {item}
+                  <LineGradient active={false} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+})}
+
             </nav>
             <div className="flex justify-end items-center">
                 <Link href="/login">
