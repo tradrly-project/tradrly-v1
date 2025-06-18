@@ -20,19 +20,49 @@ const mainVariant = {
 export const FileUpload = ({
   onChange,
 }: {
-  onChange?: (files: File[]) => void;
+  onChange?: (urls: string[]) => void; // berubah dari File[] ke string[] (URL dari Vercel Blob)
 }) => {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<
+    { file: File; url: string | null }[]
+  >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (newFiles: File[]) => {
-    setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+  const handleUploadToVercelBlob = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
 
-    if (onChange) {
-      onChange(newFiles);
-    }
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Upload failed");
+
+    return data.url as string;
   };
 
+  const handleFileChange = async (newFiles: File[]) => {
+    const uploads = await Promise.all(
+      newFiles.map(async (file) => {
+        try {
+          const url = await handleUploadToVercelBlob(file);
+          return { file, url };
+        } catch (e) {
+          console.error("Upload error:", e);
+          return { file, url: null };
+        }
+      })
+    );
+
+    const validUploads = uploads.filter((u) => u.url !== null);
+    setFiles((prev) => [...prev, ...validUploads]);
+
+    if (onChange) {
+      onChange(validUploads.map((f) => f.url!) as string[]);
+    }
+  };
 
   const handleClick = () => {
     fileInputRef.current?.click();
@@ -65,7 +95,10 @@ export const FileUpload = ({
           id="file-upload-handle"
           multiple
           type="file"
-          onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
+          onChange={(e) => {
+            const selectedFiles = Array.from(e.target.files || []);
+            handleFileChange(selectedFiles);
+          }}
           className="hidden"
         />
 
@@ -89,7 +122,7 @@ export const FileUpload = ({
           )}
 
           {files.length > 0 &&
-            files.map((file, idx) => (
+            files.map(({ file }, idx) => (
               <motion.div
                 key={"file" + idx}
                 layoutId={idx === 0 ? "file-upload" : "file-upload-" + idx}
@@ -97,13 +130,14 @@ export const FileUpload = ({
                   "relative overflow-hidden z-40 bg-background flex flex-col items-start justify-start md:h-24 p-4 w-full max-w-lg mx-auto rounded-md shadow border border-zinc-600 pr-7"
                 )}
               >
-                {/* Tombol X di pojok kanan atas */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setFiles((prev) => prev.filter((_, i) => i !== idx));
+                    const newFiles = files.filter((_, i) => i !== idx);
+                    setFiles(newFiles);
+                    onChange?.(newFiles.map((f) => f.url!).filter(Boolean));
                   }}
-                  className=" absolute top-2 right-2 text-neutral-400 hover:text-red-500 transition"
+                  className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 transition"
                   aria-label="Remove file"
                 >
                   <XIcon className="w-4.5 h-4.5" />
@@ -123,33 +157,8 @@ export const FileUpload = ({
                 </div>
               </motion.div>
             ))}
-
         </div>
       </motion.div>
     </div>
-
   );
 };
-
-export function GridPattern() {
-  const columns = 41;
-  const rows = 11;
-  return (
-    <div className="flex bg-gray-100 dark:bg-neutral-900 shrink-0 flex-wrap justify-center items-center gap-x-px gap-y-px  scale-105">
-      {Array.from({ length: rows }).map((_, row) =>
-        Array.from({ length: columns }).map((_, col) => {
-          const index = row * columns + col;
-          return (
-            <div
-              key={`${col}-${row}`}
-              className={`w-10 h-10 flex shrink-0 rounded-[2px] ${index % 2 === 0
-                ? "bg-gray-50 dark:bg-neutral-950"
-                : "bg-gray-50 dark:bg-neutral-950 shadow-[0px_0px_1px_3px_rgba(255,255,255,1)_inset] dark:shadow-[0px_0px_1px_3px_rgba(0,0,0,1)_inset]"
-                }`}
-            />
-          );
-        })
-      )}
-    </div>
-  );
-}

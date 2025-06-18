@@ -101,13 +101,13 @@ export async function createTrade(
     revalidatePath("/dashboard/journal");
 
     return {
-      message: "Berhasil menambahkan trade",
+      message: "Trade berhasil di simpan",
       values: {},
     };
   } catch (error) {
     console.error(error);
     return {
-      message: "Gagal menyimpan data",
+      message: "Gagal menyimpan trade",
       values,
     };
   }

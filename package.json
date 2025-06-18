@@ -25,6 +25,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tabler/icons-react": "^3.34.0",
     "@tanstack/react-table": "^8.21.3",
+    "@vercel/blob": "^1.1.1",
     "bcrypt-ts": "^7.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -41,6 +42,7 @@
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.3.8",
     "recharts": "^2.15.3",
+    "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.1",
     "yahoo-finance2": "^2.13.3",
     "zod": "^3.25.36"

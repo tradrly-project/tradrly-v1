@@ -5,13 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  BellIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import { Input } from "../ui/input";
+import { BellIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { AccountSwitcher } from "./switcher-account";
 import TradingViewTicker from "../asset/ticker";
 
@@ -55,27 +49,17 @@ export function Headerdashboard() {
           width: `calc(100% - ${sidebarWidth})`,
         }}
       >
-        <div className="z-100">
-          <TradingViewTicker/>
-        </div>
-        <div className="flex h-full items-center justify-between mr-5 mt-1">
-          {/* SidebarTrigger di kiri */}
-          
-          <div className="flex items-center space-x-4">
-            <SidebarTrigger />
+        <div className="flex h-full items-center justify-between mr-5 mt-1 w-full">
+          {/* Kiri: SidebarTrigger */}
+          <SidebarTrigger />
 
-            {/* Input search di samping SidebarTrigger */}
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Cari"
-                className="bg-white/5 pl-7 pr-3 py-1.5 text-sm rounded-md border border-none"
-              />
-              <MagnifyingGlassIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-700" />
-            </div>
+          {/* Tengah: TradingViewTicker - expand */}
+          <div className="flex-grow mx-4 overflow-hidden">
+            <TradingViewTicker />
           </div>
 
-          <div className="flex items-center space-x-4">
+          {/* Kanan: Bell, Eye, Account */}
+          <div className="flex items-center space-x-4 mr-4">
             {/* Bell Icon */}
             <div className="relative">
               <BellIcon className="h-5 w-5 cursor-pointer text-white" />

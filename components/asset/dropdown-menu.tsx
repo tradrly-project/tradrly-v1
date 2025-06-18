@@ -36,7 +36,6 @@ export function DropdownMenuSelect({
     return (
         <div className="w-full">
             <Select
-                name={name}
                 value={value}
                 onValueChange={(val) => onChange(val)}
             >

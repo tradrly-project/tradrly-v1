@@ -3,6 +3,8 @@ import React from "react";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import { cn } from "@/lib/utils"; // jika Anda pakai className helper
 import { Loader2 } from "lucide-react"; // spinner icon
+import { Button } from "./ui/button";
+import { useFormStatus } from "react-dom";
 
 type RegisterButtonProps = {
   children: React.ReactNode;
@@ -94,4 +96,17 @@ export function MainButton({ children, className, ...props }: MainButtonProps) {
             {children}
         </HoverBorderGradient>
     );
+}
+
+export function SubmitButton({ children = "Simpan" }: { children?: React.ReactNode }) {
+  const { pending } = useFormStatus()
+
+  return (
+    <Button type="submit" disabled={pending} className="cursor-pointer py-4 px-8">
+      {pending && (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      )}
+      {pending ? "Tunggu..." : children}
+    </Button>
+  )
 }

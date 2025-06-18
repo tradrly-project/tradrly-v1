@@ -3,7 +3,6 @@
 import React from "react";
 import { useActionState } from "react";
 import { createTrade } from "@/lib/actions/trade";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -14,6 +13,8 @@ import { FloatingLabelInput } from "../asset/floating-placeholder";
 import { RightPlaceholderInput } from "../asset/placeholder-right";
 import { LeftPlaceholderInput } from "../asset/placeholder-left";
 import { FileUpload } from "../ui/file-upload";
+import { SubmitButton } from "../button";
+import { notifyError, notifySuccess } from "../asset/notify";
 
 type TradeFormProps = {
   pairs: { id: string; symbol: string }[];
@@ -35,7 +36,9 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   const [date, setDate] = React.useState<Date>(
     state.values.date ? new Date(state.values.date) : new Date()
   );
-  const [direction, setDirection] = React.useState<string>(state.values.direction || "");
+  const [direction, setDirection] = React.useState<string>(
+    state.values.direction || ""
+  );
   const [pairId, setPairId] = React.useState<string>(state.values.pairId || "");
 
   const [entryPrice, setEntryPrice] = React.useState<number>(0);
@@ -47,6 +50,31 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   const [result, setResult] = React.useState<string>("");
   const [riskRatio, setRiskRatio] = React.useState<string>("");
   const [profitLoss, setProfitLoss] = React.useState<string>("");
+  const [screenshotUrl, setScreenshotUrl] = React.useState<string>("");
+
+  React.useEffect(() => {
+  if (state.message) {
+    if (state.errors && Object.keys(state.errors).length > 0) {
+      notifyError("Gagal menyimpan trade.");
+    } else {
+      notifySuccess(state.message);
+
+      // Reset form ke nilai awal
+      setEntryPrice(0);
+      setExitPrice(0);
+      setLotSize(0.01);
+      setTakeProfit(0);
+      setStoploss(0);
+      setPairId("");
+      setDirection("");
+      setDate(new Date());
+      setResult("");
+      setRiskRatio("");
+      setProfitLoss("");
+      setScreenshotUrl("");
+    }
+  }
+}, [state]);
 
   React.useEffect(() => {
     const allFilled =
@@ -76,7 +104,8 @@ export default function TradeForm({ pairs }: TradeFormProps) {
       else if (exitPrice > entryPrice) _result = "loss";
     }
 
-    const rr = Math.abs(takeProfit - entryPrice) / Math.abs(entryPrice - stoploss);
+    const rr =
+      Math.abs(takeProfit - entryPrice) / Math.abs(entryPrice - stoploss);
     const _rr = isFinite(rr) ? rr.toFixed(2) : "";
 
     const priceDiff =
@@ -88,7 +117,16 @@ export default function TradeForm({ pairs }: TradeFormProps) {
     setResult(_result);
     setRiskRatio(_rr);
     setProfitLoss(_pl);
-  }, [entryPrice, exitPrice, lotSize, takeProfit, stoploss, direction, pairId, date]);
+  }, [
+    entryPrice,
+    exitPrice,
+    lotSize,
+    takeProfit,
+    stoploss,
+    direction,
+    pairId,
+    date,
+  ]);
 
   return (
     <form action={formAction} className="space-y-4 h-full">
@@ -114,7 +152,6 @@ export default function TradeForm({ pairs }: TradeFormProps) {
               { label: "Sell", value: "sell" },
             ]}
           />
-          <input type="hidden" name="direction" value={direction} />
           <FieldError>{state.errors?.direction}</FieldError>
         </LabelInputContainer>
       </div>
@@ -264,13 +301,19 @@ export default function TradeForm({ pairs }: TradeFormProps) {
 
       {/* Screenshot URL */}
       <LabelInputContainer>
-        <FileUpload />
+        <FileUpload
+          onChange={(urls) => {
+            const url = urls[0];
+            setScreenshotUrl(url); // simpan di state
+          }}
+        />
+        <input type="hidden" name="screenshotUrl" value={screenshotUrl} />
         <FieldError>{state.errors?.screenshotUrl}</FieldError>
       </LabelInputContainer>
 
       {/* Buttons */}
-      <div className="flex justify-end gap-3 pt-4">
-        <Button type="submit" className="cursor-pointer">Simpan</Button>
+      <div className="flex justify-end mt-10">
+        <SubmitButton />
       </div>
     </form>
   );
@@ -284,7 +327,9 @@ const LabelInputContainer = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>
+  <div className={cn("flex w-full flex-col space-y-2", className)}>
+    {children}
+  </div>
 );
 
 const FieldError = ({ children }: { children?: string | string[] }) => {
