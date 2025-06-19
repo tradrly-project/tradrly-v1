@@ -15,9 +15,20 @@ import { LeftPlaceholderInput } from "../asset/placeholder-left";
 import { FileUpload } from "../ui/file-upload";
 import { SubmitButton } from "../button";
 import { notifyError, notifySuccess } from "../asset/notify";
+import { PsychologySelect } from "../asset/psychology-select";
 
 type TradeFormProps = {
   pairs: { id: string; symbol: string }[];
+};
+
+type Option = {
+  label: string;
+  value: string;
+};
+
+type Psychology = {
+  id: string;
+  name: string;
 };
 
 export default function TradeForm({ pairs }: TradeFormProps) {
@@ -52,29 +63,57 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   const [profitLoss, setProfitLoss] = React.useState<string>("");
   const [screenshotUrl, setScreenshotUrl] = React.useState<string>("");
 
-  React.useEffect(() => {
-  if (state.message) {
-    if (state.errors && Object.keys(state.errors).length > 0) {
-      notifyError("Gagal menyimpan trade.");
-    } else {
-      notifySuccess(state.message);
+  const [selectedPsychologies, setSelectedPsychologies] = React.useState<
+    Option[]
+  >([]);
 
-      // Reset form ke nilai awal
-      setEntryPrice(0);
-      setExitPrice(0);
-      setLotSize(0.01);
-      setTakeProfit(0);
-      setStoploss(0);
-      setPairId("");
-      setDirection("");
-      setDate(new Date());
-      setResult("");
-      setRiskRatio("");
-      setProfitLoss("");
-      setScreenshotUrl("");
+  const [availablePsychologies, setAvailablePsychologies] = React.useState<
+    Option[]
+  >([]);
+
+  React.useEffect(() => {
+    fetch("/api/psychologies")
+      .then((res) => res.json())
+      .then((data: { psychologies: Psychology[] }) => {
+        setAvailablePsychologies(
+          data.psychologies.map((p) => ({
+            label: p.name,
+            value: p.id,
+          }))
+        );
+      });
+  }, []);
+
+  const handleSubmit = async (formData: FormData) => {
+    const psychologyIds = selectedPsychologies.map((p) => p.value);
+    formData.set("psychologies", JSON.stringify(psychologyIds));
+    formAction(formData);
+  };
+
+  React.useEffect(() => {
+    if (state.message) {
+      if (state.errors && Object.keys(state.errors).length > 0) {
+        notifyError("Gagal menyimpan trade.");
+      } else {
+        notifySuccess(state.message);
+
+        // Reset form ke nilai awal
+        setEntryPrice(0);
+        setExitPrice(0);
+        setLotSize(0.01);
+        setTakeProfit(0);
+        setStoploss(0);
+        setPairId("");
+        setDirection("");
+        setDate(new Date());
+        setResult("");
+        setRiskRatio("");
+        setProfitLoss("");
+        setScreenshotUrl("");
+        setSelectedPsychologies([]);
+      }
     }
-  }
-}, [state]);
+  }, [state]);
 
   React.useEffect(() => {
     const allFilled =
@@ -129,7 +168,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   ]);
 
   return (
-    <form action={formAction} className="space-y-4 h-full">
+    <form action={handleSubmit} className="space-y-4 h-full">
       {/* Date + Direction */}
       <div className="flex gap-4">
         <LabelInputContainer>
@@ -281,16 +320,27 @@ export default function TradeForm({ pairs }: TradeFormProps) {
         </LabelInputContainer>
       </div>
 
-      {/* Psychology & Strategi */}
-      <div className="flex gap-4">
-        <LabelInputContainer>
-          <Input name="psychology" placeholder="Psikologi" />
-          <FieldError>{state.errors?.psychology}</FieldError>
-        </LabelInputContainer>
-        <LabelInputContainer>
-          <Input name="strategi" placeholder="Strategi" />
-          <FieldError>{state.errors?.strategi}</FieldError>
-        </LabelInputContainer>
+      <div className="flex gap-4 max-w-[500px] w-full">
+        {/* Kolom Psikologi */}
+        <div className="flex-1 min-w-0">
+          <LabelInputContainer>
+            <PsychologySelect
+              name="psychology"
+              options={availablePsychologies}
+              selected={selectedPsychologies}
+              onChange={setSelectedPsychologies}
+            />
+            <FieldError>{state.errors?.psychology}</FieldError>
+          </LabelInputContainer>
+        </div>
+
+        {/* Kolom Strategi */}
+        <div className="flex-1 min-w-0">
+          <LabelInputContainer>
+            <Input name="strategi" placeholder="Strategi" />
+            <FieldError>{state.errors?.strategi}</FieldError>
+          </LabelInputContainer>
+        </div>
       </div>
 
       {/* Notes */}

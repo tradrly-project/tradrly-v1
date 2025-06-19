@@ -30,7 +30,7 @@ export function DropdownMenuSelect({
     value,
     onChange,
     options,
-    placeholder = "Pilih salah satu",
+    placeholder = "Pilih posisi",
     error,
 }: Props) {
     return (
@@ -43,8 +43,8 @@ export function DropdownMenuSelect({
                     className={cn(
                         "w-full px-3 py-2 border border-input text-sm pointer-events-auto cursor-pointer",
                         value
-                            ? "bg-background"
-                            : "bg-white/5 hover:bg-white/10 data-[state=open]:bg-white/20",
+                            ? "bg-background hover:bg-foreground/7"
+                            : "bg-white/5 hover:bg-white/10",
                         error && "border-red-500"
                     )}
                 >

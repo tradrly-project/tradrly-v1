@@ -1,4 +1,4 @@
-import { object, string, number, date, enum as zEnum } from "zod";
+import { object, array, string, number, date, enum as zEnum } from "zod";
 
 export const RegisterSchema = object({
   name: string().min(1, "Harus lebih dari 1 huruf !"),
@@ -38,8 +38,8 @@ export const TradeBaseSchema = object({
   result: ResultEnum,
   profitLoss: number({ required_error: "Profit/loss wajib diisi" }),
   riskRatio: number({ required_error: "Risk ratio wajib diisi" }),
-  psychology: string().optional().nullable(),
-  strategi: string().optional().nullable(),
+  psychology: array(string()).optional(),
+  strategi: array(string()).optional(),
   notes: string().optional().nullable(),
   screenshotUrl: string().url("URL tidak valid").optional().nullable(),
   date: date({ required_error: "Tanggal buka wajib diisi" }),
@@ -49,7 +49,11 @@ export const TradeBaseSchema = object({
 export const TradeSchema = TradeBaseSchema.refine(
   (data) => {
     const angkaDiisi =
-      data.entryPrice || data.stoploss || data.takeProfit || data.exitPrice || data.lotSize;
+      data.entryPrice ||
+      data.stoploss ||
+      data.takeProfit ||
+      data.exitPrice ||
+      data.lotSize;
 
     const missingDirection = !data.direction;
     const missingPair = !data.pairId;

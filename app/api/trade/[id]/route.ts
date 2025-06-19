@@ -20,15 +20,25 @@ export async function GET(request: Request) {
     const id = url.pathname.split("/").pop(); // Ambil [id] dari path
 
     if (!id) {
-      return NextResponse.json({ error: "ID trade tidak valid" }, { status: 400 });
+      return NextResponse.json(
+        { error: "ID trade tidak valid" },
+        { status: 400 }
+      );
     }
 
     const trade = await prisma.trade.findFirst({
       where: { id, userId },
+      include: {
+        psychologies: true,
+        strategies: true,
+      },
     });
 
     if (!trade) {
-      return NextResponse.json({ error: "Trade tidak ditemukan" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Trade tidak ditemukan" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(trade, {
@@ -38,7 +48,10 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET trade error:", error);
-    return NextResponse.json({ error: "Gagal mengambil trade" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Gagal mengambil trade" },
+      { status: 500 }
+    );
   }
 }
 
@@ -50,14 +63,22 @@ export async function PUT(request: Request) {
     const id = url.pathname.split("/").pop();
 
     if (!id) {
-      return NextResponse.json({ error: "ID trade tidak valid" }, { status: 400 });
+      return NextResponse.json(
+        { error: "ID trade tidak valid" },
+        { status: 400 }
+      );
     }
 
     const formData = await request.formData();
-    const parsed = TradeUpdateSchema.safeParse(Object.fromEntries(formData.entries()));
+    const parsed = TradeUpdateSchema.safeParse(
+      Object.fromEntries(formData.entries())
+    );
 
     if (!parsed.success) {
-      return NextResponse.json({ errors: parsed.error.flatten().fieldErrors }, { status: 400 });
+      return NextResponse.json(
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
     const updated = await prisma.trade.updateMany({
@@ -70,7 +91,10 @@ export async function PUT(request: Request) {
     return NextResponse.json({ updatedCount: updated.count });
   } catch (error) {
     console.error("PUT trade error:", error);
-    return NextResponse.json({ error: "Gagal mengupdate trade" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Gagal mengupdate trade" },
+      { status: 500 }
+    );
   }
 }
 
@@ -82,7 +106,10 @@ export async function DELETE(request: Request) {
     const id = url.pathname.split("/").pop();
 
     if (!id) {
-      return NextResponse.json({ error: "ID trade tidak valid" }, { status: 400 });
+      return NextResponse.json(
+        { error: "ID trade tidak valid" },
+        { status: 400 }
+      );
     }
 
     const deleted = await prisma.trade.deleteMany({
@@ -94,6 +121,9 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ deletedCount: deleted.count });
   } catch (error) {
     console.error("DELETE trade error:", error);
-    return NextResponse.json({ error: "Gagal menghapus trade" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Gagal menghapus trade" },
+      { status: 500 }
+    );
   }
 }

@@ -11,8 +11,8 @@ const mainVariant = {
     y: 0,
   },
   animate: {
-    x: 20,
-    y: -20,
+    x: 5,
+    y: -3,
     opacity: 0.9,
   },
 };

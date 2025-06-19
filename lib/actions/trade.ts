@@ -34,8 +34,8 @@ export async function createTrade(
     result: raw.result?.toString(),
     riskRatio: raw.riskRatio?.toString(),
     profitLoss: raw.profitLoss?.toString(),
-    psychology: raw.psychology?.toString(),
-    strategi: raw.strategi?.toString(),
+    psychology: formData.getAll("psychology") as string[], // <-- array langsung
+    strategi: formData.getAll("strategy") as string[],
     notes: raw.notes?.toString(),
     screenshotUrl: raw.screenshotUrl?.toString(),
     date: raw.date?.toString(),
@@ -55,8 +55,12 @@ export async function createTrade(
   if (angkaDiisi && (!values.direction || !values.pairId)) {
     return {
       errors: {
-        direction: !values.direction ? ["Posisi wajib diisi terlebih dahulu."] : undefined,
-        pairId: !values.pairId ? ["Pair wajib diisi terlebih dahulu."] : undefined,
+        direction: !values.direction
+          ? ["Posisi wajib diisi terlebih dahulu."]
+          : undefined,
+        pairId: !values.pairId
+          ? ["Pair wajib diisi terlebih dahulu."]
+          : undefined,
       },
       message: "Lengkapi Pair/Posisi terlebih dahulu.",
       values,
@@ -94,8 +98,24 @@ export async function createTrade(
   }
 
   try {
+    const {
+      psychology, // array<string>
+      strategi, // array<string>
+      ...tradeData // sisanya yang memang valid di model Trade
+    } = validated.data;
+
     await prisma.trade.create({
-      data: validated.data,
+      data: {
+        ...tradeData,
+
+        psychologies: psychology?.length
+          ? { connect: psychology.map((id) => ({ id })) }
+          : undefined,
+
+        strategies: strategi?.length
+          ? { connect: strategi.map((id) => ({ id })) }
+          : undefined,
+      },
     });
 
     revalidatePath("/dashboard/journal");

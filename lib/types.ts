@@ -29,8 +29,8 @@ export type TradeFormValues = {
   result?: string;
   riskRatio?: string;
   profitLoss?: string;
-  psychology?: string;
-  strategi?: string;
+  psychology?: string[];
+  strategi?: string[];
   notes?: string;
   screenshotUrl?: string;
   date?: string;

@@ -51,7 +51,7 @@ export function DatePickerWithPresets({ name, value, onChange, error }: Props) {
                     <Button
                         variant={"outline"}
                         className={cn(
-                            "w-full justify-start text-left font-normal cursor-pointer",
+                            "w-full justify-start text-left font-normal cursor-pointer hover:bg-foreground/7 hover:text-foreground",
                             !value && "text-muted-foreground"
                         )}
                     >

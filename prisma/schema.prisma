@@ -26,7 +26,6 @@ model User {
 
   trades         Trade[]
   tags           Psychology[]
-  journalEntries JournalEntry[]
   subscriptions  Subscription[]
   payments       Payment[]
   accounts       Account[]
@@ -87,8 +86,8 @@ model Pair {
 }
 
 model Trade {
-  id            String         @id @default(uuid())
-  user          User           @relation(fields: [userId], references: [id])
+  id            String        @id @default(uuid())
+  user          User          @relation(fields: [userId], references: [id])
   userId        String
   pairId        String
   direction     TradeDirection
@@ -100,47 +99,42 @@ model Trade {
   result        Result
   profitLoss    Decimal
   riskRatio     Decimal
-  psychology    String?
-  strategi      String?
+  psychologies  Psychology[]  // ✅ many-to-many tanpa @relation
+  strategies    Strategy[]    // ✅ many-to-many tanpa @relation
+  title         String?
   notes         String?
+  content       String?
   screenshotUrl String?
   date          DateTime
+  createdAt DateTime         @default(now())
+  updatedAt      DateTime @updatedAt
 
-  pair         Pair          @relation(fields: [pairId], references: [id])
-  journalEntry JournalEntry? @relation("TradeJournal")
+  pair          Pair          @relation(fields: [pairId], references: [id])
 
   @@index([userId])
 }
 
 model Psychology {
-  id     String @id @default(uuid())
+  id     String   @id @default(uuid())
   name   String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User     @relation(fields: [userId], references: [id])
   userId String
+  trades Trade[]  // ✅ many-to-many relasi balik
 
   @@index([userId])
 }
 
 model Strategy {
-  id     String @id @default(uuid())
+  id     String   @id @default(uuid())
   name   String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User     @relation(fields: [userId], references: [id])
   userId String
+  trades Trade[]  // ✅ many-to-many relasi balik
 
-  @@unique([userId])
+  @@unique([userId, name])
 }
 
-model JournalEntry {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
 
-  trade   Trade  @relation("TradeJournal", fields: [tradeId], references: [id])
-  tradeId String @unique
-  user    User   @relation(fields: [userId], references: [id])
-  userId  String
-}
 
 model Payment {
   id            String        @id @default(uuid())
