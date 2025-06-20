@@ -1,4 +1,4 @@
-import { Pair, Trade } from "@prisma/client"
+import { Pair, Trade, SetupTrade } from "@prisma/client"
 
 export type JournalEntry = {
   id: string
@@ -18,6 +18,27 @@ export type TradeFormState = {
   values: TradeFormValues;
 };
 
+export type SetupTradeWithPair = SetupTrade & {
+  pairs: Pair[];
+};
+
+export type SetupTradeFormValues = {
+  name: string;
+  strategy: string;
+  timeframe: string;
+  rrRatio: string;
+  appliesToAllPairs: boolean;
+  pairId?: string;
+  checklist: string[];
+  notes?: string;
+};
+
+export type SetupTradeFormState = {
+  message: string;
+  errors?: Partial<Record<keyof SetupTradeFormValues, string[]>>;
+  values: SetupTradeFormValues;
+};
+
 export type TradeFormValues = {
   pairId?: string;
   direction?: string;
@@ -31,6 +52,7 @@ export type TradeFormValues = {
   profitLoss?: string;
   psychology?: string[];
   strategi?: string[];
+  setupTradeId?: string; // New field for Setup Trade
   notes?: string;
   screenshotUrl?: string;
   date?: string;

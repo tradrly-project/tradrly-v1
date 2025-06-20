@@ -24,13 +24,14 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  trades         Trade[]
-  tags           Psychology[]
-  subscriptions  Subscription[]
-  payments       Payment[]
-  accounts       Account[]
-  pairs          Pair[]
-  strategy       Strategy[]
+  trades        Trade[]
+  tags          Psychology[]
+  subscriptions Subscription[]
+  payments      Payment[]
+  accounts      Account[]
+  pairs         Pair[]
+  strategy      Strategy[]
+  setupTrades   SetupTrade[]
 }
 
 model Account {
@@ -75,21 +76,46 @@ model Subscription {
 
 model Pair {
   id        String   @id @default(cuid())
-  symbol    String // e.g., BTCUSD
+  symbol    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   Trade     Trade[]
 
-  @@unique([symbol, userId]) // agar 1 user tidak duplikat pair yang sama
+  setupPairs SetupTradePair[] // relasi ke pivot
+
+  @@unique([symbol, userId])
+}
+
+model SetupTrade {
+  id                String   @id @default(uuid())
+  userId            String
+  name              String
+  strategy          String
+  timeframe         String
+  rrRatio           String
+  appliesToAllPairs Boolean  @default(false)
+  pairId            String?
+  checklist         Json?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user           User             @relation(fields: [userId], references: [id])
+  setupPairs     SetupTradePair[] // Pivot ke Pair
+  checklistItems ChecklistItem[] // Daftar checklist
+  strategies     Strategy[] // ✅ Many-to-many ke Strategy
+  trades         Trade[] // Relasi kebalikan dari Trade.setupTrade
+
+  @@index([userId])
 }
 
 model Trade {
-  id            String        @id @default(uuid())
-  user          User          @relation(fields: [userId], references: [id])
+  id            String         @id @default(uuid())
   userId        String
   pairId        String
+  setupTradeId  String? // ✅ Foreign key ke SetupTrade (optional)
   direction     TradeDirection
   entryPrice    Decimal
   stoploss      Decimal
@@ -99,42 +125,58 @@ model Trade {
   result        Result
   profitLoss    Decimal
   riskRatio     Decimal
-  psychologies  Psychology[]  // ✅ many-to-many tanpa @relation
-  strategies    Strategy[]    // ✅ many-to-many tanpa @relation
-  title         String?
   notes         String?
-  content       String?
   screenshotUrl String?
   date          DateTime
-  createdAt DateTime         @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
-  pair          Pair          @relation(fields: [pairId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+  pair         Pair         @relation(fields: [pairId], references: [id])
+  setupTrade   SetupTrade?  @relation(fields: [setupTradeId], references: [id]) // ✅ baru
+  psychologies Psychology[] // ✅ tetap many-to-many
 
   @@index([userId])
 }
 
+model SetupTradePair {
+  setupTradeId String
+  pairId       String
+
+  setupTrade SetupTrade @relation(fields: [setupTradeId], references: [id])
+  pair       Pair       @relation(fields: [pairId], references: [id])
+
+  @@id([setupTradeId, pairId])
+}
+
+model ChecklistItem {
+  id           String @id @default(uuid())
+  name         String
+  order        Int
+  setupTradeId String
+
+  setupTrade SetupTrade @relation(fields: [setupTradeId], references: [id])
+
+  @@index([setupTradeId])
+}
+
 model Psychology {
-  id     String   @id @default(uuid())
+  id     String  @id @default(uuid())
   name   String
-  user   User     @relation(fields: [userId], references: [id])
+  user   User    @relation(fields: [userId], references: [id])
   userId String
-  trades Trade[]  // ✅ many-to-many relasi balik
+  trades Trade[] // ✅ many-to-many relasi balik
 
   @@index([userId])
 }
 
 model Strategy {
-  id     String   @id @default(uuid())
-  name   String
-  user   User     @relation(fields: [userId], references: [id])
-  userId String
-  trades Trade[]  // ✅ many-to-many relasi balik
-
-  @@unique([userId, name])
+  id          String       @id @default(uuid())
+  name        String
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String
+  setupTrades SetupTrade[] // ✅ Many-to-many ke SetupTrade
 }
-
-
 
 model Payment {
   id            String        @id @default(uuid())

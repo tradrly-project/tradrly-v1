@@ -100,7 +100,6 @@ export async function createTrade(
   try {
     const {
       psychology, // array<string>
-      strategi, // array<string>
       ...tradeData // sisanya yang memang valid di model Trade
     } = validated.data;
 
@@ -110,10 +109,6 @@ export async function createTrade(
 
         psychologies: psychology?.length
           ? { connect: psychology.map((id) => ({ id })) }
-          : undefined,
-
-        strategies: strategi?.length
-          ? { connect: strategi.map((id) => ({ id })) }
           : undefined,
       },
     });

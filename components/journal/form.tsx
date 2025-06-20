@@ -19,6 +19,7 @@ import { PsychologySelect } from "../asset/psychology-select";
 
 type TradeFormProps = {
   pairs: { id: string; symbol: string }[];
+  setupTrades: { id: string; name: string }[];
 };
 
 type Option = {
@@ -31,7 +32,7 @@ type Psychology = {
   name: string;
 };
 
-export default function TradeForm({ pairs }: TradeFormProps) {
+export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
   const initialState = {
     message: "",
     errors: {} as Record<string, string[] | string>,
@@ -39,6 +40,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
       pairId: "",
       direction: "",
       date: new Date().toISOString(),
+      setupTradeId: "",
     },
   };
 
@@ -51,6 +53,8 @@ export default function TradeForm({ pairs }: TradeFormProps) {
     state.values.direction || ""
   );
   const [pairId, setPairId] = React.useState<string>(state.values.pairId || "");
+  const [setupTradeId, setSetupTradeId] = React.useState<string>("");
+
 
   const [entryPrice, setEntryPrice] = React.useState<number>(0);
   const [exitPrice, setExitPrice] = React.useState<number>(0);
@@ -87,6 +91,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
   const handleSubmit = async (formData: FormData) => {
     const psychologyIds = selectedPsychologies.map((p) => p.value);
     formData.set("psychologies", JSON.stringify(psychologyIds));
+    formData.set("setupTradeId", setupTradeId);
     formAction(formData);
   };
 
@@ -104,6 +109,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
         setTakeProfit(0);
         setStoploss(0);
         setPairId("");
+        setSetupTradeId("");
         setDirection("");
         setDate(new Date());
         setResult("");
@@ -201,6 +207,7 @@ export default function TradeForm({ pairs }: TradeFormProps) {
           name="pairId"
           value={pairId}
           onChange={setPairId}
+          placeholder="Pilih Pair"
           options={pairs.map((pair) => ({
             value: pair.id,
             label: pair.symbol,
@@ -336,9 +343,16 @@ export default function TradeForm({ pairs }: TradeFormProps) {
 
         {/* Kolom Strategi */}
         <div className="flex-1 min-w-0">
-          <LabelInputContainer>
-            <Input name="strategi" placeholder="Strategi" />
-            <FieldError>{state.errors?.strategi}</FieldError>
+          <LabelInputContainer className="flex-1">
+            <ComboBox
+              name="setupTradeId"
+              value={setupTradeId}
+              onChange={setSetupTradeId}
+              placeholder="Pilih Setup Trade"
+              options={setupTrades.map(s => ({ value: s.id, label: s.name }))}
+            />
+            <input type="hidden" name="setupTradeId" value={setupTradeId} />
+            <FieldError>{state.errors?.setupTradeId}</FieldError>
           </LabelInputContainer>
         </div>
       </div>

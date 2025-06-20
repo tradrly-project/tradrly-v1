@@ -22,9 +22,10 @@ import { XIcon } from "lucide-react";
 interface JournalClientProps {
   trades: TradeWithPair[];
   pairs: { id: string; symbol: string }[];
+  setupTrades: { id: string; name: string }[];
 }
 
-export default function JournalClient({ trades, pairs }: JournalClientProps) {
+export default function JournalClient({ trades, pairs, setupTrades }: JournalClientProps) {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
 
@@ -81,9 +82,8 @@ export default function JournalClient({ trades, pairs }: JournalClientProps) {
                 </div>
                 <DialogDescription className="text-white/90 mt-1" />
               </div>
-
               <div className="overflow-y-auto px-2 pb-6 space-y-4 flex-1">
-                <TradeForm pairs={pairs} />
+                <TradeForm pairs={pairs} setupTrades={setupTrades} />
               </div>
             </div>
           </DialogContent>

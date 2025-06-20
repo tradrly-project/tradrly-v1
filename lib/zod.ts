@@ -1,4 +1,4 @@
-import { object, array, string, number, date, enum as zEnum } from "zod";
+import { object, array, string, number, date, enum as zEnum, boolean } from "zod";
 
 export const RegisterSchema = object({
   name: string().min(1, "Harus lebih dari 1 huruf !"),
@@ -73,3 +73,29 @@ export const TradeSchema = TradeBaseSchema.refine(
 // Buat schema create dan update
 export const TradeCreateSchema = TradeSchema;
 export const TradeUpdateSchema = TradeBaseSchema.partial();
+
+const BaseSetupTradeSchema = object({
+  name: string().min(1, "Nama setup wajib diisi"),
+  strategy: string().min(1, "Strategi wajib diisi"),
+  timeframe: string().min(1, "Timeframe wajib diisi"),
+  rrRatio: string().min(1, "RR Ratio wajib diisi"),
+  pairId: string().optional().nullable(),
+  appliesToAllPairs: boolean().default(false),
+  checklist: array(string()).optional(),
+  notes: string().optional().nullable(),
+});
+
+export const SetupTradeSchema = BaseSetupTradeSchema.refine(
+  (data) => {
+    if (data.appliesToAllPairs && data.pairId) return false;
+    return true;
+  },
+  {
+    message: "Jika setup berlaku untuk semua pair, maka tidak boleh memilih pair spesifik",
+    path: ["pairId"],
+  }
+);
+
+// ✅ Ini akan bekerja, karena hanya dipanggil di schema dasar
+export const SetupTradeUpdateSchema = BaseSetupTradeSchema.partial();
+

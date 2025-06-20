@@ -41,7 +41,18 @@ export default async function JournalPage() {
     },
   });
 
+  const setupTrades = await prisma.setupTrade.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+
   const trades = serializeDecimals(tradesRaw); // ✅ konversi semua Decimal
 
-  return <JournalClient trades={trades} pairs={pairs} />;
+  return <JournalClient trades={trades} pairs={pairs} setupTrades={setupTrades} />;
 }

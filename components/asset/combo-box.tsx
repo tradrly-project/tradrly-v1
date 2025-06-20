@@ -22,6 +22,7 @@ type ComboBoxProps = {
   onChange: (val: string) => void;
   options: Option[];
   placeholder?: string;
+  searchPlaceholder?: string;
   error?: string | string[];
   className?: string;
 };
@@ -31,7 +32,8 @@ export function ComboBox({
   value,
   onChange,
   options,
-  placeholder = "Pilih Pair",
+  placeholder,
+  searchPlaceholder,
   error,
   className,
 }: ComboBoxProps) {
@@ -110,7 +112,7 @@ export function ComboBox({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Cari pair..."
+            placeholder={searchPlaceholder ?? "Cari..."}
             className="mb-2"
             autoFocus
           />
