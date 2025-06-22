@@ -341,7 +341,7 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
           </LabelInputContainer>
         </div>
 
-        {/* Kolom Strategi */}
+        {/* Kolom SetupTrade */}
         <div className="flex-1 min-w-0">
           <LabelInputContainer className="flex-1">
             <ComboBox

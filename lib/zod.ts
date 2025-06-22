@@ -1,4 +1,4 @@
-import { object, array, string, number, date, enum as zEnum, boolean } from "zod";
+import { object, array, string, number, date, enum as zEnum } from "zod";
 
 export const RegisterSchema = object({
   name: string().min(1, "Harus lebih dari 1 huruf !"),
@@ -39,7 +39,7 @@ export const TradeBaseSchema = object({
   profitLoss: number({ required_error: "Profit/loss wajib diisi" }),
   riskRatio: number({ required_error: "Risk ratio wajib diisi" }),
   psychology: array(string()).optional(),
-  strategi: array(string()).optional(),
+  setupTradeId: string().uuid("Setup ID tidak valid").optional(),
   notes: string().optional().nullable(),
   screenshotUrl: string().url("URL tidak valid").optional().nullable(),
   date: date({ required_error: "Tanggal buka wajib diisi" }),
@@ -75,27 +75,14 @@ export const TradeCreateSchema = TradeSchema;
 export const TradeUpdateSchema = TradeBaseSchema.partial();
 
 const BaseSetupTradeSchema = object({
-  name: string().min(1, "Nama setup wajib diisi"),
+  name: string().min(1, "Nama setup wajib diisi").max(30, "Maksimal 50 karakter"),
   strategy: string().min(1, "Strategi wajib diisi"),
   timeframe: string().min(1, "Timeframe wajib diisi"),
-  rrRatio: string().min(1, "RR Ratio wajib diisi"),
-  pairId: string().optional().nullable(),
-  appliesToAllPairs: boolean().default(false),
-  checklist: array(string()).optional(),
+  indicator: string().min(1, "Indicator wajib dipilih"),
   notes: string().optional().nullable(),
 });
 
-export const SetupTradeSchema = BaseSetupTradeSchema.refine(
-  (data) => {
-    if (data.appliesToAllPairs && data.pairId) return false;
-    return true;
-  },
-  {
-    message: "Jika setup berlaku untuk semua pair, maka tidak boleh memilih pair spesifik",
-    path: ["pairId"],
-  }
-);
+export const SetupTradeSchema = BaseSetupTradeSchema;
 
-// ✅ Ini akan bekerja, karena hanya dipanggil di schema dasar
+// Jika diperlukan untuk update (semua optional):
 export const SetupTradeUpdateSchema = BaseSetupTradeSchema.partial();
-

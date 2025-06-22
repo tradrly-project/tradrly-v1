@@ -7,7 +7,9 @@ import { TradeWithPair } from "@/lib/types";
 function serializeDecimals<T>(data: T): T {
   return JSON.parse(
     JSON.stringify(data, (key, value) =>
-      typeof value === "object" && value !== null && value.constructor?.name === "Decimal"
+      typeof value === "object" &&
+      value !== null &&
+      value.constructor?.name === "Decimal"
         ? Number(value)
         : value
     )
@@ -26,6 +28,9 @@ export default async function JournalPage() {
     where: { userId },
     include: {
       pair: true,
+      setupTrade: {
+        select: { name: true }, // hanya ambil nama setupTrade
+      },
     },
     orderBy: { date: "desc" },
   });
@@ -41,7 +46,7 @@ export default async function JournalPage() {
     },
   });
 
-  const setupTrades = await prisma.setupTrade.findMany({
+  const setupTrade = await prisma.setupTrade.findMany({
     where: { userId },
     select: {
       id: true,
@@ -54,5 +59,7 @@ export default async function JournalPage() {
 
   const trades = serializeDecimals(tradesRaw); // ✅ konversi semua Decimal
 
-  return <JournalClient trades={trades} pairs={pairs} setupTrades={setupTrades} />;
+  return (
+    <JournalClient trades={trades} pairs={pairs} setupTrade={setupTrade} />
+  );
 }

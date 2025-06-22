@@ -22,10 +22,10 @@ import { XIcon } from "lucide-react";
 interface JournalClientProps {
   trades: TradeWithPair[];
   pairs: { id: string; symbol: string }[];
-  setupTrades: { id: string; name: string }[];
+  setupTrade: { id: string; name: string }[];
 }
 
-export default function JournalClient({ trades, pairs, setupTrades }: JournalClientProps) {
+export default function JournalClient({ trades, pairs, setupTrade }: JournalClientProps) {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
 
@@ -55,12 +55,12 @@ export default function JournalClient({ trades, pairs, setupTrades }: JournalCli
           placeholder="Cari Trade..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="max-w-[200px] focus-visible:ring-[2px]"
+          className="max-w-[200px] focus-visible:ring-[2px] border-zinc-700"
         />
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="cursor-pointer">
+            <Button variant="outline" size="sm" className="border-zinc-700 cursor-pointer hover:bg-foreground/10 hover:text-foreground">
               <PlusIcon className="mr-1 h-4 w-4" /> Jurnal
             </Button>
           </DialogTrigger>
@@ -83,7 +83,7 @@ export default function JournalClient({ trades, pairs, setupTrades }: JournalCli
                 <DialogDescription className="text-white/90 mt-1" />
               </div>
               <div className="overflow-y-auto px-2 pb-6 space-y-4 flex-1">
-                <TradeForm pairs={pairs} setupTrades={setupTrades} />
+                <TradeForm pairs={pairs} setupTrades={setupTrade} />
               </div>
             </div>
           </DialogContent>

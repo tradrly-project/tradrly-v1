@@ -20,7 +20,6 @@ export async function createTrade(
     };
   }
 
-  // Ambil raw string values dari form
   const raw = Object.fromEntries(formData.entries());
 
   const values: TradeFormValues = {
@@ -34,14 +33,13 @@ export async function createTrade(
     result: raw.result?.toString(),
     riskRatio: raw.riskRatio?.toString(),
     profitLoss: raw.profitLoss?.toString(),
-    psychology: formData.getAll("psychology") as string[], // <-- array langsung
-    strategi: formData.getAll("strategy") as string[],
+    psychology: formData.getAll("psychology") as string[],
+    setupTradeId: raw.setupTradeId?.toString(),
     notes: raw.notes?.toString(),
     screenshotUrl: raw.screenshotUrl?.toString(),
     date: raw.date?.toString(),
   };
 
-  // Validasi dependensi manual
   const angkaFields = [
     values.entryPrice,
     values.takeProfit,
@@ -55,19 +53,14 @@ export async function createTrade(
   if (angkaDiisi && (!values.direction || !values.pairId)) {
     return {
       errors: {
-        direction: !values.direction
-          ? ["Posisi wajib diisi terlebih dahulu."]
-          : undefined,
-        pairId: !values.pairId
-          ? ["Pair wajib diisi terlebih dahulu."]
-          : undefined,
+        direction: !values.direction ? ["Posisi wajib diisi terlebih dahulu."] : undefined,
+        pairId: !values.pairId ? ["Pair wajib diisi terlebih dahulu."] : undefined,
       },
       message: "Lengkapi Pair/Posisi terlebih dahulu.",
       values,
     };
   }
 
-  // ✅ Parse dan siapkan untuk validasi dengan schema Zod
   const parsedValues = {
     userId,
     pairId: values.pairId,
@@ -81,7 +74,7 @@ export async function createTrade(
     riskRatio: values.riskRatio ? Number(values.riskRatio) : undefined,
     profitLoss: values.profitLoss ? Number(values.profitLoss) : undefined,
     psychology: values.psychology || undefined,
-    strategi: values.strategi || undefined,
+    setupTradeId: values.setupTradeId || undefined,
     notes: values.notes || undefined,
     screenshotUrl: values.screenshotUrl || undefined,
     date: values.date ? new Date(values.date) : undefined,
@@ -99,28 +92,29 @@ export async function createTrade(
 
   try {
     const {
-      psychology, // array<string>
-      ...tradeData // sisanya yang memang valid di model Trade
+      psychology,
+      setupTradeId,
+      ...tradeData
     } = validated.data;
 
     await prisma.trade.create({
       data: {
         ...tradeData,
-
         psychologies: psychology?.length
           ? { connect: psychology.map((id) => ({ id })) }
           : undefined,
+        setupTradeId: setupTradeId || undefined,
       },
     });
 
     revalidatePath("/dashboard/journal");
 
     return {
-      message: "Trade berhasil di simpan",
+      message: "Trade berhasil disimpan",
       values: {},
     };
   } catch (error) {
-    console.error(error);
+    console.error("CREATE_TRADE_ERROR:", error);
     return {
       message: "Gagal menyimpan trade",
       values,

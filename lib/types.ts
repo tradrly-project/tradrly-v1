@@ -1,16 +1,17 @@
-import { Pair, Trade, SetupTrade } from "@prisma/client"
+import { Pair, Trade, SetupTrade, Indicator } from "@prisma/client";
 
 export type JournalEntry = {
-  id: string
-  title: string
-  content: string
-  createdAt: Date
-  userId: string
-}
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  userId: string;
+};
 
 export type TradeWithPair = Trade & {
-  pair: Pair
-}
+  pair: Pair;
+  setupTrade?: Pick<SetupTrade, "name"> | null;
+};
 
 export type TradeFormState = {
   message: string;
@@ -18,18 +19,16 @@ export type TradeFormState = {
   values: TradeFormValues;
 };
 
-export type SetupTradeWithPair = SetupTrade & {
-  pairs: Pair[];
+// ✅ Ganti ini dari SetupTradeWithPair ke SetupTradeWithIndicator
+export type SetupTradeWithIndicator = SetupTrade & {
+  indicator: Indicator | null; // relasi bisa null
 };
 
 export type SetupTradeFormValues = {
   name: string;
   strategy: string;
   timeframe: string;
-  rrRatio: string;
-  appliesToAllPairs: boolean;
-  pairId?: string;
-  checklist: string[];
+  indicator: string; // Ini menyimpan indicatorId (string)
   notes?: string;
 };
 
@@ -51,8 +50,8 @@ export type TradeFormValues = {
   riskRatio?: string;
   profitLoss?: string;
   psychology?: string[];
-  strategi?: string[];
-  setupTradeId?: string; // New field for Setup Trade
+  strategy?: string[];
+  setupTradeId?: string;
   notes?: string;
   screenshotUrl?: string;
   date?: string;

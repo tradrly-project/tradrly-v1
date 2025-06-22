@@ -58,15 +58,15 @@ export function DataTable<TData, TValue>({
       <div className="rounded-xl min-w-[900px] border border-zinc-700 px-4 py-2">
         <Table className="w-full table-fixed">
           <colgroup>
-            <col className="w-[10%]" />
-            <col className="w-[10%]" />
+            <col className="w-[15%]" />
+            <col className="w-[15%]" />
             <col className="w-[6%]" />
             <col className="w-[12%]" />
             <col className="w-[12%]" />
             <col className="w-[12%]" />
             <col className="w-[10%]" />
             <col className="w-[12%]" />
-            <col className="w-[6%]" />
+            <col className="w-[15%]" />
             <col className="w-[10%]" />
             <col className="w-[6%]" />
           </colgroup>

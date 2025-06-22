@@ -12,7 +12,6 @@ const formatUSD = (value: number) =>
     minimumFractionDigits: 2,
   }).format(value);
 
-
 export const columns: ColumnDef<TradeWithPair>[] = [
   {
     accessorKey: "date",
@@ -23,10 +22,10 @@ export const columns: ColumnDef<TradeWithPair>[] = [
         <div className="text-left px-3 py-2">
           {date && !isNaN(date.getTime())
             ? date.toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
             : "-"}
         </div>
       );
@@ -35,7 +34,9 @@ export const columns: ColumnDef<TradeWithPair>[] = [
   {
     accessorKey: "pair.symbol",
     header: () => <div className="text-center px-3 py-2">Simbol</div>,
-    cell: ({ row }) => <div className="text-left px-3 py-2">{row.original.pair.symbol}</div>,
+    cell: ({ row }) => (
+      <div className="text-left px-3 py-2">{row.original.pair.symbol}</div>
+    ),
   },
   {
     accessorKey: "direction",
@@ -48,14 +49,26 @@ export const columns: ColumnDef<TradeWithPair>[] = [
       return (
         <div className="text-center">
           <Badge
-            className={isBuy ? "bg-sky-500 text-white" : "bg-red-500 text-white"}
+            className={
+              isBuy ? "bg-sky-500 text-white" : "bg-red-500 text-white"
+            }
           >
             {formatted}
           </Badge>
         </div>
       );
     },
-  },  
+  },
+  {
+    accessorKey: "lotSize",
+    header: () => <div className="text-center px-2 py-2">Lot</div>,
+    cell: ({ row }) => (
+      <div className="flex space-x-2 px-2 py-2 justify-center">
+        <span>{row.getValue("lotSize")}</span>
+        <span className="text-muted-foreground">Lot</span>
+      </div>
+    ),
+  },
   {
     accessorKey: "entryPrice",
     header: () => <div className="text-center px-2 py-2">Entry</div>,
@@ -102,16 +115,6 @@ export const columns: ColumnDef<TradeWithPair>[] = [
     },
   },
   {
-    accessorKey: "lotSize",
-    header: () => <div className="text-center px-2 py-2">Lot</div>,
-    cell: ({ row }) => (
-      <div className="flex justify-between px-2 py-2">
-        <span>{row.getValue("lotSize")}</span>
-        <span className="text-muted-foreground">Lot</span>
-      </div>
-    ),
-  },  
-  {
     accessorKey: "exitPrice",
     header: () => <div className="text-center px-2 py-2">Exit</div>,
     cell: ({ row }) => {
@@ -126,6 +129,22 @@ export const columns: ColumnDef<TradeWithPair>[] = [
       );
     },
   },
+  {
+    id: "setupTradeName", // gunakan `id` untuk custom field
+    header: () => <div className="text-center px-2 py-2">Setup</div>,
+    cell: ({ row }) => {
+      const name = row.original.setupTrade?.name;
+
+      return (
+        <div className="flex justify-center px-2 py-2">
+          <Badge variant="default" className="text-xs px-2 py-1">
+            {name ?? "-"}
+          </Badge>
+        </div>
+      );
+    },
+  },
+
   {
     accessorKey: "result",
     header: () => <div className="text-center px-2 py-2">Result</div>,
@@ -165,7 +184,11 @@ export const columns: ColumnDef<TradeWithPair>[] = [
     header: () => <div className="text-center px-2 py-2" />,
     cell: () => (
       <div className="flex justify-end px-2 py-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8 p-0 cursor-pointer">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 p-0 cursor-pointer"
+        >
           <EyeIcon className="h-4 w-4" />
         </Button>
       </div>

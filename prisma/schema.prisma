@@ -32,6 +32,7 @@ model User {
   pairs         Pair[]
   strategy      Strategy[]
   setupTrades   SetupTrade[]
+  indicator     Indicator[]
 }
 
 model Account {
@@ -83,33 +84,29 @@ model Pair {
   user      User     @relation(fields: [userId], references: [id])
   Trade     Trade[]
 
-  setupPairs SetupTradePair[] // relasi ke pivot
-
   @@unique([symbol, userId])
 }
 
 model SetupTrade {
-  id                String   @id @default(uuid())
-  userId            String
-  name              String
-  strategy          String
-  timeframe         String
-  rrRatio           String
-  appliesToAllPairs Boolean  @default(false)
-  pairId            String?
-  checklist         Json?
-  notes             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id           String     @id @default(uuid())
+  userId       String
+  name         String
+  strategy     String
+  timeframe    String
+  notes        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  user           User             @relation(fields: [userId], references: [id])
-  setupPairs     SetupTradePair[] // Pivot ke Pair
-  checklistItems ChecklistItem[] // Daftar checklist
-  strategies     Strategy[] // ✅ Many-to-many ke Strategy
-  trades         Trade[] // Relasi kebalikan dari Trade.setupTrade
+  indicatorId  String?
+  indicator    Indicator? @relation(fields: [indicatorId], references: [id]) // ✅ relasi lowercase
+
+  user         User        @relation(fields: [userId], references: [id])
+  strategies   Strategy[]
+  trades       Trade[]
 
   @@index([userId])
 }
+
 
 model Trade {
   id            String         @id @default(uuid())
@@ -139,27 +136,6 @@ model Trade {
   @@index([userId])
 }
 
-model SetupTradePair {
-  setupTradeId String
-  pairId       String
-
-  setupTrade SetupTrade @relation(fields: [setupTradeId], references: [id])
-  pair       Pair       @relation(fields: [pairId], references: [id])
-
-  @@id([setupTradeId, pairId])
-}
-
-model ChecklistItem {
-  id           String @id @default(uuid())
-  name         String
-  order        Int
-  setupTradeId String
-
-  setupTrade SetupTrade @relation(fields: [setupTradeId], references: [id])
-
-  @@index([setupTradeId])
-}
-
 model Psychology {
   id     String  @id @default(uuid())
   name   String
@@ -176,6 +152,14 @@ model Strategy {
   user        User         @relation(fields: [userId], references: [id])
   userId      String
   setupTrades SetupTrade[] // ✅ Many-to-many ke SetupTrade
+}
+
+model Indicator {
+  id          String       @id @default(uuid())
+  name        String
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String
+  setupTrades SetupTrade[]
 }
 
 model Payment {

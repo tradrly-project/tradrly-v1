@@ -30,6 +30,7 @@ export async function GET(request: Request) {
       where: { id, userId },
       include: {
         psychologies: true,
+        setupTrade: true,
       },
     });
 
