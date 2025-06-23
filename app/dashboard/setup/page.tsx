@@ -14,7 +14,7 @@ export default async function SetupTradePage() {
   const setups = await prisma.setupTrade.findMany({
     where: { userId },
     include: {
-      indicator: true, // Ganti dari setupPairs ke Indicator
+      indicators: true, // Ganti dari setupPairs ke Indicator
     },
     orderBy: {
       createdAt: "desc",
@@ -27,6 +27,7 @@ export default async function SetupTradePage() {
     select: {
       id: true,
       name: true,
+      code: true,
       userId: true,
     },
     orderBy: {

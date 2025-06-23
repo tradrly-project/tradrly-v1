@@ -21,19 +21,22 @@ export async function createSetupTrade(
   }
 
   const raw = Object.fromEntries(formData.entries());
+  const indicators = formData
+    .getAll("indicator")
+    .filter(Boolean)
+    .map((val) => val.toString());
 
   const values: SetupTradeFormValues = {
     name: raw.name?.toString() ?? "",
     strategy: raw.strategy?.toString() ?? "",
     timeframe: raw.timeframe?.toString() ?? "",
-    indicator: raw.indicator?.toString() ?? "",
-    notes: raw.notes?.toString() ?? undefined,
+    indicator: indicators,
+    notes: raw.notes?.toString() || undefined,
   };
 
   const validated = SetupTradeSchema.safeParse({
     ...values,
     userId,
-    indicatorId: values.indicator,
   });
 
   if (!validated.success) {
@@ -47,11 +50,34 @@ export async function createSetupTrade(
   try {
     const { indicator, ...rest } = validated.data;
 
+    if (indicator && indicator.length > 0) {
+      const indicatorsInDB = await prisma.indicator.findMany({
+        where: {
+          id: { in: indicator },
+        },
+        select: { id: true },
+      });
+
+      const foundIds = indicatorsInDB.map((i) => i.id);
+      if (foundIds.length !== indicator.length) {
+        return {
+          message: "Beberapa indikator tidak ditemukan di database.",
+          values,
+        };
+      }
+    }
+
     await prisma.setupTrade.create({
       data: {
         ...rest,
         userId,
-        indicatorId: indicator, // langsung assign ID-nya
+        ...(indicator && indicator.length > 0
+          ? {
+              indicators: {
+                connect: indicator.map((id) => ({ id })),
+              },
+            }
+          : {}),
       },
     });
 
@@ -62,7 +88,7 @@ export async function createSetupTrade(
       values: {} as SetupTradeFormValues,
     };
   } catch (error) {
-    console.error("❌ Error saat menyimpan SetupTrade:", error);
+    console.error("createSetupTrade error:", error);
     return {
       message: "Gagal menyimpan setup",
       values,

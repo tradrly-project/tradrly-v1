@@ -60,14 +60,14 @@ export function DataTable<TData, TValue>({
           <colgroup>
             <col className="w-[15%]" />
             <col className="w-[15%]" />
-            <col className="w-[6%]" />
+            <col className="w-[8%]" />
             <col className="w-[12%]" />
             <col className="w-[12%]" />
             <col className="w-[12%]" />
-            <col className="w-[10%]" />
             <col className="w-[12%]" />
             <col className="w-[15%]" />
-            <col className="w-[10%]" />
+            <col className="w-[8%]" />
+            <col className="w-[12%]" />
             <col className="w-[6%]" />
           </colgroup>
 

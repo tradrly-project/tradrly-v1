@@ -60,16 +60,6 @@ export const columns: ColumnDef<TradeWithPair>[] = [
     },
   },
   {
-    accessorKey: "lotSize",
-    header: () => <div className="text-center px-2 py-2">Lot</div>,
-    cell: ({ row }) => (
-      <div className="flex space-x-2 px-2 py-2 justify-center">
-        <span>{row.getValue("lotSize")}</span>
-        <span className="text-muted-foreground">Lot</span>
-      </div>
-    ),
-  },
-  {
     accessorKey: "entryPrice",
     header: () => <div className="text-center px-2 py-2">Entry</div>,
     cell: ({ row }) => {
@@ -137,7 +127,7 @@ export const columns: ColumnDef<TradeWithPair>[] = [
 
       return (
         <div className="flex justify-center px-2 py-2">
-          <Badge variant="default" className="text-xs px-2 py-1">
+          <Badge variant="default" className="text-xs px-2 py-1 m-0">
             {name ?? "-"}
           </Badge>
         </div>

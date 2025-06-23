@@ -16,7 +16,10 @@ export async function POST(req: Request) {
   try {
     const userId = await getUserId();
     const formData = await req.formData();
-    const parsed = SetupTradeSchema.safeParse(Object.fromEntries(formData.entries()));
+
+    const parsed = SetupTradeSchema.safeParse(
+      Object.fromEntries(formData.entries())
+    );
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -32,10 +35,13 @@ export async function POST(req: Request) {
         timeframe: parsed.data.timeframe,
         notes: parsed.data.notes,
         userId,
-        indicatorId: parsed.data.indicator,
+        indicators: {
+          connect: parsed.data.indicator?.map((id) => ({ id })) ?? [],
+
+        },
       },
       include: {
-        indicator: true,
+        indicators: true,
       },
     });
 
@@ -63,7 +69,7 @@ export async function GET() {
     const setups = await prisma.setupTrade.findMany({
       where: { userId },
       include: {
-        indicator: true,
+        indicators: true,
       },
       orderBy: {
         createdAt: "desc",

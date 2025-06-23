@@ -9,7 +9,6 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -60,26 +59,26 @@ export default function SetupClient({ setups, indicators }: SetupClientProps) {
         />
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="border-zinc-700 cursor-pointer hover:bg-foreground/10 hover:text-foreground">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-zinc-700 cursor-pointer hover:bg-foreground/10 hover:text-foreground"
+            >
               <PlusIcon className="mr-1 h-4 w-4" />
               Setup
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="max-w-3xl">
-            <div className="flex justify-between items-center mb-2">
-              <DialogTitle className="text-xl">Setup Baru</DialogTitle>
+          <DialogContent className="w-[370px]" showCloseButton={false}>
+            <div className="flex justify-between items-center mb-4">
+              <DialogTitle className="text-2xl py-4">Setup Baru</DialogTitle>
               <DialogPrimitive.Close asChild>
-                <Button variant="ghost" size="icon">
-                  <XIcon className="w-4 h-4" />
-                </Button>
+                <button className="cursor-pointer text-white">
+                  <XIcon className="w-5 h-5" />
+                </button>
               </DialogPrimitive.Close>
             </div>
-            <DialogDescription className="mb-4">
-              Buat dan kelola setup trading kamu sebelum entry market.
-            </DialogDescription>
             <SetupTradeForm indicator={indicators} />
-
           </DialogContent>
         </Dialog>
       </div>

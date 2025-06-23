@@ -17,21 +17,29 @@ export async function GET(request: Request) {
   try {
     const userId = await getUserId();
     const id = request.url.split("/").pop();
-    if (!id) return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
+    if (!id)
+      return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
 
     const setup = await prisma.setupTrade.findFirst({
       where: { id, userId },
       include: {
-        indicator: true,
+        indicators: true,
       },
     });
 
-    if (!setup) return NextResponse.json({ error: "Setup tidak ditemukan" }, { status: 404 });
+    if (!setup)
+      return NextResponse.json(
+        { error: "Setup tidak ditemukan" },
+        { status: 404 }
+      );
 
     return NextResponse.json(setup);
   } catch (error) {
     console.error("GET setup error:", error);
-    return NextResponse.json({ error: "Gagal mengambil setup" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Gagal mengambil setup" },
+      { status: 500 }
+    );
   }
 }
 
@@ -40,13 +48,19 @@ export async function PUT(request: Request) {
   try {
     const userId = await getUserId();
     const id = request.url.split("/").pop();
-    if (!id) return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
+    if (!id)
+      return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
 
     const formData = await request.formData();
-    const parsed = SetupTradeSchema.safeParse(Object.fromEntries(formData.entries()));
+    const parsed = SetupTradeSchema.safeParse(
+      Object.fromEntries(formData.entries())
+    );
 
     if (!parsed.success) {
-      return NextResponse.json({ errors: parsed.error.flatten().fieldErrors }, { status: 400 });
+      return NextResponse.json(
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
     const data = parsed.data;
@@ -58,7 +72,9 @@ export async function PUT(request: Request) {
         strategy: data.strategy,
         timeframe: data.timeframe,
         notes: data.notes,
-        indicatorId: data.indicator,
+        indicators: {
+          set: data.indicator?.map((id) => ({ id })),
+        },
       },
     });
 
@@ -66,7 +82,10 @@ export async function PUT(request: Request) {
     return NextResponse.json({ updated: true });
   } catch (error) {
     console.error("PUT setup error:", error);
-    return NextResponse.json({ error: "Gagal mengupdate setup" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Gagal mengupdate setup" },
+      { status: 500 }
+    );
   }
 }
 
@@ -75,14 +94,18 @@ export async function DELETE(request: Request) {
   try {
     const userId = await getUserId();
     const id = request.url.split("/").pop();
-    if (!id) return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
+    if (!id)
+      return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
 
     const existing = await prisma.setupTrade.findFirst({
       where: { id, userId },
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "Data tidak ditemukan atau tidak diizinkan" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Data tidak ditemukan atau tidak diizinkan" },
+        { status: 403 }
+      );
     }
 
     await prisma.setupTrade.delete({ where: { id } });
@@ -91,6 +114,9 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ deleted: true });
   } catch (error) {
     console.error("DELETE setup error:", error);
-    return NextResponse.json({ error: "Gagal menghapus setup" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Gagal menghapus setup" },
+      { status: 500 }
+    );
   }
 }

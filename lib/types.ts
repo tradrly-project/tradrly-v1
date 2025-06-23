@@ -21,14 +21,14 @@ export type TradeFormState = {
 
 // ✅ Ganti ini dari SetupTradeWithPair ke SetupTradeWithIndicator
 export type SetupTradeWithIndicator = SetupTrade & {
-  indicator: Indicator | null; // relasi bisa null
+  indicators: Indicator[] | null; // relasi bisa null
 };
 
 export type SetupTradeFormValues = {
   name: string;
   strategy: string;
   timeframe: string;
-  indicator: string; // Ini menyimpan indicatorId (string)
+  indicator: string[] // Ini menyimpan indicatorId (string)
   notes?: string;
 };
 

@@ -32,18 +32,18 @@ model User {
   pairs         Pair[]
   strategy      Strategy[]
   setupTrades   SetupTrade[]
-  indicator     Indicator[]
+  indicators    Indicator[]
 }
 
 model Account {
   id             String   @id @default(uuid())
-  user           User     @relation(fields: [userId], references: [id])
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
   brokerName     String
   accountNumber  String
-  server         String? // optional
+  server         String?
   initialBalance Decimal
-  note           String? // optional
+  note           String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -63,7 +63,7 @@ model SubscriptionPlan {
 
 model Subscription {
   id        String             @id @default(uuid())
-  user      User               @relation(fields: [userId], references: [id])
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   plan      SubscriptionPlan   @relation(fields: [planId], references: [id])
   planId    String
@@ -81,38 +81,36 @@ model Pair {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   Trade     Trade[]
 
   @@unique([symbol, userId])
 }
 
 model SetupTrade {
-  id           String     @id @default(uuid())
-  userId       String
-  name         String
-  strategy     String
-  timeframe    String
-  notes        String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  strategy  String
+  timeframe String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  indicatorId  String?
-  indicator    Indicator? @relation(fields: [indicatorId], references: [id]) // ✅ relasi lowercase
+  indicators Indicator[] @relation("SetupTradeIndicators")
 
-  user         User        @relation(fields: [userId], references: [id])
-  strategies   Strategy[]
-  trades       Trade[]
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strategies Strategy[]
+  trades     Trade[]
 
   @@index([userId])
 }
-
 
 model Trade {
   id            String         @id @default(uuid())
   userId        String
   pairId        String
-  setupTradeId  String? // ✅ Foreign key ke SetupTrade (optional)
+  setupTradeId  String?
   direction     TradeDirection
   entryPrice    Decimal
   stoploss      Decimal
@@ -128,10 +126,10 @@ model Trade {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  user         User         @relation(fields: [userId], references: [id])
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   pair         Pair         @relation(fields: [pairId], references: [id])
-  setupTrade   SetupTrade?  @relation(fields: [setupTradeId], references: [id]) // ✅ baru
-  psychologies Psychology[] // ✅ tetap many-to-many
+  setupTrade   SetupTrade?  @relation(fields: [setupTradeId], references: [id])
+  psychologies Psychology[]
 
   @@index([userId])
 }
@@ -139,9 +137,9 @@ model Trade {
 model Psychology {
   id     String  @id @default(uuid())
   name   String
-  user   User    @relation(fields: [userId], references: [id])
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
-  trades Trade[] // ✅ many-to-many relasi balik
+  trades Trade[]
 
   @@index([userId])
 }
@@ -149,22 +147,26 @@ model Psychology {
 model Strategy {
   id          String       @id @default(uuid())
   name        String
-  user        User         @relation(fields: [userId], references: [id])
-  userId      String
-  setupTrades SetupTrade[] // ✅ Many-to-many ke SetupTrade
-}
-
-model Indicator {
-  id          String       @id @default(uuid())
-  name        String
-  user        User         @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
   setupTrades SetupTrade[]
 }
 
+model Indicator {
+  id     String @id @default(uuid())
+  name   String
+  code   String
+  userId String
+
+  setups SetupTrade[] @relation("SetupTradeIndicators")
+  User   User         @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
 model Payment {
   id            String        @id @default(uuid())
-  user          User          @relation(fields: [userId], references: [id])
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
   amount        Decimal
   status        PaymentStatus

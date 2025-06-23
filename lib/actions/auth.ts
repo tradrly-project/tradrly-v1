@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { defaultPairs } from "@/lib/pairs-default";
+import { defaultIndicators } from "../indicator-default";
 
 export const signUpCredentials = async (
   prevState: unknown,
@@ -38,12 +39,20 @@ export const signUpCredentials = async (
 
     // 2. Buat pairs default untuk user baru
     await prisma.pair.createMany({
-      data: defaultPairs.map(pair => ({
+      data: defaultPairs.map((pair) => ({
         symbol: pair.symbol,
         userId: user.id,
       })),
     });
 
+    // 3. Buat indikator default untuk user baru
+    await prisma.indicator.createMany({
+      data: defaultIndicators.map((indicator) => ({
+        name: indicator.name,
+        code: indicator.code,
+        userId: user.id,
+      })),
+    });
   } catch (error) {
     console.error("Sign up error:", error);
     return {
