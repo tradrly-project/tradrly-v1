@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import SetupClient from "./setup-client";
+import { sortTimeframes } from "@/lib/default/timeframe";
 
 export default async function SetupTradePage() {
   const session = await auth();
@@ -14,7 +15,8 @@ export default async function SetupTradePage() {
   const setups = await prisma.setupTrade.findMany({
     where: { userId },
     include: {
-      indicators: true, // Ganti dari setupPairs ke Indicator
+      indicators: true,
+      timeframes: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -35,5 +37,16 @@ export default async function SetupTradePage() {
     },
   });
 
-  return <SetupClient setups={setups} indicators={indicators} />;
+  const rawTimeframes = await prisma.timeframe.findMany({
+    where: {
+      OR: [
+        { userId: null },
+        { userId: userId },
+      ],
+    },
+  });
+
+  const timeframes = sortTimeframes(rawTimeframes);
+
+  return <SetupClient setups={setups} indicators={indicators} timeframes={timeframes} />;
 }

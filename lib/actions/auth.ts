@@ -6,8 +6,9 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
-import { defaultPairs } from "@/lib/pairs-default";
-import { defaultIndicators } from "../indicator-default";
+import { defaultPairs } from "@/lib/default/pairs";
+import { defaultIndicators } from "../default/indicator";
+import { defaultTimeframes } from "../default/timeframe";
 
 export const signUpCredentials = async (
   prevState: unknown,
@@ -52,6 +53,11 @@ export const signUpCredentials = async (
         code: indicator.code,
         userId: user.id,
       })),
+    });
+
+    await prisma.timeframe.createMany({
+      data: defaultTimeframes,
+      skipDuplicates: true, // biar aman kalau sudah ada
     });
   } catch (error) {
     console.error("Sign up error:", error);

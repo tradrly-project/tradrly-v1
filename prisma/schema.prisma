@@ -33,6 +33,7 @@ model User {
   strategy      Strategy[]
   setupTrades   SetupTrade[]
   indicators    Indicator[]
+  timeframes    Timeframe[]
 }
 
 model Account {
@@ -89,15 +90,15 @@ model Pair {
 
 model SetupTrade {
   id        String   @id @default(uuid())
-  userId    String
+  userId    String  
   name      String
   strategy  String
-  timeframe String
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   indicators Indicator[] @relation("SetupTradeIndicators")
+  timeframes Timeframe[] @relation("TimeframesOnSetupTrade")
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   strategies Strategy[]
@@ -162,6 +163,16 @@ model Indicator {
   User   User         @relation(fields: [userId], references: [id])
 
   @@index([userId])
+}
+
+model Timeframe {
+  id          String       @id @default(cuid())
+  code        String
+  userId      String? // null → global, ada → custom user
+  user        User?        @relation(fields: [userId], references: [id])
+  setupTrades SetupTrade[] @relation("TimeframesOnSetupTrade")
+
+  @@unique([code, userId]) // prevent duplicate per user
 }
 
 model Payment {

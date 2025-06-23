@@ -70,10 +70,12 @@ export async function PUT(request: Request) {
       data: {
         name: data.name,
         strategy: data.strategy,
-        timeframe: data.timeframe,
         notes: data.notes,
         indicators: {
           set: data.indicator?.map((id) => ({ id })),
+        },
+        timeframes: {
+          set: data.timeframe?.map((id) => ({ id })),
         },
       },
     });

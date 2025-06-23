@@ -21,16 +21,22 @@ export async function createSetupTrade(
   }
 
   const raw = Object.fromEntries(formData.entries());
+
   const indicators = formData
     .getAll("indicator")
+    .filter(Boolean)
+    .map((val) => val.toString());
+
+  const timeframes = formData
+    .getAll("timeframe")
     .filter(Boolean)
     .map((val) => val.toString());
 
   const values: SetupTradeFormValues = {
     name: raw.name?.toString() ?? "",
     strategy: raw.strategy?.toString() ?? "",
-    timeframe: raw.timeframe?.toString() ?? "",
     indicator: indicators,
+    timeframe: timeframes,
     notes: raw.notes?.toString() || undefined,
   };
 
@@ -48,16 +54,14 @@ export async function createSetupTrade(
   }
 
   try {
-    const { indicator, ...rest } = validated.data;
+    const { indicator, timeframe, ...rest } = validated.data;
 
-    if (indicator && indicator.length > 0) {
+    // Validasi indikator
+    if (indicator?.length) {
       const indicatorsInDB = await prisma.indicator.findMany({
-        where: {
-          id: { in: indicator },
-        },
+        where: { id: { in: indicator } },
         select: { id: true },
       });
-
       const foundIds = indicatorsInDB.map((i) => i.id);
       if (foundIds.length !== indicator.length) {
         return {
@@ -67,16 +71,31 @@ export async function createSetupTrade(
       }
     }
 
+    // Validasi timeframe
+    if (timeframe?.length) {
+      const tfInDB = await prisma.timeframe.findMany({
+        where: { id: { in: timeframes } },
+        select: { id: true },
+      });
+      const foundTFs = tfInDB.map((t) => t.id);
+      if (foundTFs.length !== timeframes.length) {
+        return {
+          message: "Beberapa timeframe tidak ditemukan di database.",
+          values,
+        };
+      }
+    }
+
+    // Simpan setup
     await prisma.setupTrade.create({
       data: {
         ...rest,
         userId,
-        ...(indicator && indicator.length > 0
-          ? {
-              indicators: {
-                connect: indicator.map((id) => ({ id })),
-              },
-            }
+        ...(indicator?.length
+          ? { indicators: { connect: indicator.map((id) => ({ id })) } }
+          : {}),
+        ...(timeframes?.length
+          ? { timeframes: { connect: timeframes.map((id) => ({ id })) } }
           : {}),
       },
     });

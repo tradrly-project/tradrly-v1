@@ -77,7 +77,7 @@ export const TradeUpdateSchema = TradeBaseSchema.partial();
 const BaseSetupTradeSchema = object({
   name: string().min(1, "Nama setup wajib diisi").max(30, "Maksimal 50 karakter"),
   strategy: string().min(1, "Strategi wajib diisi"),
-  timeframe: string().min(1, "Timeframe wajib diisi"),
+  timeframe: array(string()).optional(),
   indicator: array(string()).optional(),
   notes: string().optional().nullable(),
 });

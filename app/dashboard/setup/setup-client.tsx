@@ -17,14 +17,15 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import SetupTradeForm from "@/components/setup/form";
 import { XIcon } from "lucide-react";
-import { Indicator } from "@prisma/client";
+import { Indicator, Timeframe } from "@prisma/client";
 
 type SetupClientProps = {
   setups: SetupTradeWithIndicator[];
-  indicators: Indicator[]; // ✅ tambahkan ini
+  indicators: Indicator[];
+  timeframes: Timeframe[];
 };
 
-export default function SetupClient({ setups, indicators }: SetupClientProps) {
+export default function SetupClient({ setups, indicators, timeframes }: SetupClientProps) {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
 
@@ -33,13 +34,11 @@ export default function SetupClient({ setups, indicators }: SetupClientProps) {
   const filteredSetups = setups.filter((setup) => {
     const name = setup.name?.toLowerCase() || "";
     const strategy = setup.strategy?.toLowerCase() || "";
-    const tf = setup.timeframe?.toLowerCase() || "";
     const keyword = filter.toLowerCase();
 
     return (
       name.includes(keyword) ||
-      strategy.includes(keyword) ||
-      tf.includes(keyword)
+      strategy.includes(keyword)
     );
   });
 
@@ -78,7 +77,7 @@ export default function SetupClient({ setups, indicators }: SetupClientProps) {
                 </button>
               </DialogPrimitive.Close>
             </div>
-            <SetupTradeForm indicator={indicators} />
+            <SetupTradeForm indicator={indicators} timeframe={timeframes} />
           </DialogContent>
         </Dialog>
       </div>

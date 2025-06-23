@@ -9,19 +9,24 @@ import { SubmitButton } from "../button";
 import { notifySuccess, notifyError } from "../asset/notify";
 import { IndicatorSelect } from "../asset/indicator-select";
 import { SetupTradeFormState } from "@/lib/types";
+import { TimeframeSelect } from "../asset/timeframe-select";
 
 type SetupTradeFormProps = {
   indicator: { id: string; name: string; code: string }[];
+  timeframe: { id: string; code: string }[];
 };
 
-export default function SetupTradeForm({ indicator }: SetupTradeFormProps) {
+export default function SetupTradeForm({
+  indicator,
+  timeframe,
+}: SetupTradeFormProps) {
   const initialState = {
     message: "",
     errors: undefined,
     values: {
       name: "",
       strategy: "",
-      timeframe: "",
+      timeframe: [] as string[],
       notes: "",
       indicator: [] as string[], // ✅ FIXED: harus array
     },
@@ -31,10 +36,16 @@ export default function SetupTradeForm({ indicator }: SetupTradeFormProps) {
   const [selectedIndicators, setSelectedIndicators] = useState<
     { label: string; value: string }[]
   >([]);
+  const [selectedTimeframes, setSelectedTimeframes] = useState<
+    { label: string; value: string }[]
+  >([]);
 
   const handleSubmit = async (formData: FormData) => {
     const indicatorIds = selectedIndicators.map((i) => i.value);
+    const timeframeIds = selectedTimeframes.map((i) => i.value);
+
     indicatorIds.forEach((id) => formData.append("indicator", id));
+    timeframeIds.forEach((id) => formData.append("timeframe", id));
 
     const result = await createSetupTrade(state, formData);
     setState(result);
@@ -47,6 +58,7 @@ export default function SetupTradeForm({ indicator }: SetupTradeFormProps) {
       } else {
         notifySuccess(state.message);
         setSelectedIndicators([]);
+        setSelectedTimeframes([]);
       }
     }
   }, [state]);
@@ -55,19 +67,34 @@ export default function SetupTradeForm({ indicator }: SetupTradeFormProps) {
     <form action={handleSubmit} className="space-y-6 h-full">
       {/* Nama Setup */}
       <LabelInputContainer>
-        <Input name="name" placeholder="Nama Setup" defaultValue={state.values.name} />
+        <Input
+          name="name"
+          placeholder="Nama Setup"
+          defaultValue={state.values.name}
+        />
         <FieldError>{state.errors?.name}</FieldError>
       </LabelInputContainer>
 
       {/* Strategi */}
       <LabelInputContainer>
-        <Input name="strategy" placeholder="Strategi" defaultValue={state.values.strategy} />
+        <Input
+          name="strategy"
+          placeholder="Strategi"
+          defaultValue={state.values.strategy}
+        />
         <FieldError>{state.errors?.strategy}</FieldError>
       </LabelInputContainer>
 
       {/* Timeframe */}
       <LabelInputContainer>
-        <Input name="timeframe" placeholder="Timeframe" defaultValue={state.values.timeframe} />
+        <TimeframeSelect
+          name="timeframe"
+          selected={selectedTimeframes}
+          onChange={setSelectedTimeframes}
+          options={timeframe.map((t) => ({ label: t.code, value: t.id }))}
+          placeholder="Pilih Timeframe"
+          error={state.errors?.timeframe}
+        />
         <FieldError>{state.errors?.timeframe}</FieldError>
       </LabelInputContainer>
 
@@ -115,7 +142,9 @@ const LabelInputContainer = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>
+  <div className={cn("flex w-full flex-col space-y-2", className)}>
+    {children}
+  </div>
 );
 
 const FieldError = ({ children }: { children?: string | string[] }) => {

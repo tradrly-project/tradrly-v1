@@ -32,12 +32,13 @@ export async function POST(req: Request) {
       data: {
         name: parsed.data.name,
         strategy: parsed.data.strategy,
-        timeframe: parsed.data.timeframe,
         notes: parsed.data.notes,
         userId,
         indicators: {
           connect: parsed.data.indicator?.map((id) => ({ id })) ?? [],
-
+        },
+        timeframes: {
+          connect: parsed.data.timeframe?.map((id) => ({ id })) ?? [],
         },
       },
       include: {
