@@ -1,10 +1,10 @@
 "use client";
 import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import { EyeIcon } from "@heroicons/react/24/solid";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { SetupTrade } from "@prisma/client"; // atau tipe custom kamu
 import { Badge } from "@/components/ui/badge";
+import { SetupTradeDetailDialog } from "@/components/asset/setup-trade-detail-dialog";
 
 export const columns: ColumnDef<
   SetupTrade & {
@@ -131,18 +131,29 @@ export const columns: ColumnDef<
     },
     {
       id: "actions",
-      header: () => <div className="text-center px-2 py-2" />,
-      cell: () => (
-        <div className="flex justify-end px-2 py-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 p-0 cursor-pointer"
-          >
-            <EyeIcon className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
+      header: () => <div className="text-center px-2 py-2">Aksi</div>,
+      cell: ({ row }) => {
+        const setup = row.original; // pastikan data SetupTrade sudah dimuat dengan benar
+
+        return (
+          <div className="flex justify-center px-2 py-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SetupTradeDetailDialog
+                  setup={{
+                    ...setup,
+                    indicators: setup.indicators ?? undefined,
+                    timeframes: setup.timeframes ?? undefined,
+                  }}
+                />
+              </TooltipTrigger>
+              <TooltipContent side="right" align="center">
+                Detail
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        );
+      },
       enableSorting: false,
       enableHiding: false,
     },

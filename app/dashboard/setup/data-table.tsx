@@ -60,7 +60,7 @@ export function DataTable<TData, TValue>({
                         <col className="w-[50%]" />
                         <col className="w-[40%]" />
                         <col className="w-[20%]" />
-                        <col className="w-[10%]" />
+                        <col className="w-[15%]" />
                     </colgroup>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -126,8 +126,8 @@ export function DataTable<TData, TValue>({
                                     isActive={page === i + 1}
                                     onClick={() => setPage(i + 1)}
                                     className={`cursor-pointer border-0 ${page === i + 1
-                                            ? "bg-zinc-800 text-white"
-                                            : "bg-transparent text-muted-foreground"
+                                        ? "bg-zinc-800 text-white"
+                                        : "bg-transparent text-muted-foreground"
                                         }`}
                                 >
                                     {i + 1}
