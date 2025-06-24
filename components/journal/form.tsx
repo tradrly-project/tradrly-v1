@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { DatePickerWithPresets } from "@/components/asset/date-picker";
-import { DropdownMenuSelect } from "../asset/dropdown-menu";
+import { DropdownMenuSelect } from "../select/direction";
 import { ComboBox } from "../asset/combo-box";
 import { FloatingLabelInput } from "../asset/floating-placeholder";
 import { RightPlaceholderInput } from "../asset/placeholder-right";
@@ -15,7 +15,7 @@ import { LeftPlaceholderInput } from "../asset/placeholder-left";
 import { FileUpload } from "../ui/file-upload";
 import { SubmitButton } from "../button";
 import { notifyError, notifySuccess } from "../asset/notify";
-import { PsychologySelect } from "../asset/psychology-select";
+import { PsychologySelect } from "../select/psychology-select";
 
 type TradeFormProps = {
   pairs: { id: string; symbol: string }[];

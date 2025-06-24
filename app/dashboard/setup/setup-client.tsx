@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import { createSetupColumns  } from "./columns";
 import { SetupTradeWithIndicator } from "@/lib/types";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
@@ -83,7 +83,8 @@ export default function SetupClient({ setups, indicators, timeframes }: SetupCli
       </div>
 
       {/* Tabel Data Setup */}
-      <DataTable columns={columns} data={filteredSetups} />
+      <DataTable columns={createSetupColumns({ indicator: indicators, timeframe: timeframes })} data={filteredSetups} />
+
     </div>
   );
 }

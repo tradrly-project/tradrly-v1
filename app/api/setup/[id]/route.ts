@@ -51,10 +51,8 @@ export async function PUT(request: Request) {
     if (!id)
       return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
 
-    const formData = await request.formData();
-    const parsed = SetupTradeSchema.safeParse(
-      Object.fromEntries(formData.entries())
-    );
+    const json = await request.json();
+    const parsed = SetupTradeSchema.safeParse(json);
 
     if (!parsed.success) {
       return NextResponse.json(

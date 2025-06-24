@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { createSetupTrade } from "@/lib/actions/setup-trade";
 import { SubmitButton } from "../button";
 import { notifySuccess, notifyError } from "../asset/notify";
-import { IndicatorSelect } from "../asset/indicator-select";
+import { IndicatorSelect } from "../select/indicator-select";
 import { SetupTradeFormState } from "@/lib/types";
-import { TimeframeSelect } from "../asset/timeframe-select";
+import { TimeframeSelect } from "../select/timeframe-select";
+import FieldError from "../asset/field-error";
+import LabelInputContainer from "../asset/label-input";
 
 type SetupTradeFormProps = {
   indicator: { id: string; name: string; code: string }[];
@@ -133,27 +134,3 @@ export default function SetupTradeForm({
     </form>
   );
 }
-
-// Reusable layout
-const LabelInputContainer = ({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>
-    {children}
-  </div>
-);
-
-const FieldError = ({ children }: { children?: string | string[] }) => {
-  if (!children) return null;
-  return (
-    <div className="-mt-3 ml-1">
-      <span className="text-xs text-red-700">
-        {Array.isArray(children) ? children.join(", ") : children}
-      </span>
-    </div>
-  );
-};
