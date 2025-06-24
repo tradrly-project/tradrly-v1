@@ -6,6 +6,37 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import type { TradeFormState, TradeFormValues } from "@/lib/types";
 
+// ✅ Fungsi untuk menghitung dan update winrate
+async function updateSetupTradeWinrate(setupTradeId: string) {
+  if (!setupTradeId) return;
+
+  const trades = await prisma.trade.findMany({
+    where: {
+      setupTradeId,
+    },
+    select: {
+      result: true,
+    },
+  });
+
+  if (trades.length === 0) {
+    await prisma.setupTrade.update({
+      where: { id: setupTradeId },
+      data: { winrate: 0 },
+    });
+    return;
+  }
+
+  const total = trades.length;
+  const wins = trades.filter((t) => t.result === "win").length; // Pastikan enum "WIN"
+  const winrate = (wins / total) * 100;
+
+  await prisma.setupTrade.update({
+    where: { id: setupTradeId },
+    data: { winrate },
+  });
+}
+
 export async function createTrade(
   prevState: TradeFormState,
   formData: FormData
@@ -106,6 +137,11 @@ export async function createTrade(
         setupTradeId: setupTradeId || undefined,
       },
     });
+
+    // ✅ Update winrate setelah trade dibuat
+    if (setupTradeId) {
+      await updateSetupTradeWinrate(setupTradeId);
+    }
 
     revalidatePath("/dashboard/journal");
 

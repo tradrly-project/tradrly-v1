@@ -90,9 +90,10 @@ model Pair {
 
 model SetupTrade {
   id        String   @id @default(uuid())
-  userId    String  
+  userId    String
   name      String
   strategy  String
+  winrate   Float?   @default(0)
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
