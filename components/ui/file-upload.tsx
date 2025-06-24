@@ -32,7 +32,7 @@ export const FileUpload = ({
     formData.append("file", file);
 
     const res = await fetch("/api/upload", {
-      method: "POST",
+      method: "PUT",
       body: formData,
     });
 

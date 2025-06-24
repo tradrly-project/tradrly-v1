@@ -1,10 +1,8 @@
 "use client";
 import { ColumnDef } from "@tanstack/react-table";
 import { TradeWithPair } from "@/lib/types";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EllipsisHorizontalIcon } from "@heroicons/react/24/outline";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { TradeDetailDialog } from "@/components/journal/detail";
 
 const formatUSD = (value: number) =>
   new Intl.NumberFormat("en-US", {
@@ -171,27 +169,17 @@ export const columns: ColumnDef<TradeWithPair>[] = [
     },
   },
   {
-    id: "actions",
-    header: () => <div className="text-center px-2 py-2" />,
-    cell: () => (
+  id: "actions",
+  header: () => <div className="text-center px-2 py-2">Aksi</div>,
+  cell: ({ row }) => {
+    const trade = row.original;
+    return (
       <div className="flex justify-center px-2 py-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 rounded-sm p-0 cursor-pointer bg-zinc-900"
-            >
-              <EllipsisHorizontalIcon className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" align="center">
-            Detail
-          </TooltipContent>
-        </Tooltip>
+        <TradeDetailDialog trade={trade} />
       </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
+    );
   },
+  enableSorting: false,
+  enableHiding: false,
+}
 ];

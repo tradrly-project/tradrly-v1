@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { TradeUpdateSchema } from "@/lib/zod";
+import { TradeWithPair } from "@/lib/types";
 
 async function getUserId() {
   const session = await auth();
@@ -26,11 +27,14 @@ export async function GET(request: Request) {
       );
     }
 
-    const trade = await prisma.trade.findFirst({
+    const trade: TradeWithPair | null = await prisma.trade.findFirst({
       where: { id, userId },
       include: {
+        pair: true,
+        setupTrade: {
+          select: { name: true },
+        },
         psychologies: true,
-        setupTrade: true,
       },
     });
 

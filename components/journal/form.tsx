@@ -5,7 +5,6 @@ import { useActionState } from "react";
 import { createTrade } from "@/lib/actions/trade";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { DatePickerWithPresets } from "@/components/asset/date-picker";
 import { DropdownMenuSelect } from "../select/direction";
 import { ComboBox } from "../asset/combo-box";
@@ -16,6 +15,8 @@ import { FileUpload } from "../ui/file-upload";
 import { SubmitButton } from "../button";
 import { notifyError, notifySuccess } from "../asset/notify";
 import { PsychologySelect } from "../select/psychology-select";
+import LabelInputContainer from "../asset/label-input";
+import FieldError from "../asset/field-error";
 
 type TradeFormProps = {
   pairs: { id: string; symbol: string }[];
@@ -382,27 +383,3 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
     </form>
   );
 }
-
-// Shared layout
-const LabelInputContainer = ({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>
-    {children}
-  </div>
-);
-
-const FieldError = ({ children }: { children?: string | string[] }) => {
-  if (!children) return null;
-  return (
-    <div className="-mt-3 ml-1">
-      <span className="text-xs text-red-700">
-        {Array.isArray(children) ? children.join(", ") : children}
-      </span>
-    </div>
-  );
-};
