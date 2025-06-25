@@ -112,177 +112,182 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
         }}
       >
         <DialogContent
-          className="w-[460px] pt-6 rounded-2xl"
+          className="w-[480px] p-0 rounded-2xl overflow-y-auto bg-background"
+          style={{ maxHeight: '90vh' }}
           showCloseButton={false}
         >
-          <div className="sticky top-0 z-50 bg-background">
-            <div className="flex justify-between items-center pb-2">
-              <DialogTitle className="text-2xl font-bold">
-                Detail Setup
-              </DialogTitle>
-              <DialogPrimitive.Close asChild>
-                <button className="cursor-pointer text-white">
-                  <XIcon className="w-5 h-5" />
-                </button>
-              </DialogPrimitive.Close>
+          <div className="flex flex-col min-h-full">
+            <div className="sticky top-0 z-50 bg-background">
+              <div className="flex justify-between items-center py-4">
+                <DialogTitle className="text-2xl font-bold">
+                  Detail Setup
+                </DialogTitle>
+                <DialogPrimitive.Close asChild>
+                  <button className="cursor-pointer text-white">
+                    <XIcon className="w-5 h-5" />
+                  </button>
+                </DialogPrimitive.Close>
+              </div>
             </div>
-          </div>
 
-          <div className="mt-6 space-y-5 text-sm text-muted-foreground px-2">
-            <div className="grid grid-cols-3 gap-y-2">
-              <span className="font-medium text-foreground">Nama Setup</span>
-              <span className="col-span-2 text-foreground mb-2">
-                {editMode ? (
-                  <Input
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                  />
-                ) : (
-                  setup.name
-                )}
-              </span>
+            <div className="space-y-5 text-sm text-muted-foreground px-2 mt-6">
+              <div className="grid grid-cols-3 gap-y-2">
+                <span className="font-medium text-foreground">Nama Setup</span>
+                <span className="col-span-2 text-foreground mb-2">
+                  {editMode ? (
+                    <Input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    setup.name
+                  )}
+                </span>
 
-              <span className="font-medium text-foreground">Strategi</span>
-              <span className="col-span-2 italic text-foreground mb-2">
-                {editMode ? (
-                  <Input
-                    name="strategy"
-                    value={formData.strategy}
-                    onChange={handleChange}
-                  />
-                ) : (
-                  setup.strategy
-                )}
-              </span>
+                <span className="font-medium text-foreground">Strategi</span>
+                <span className="col-span-2 italic text-foreground mb-2">
+                  {editMode ? (
+                    <Input
+                      name="strategy"
+                      value={formData.strategy}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    setup.strategy
+                  )}
+                </span>
 
-              <span className="font-medium text-foreground">Winrate</span>
-              <span className="col-span-2">
-                {setup.winrate !== null && setup.winrate !== undefined ? (
-                  <Badge
-                    variant="default"
-                    className={`text-xs px-2 py-1 rounded-md ${
-                      setup.winrate === 0
+                <span className="font-medium text-foreground">Winrate</span>
+                <span className="col-span-2">
+                  {setup.winrate !== null && setup.winrate !== undefined ? (
+                    <Badge
+                      variant="default"
+                      className={`text-xs px-2 py-1 rounded-md ${setup.winrate === 0
                         ? "bg-zinc-700 text-white"
                         : setup.winrate <= 50
-                        ? "bg-red-500 text-white"
-                        : "bg-sky-500 text-white"
-                    }`}
-                  >
-                    {setup.winrate.toFixed(1)}%
-                  </Badge>
-                ) : (
-                  "-"
-                )}
-              </span>
-            </div>
-
-            <div>
-              <div className="font-medium text-foreground mb-1">Timeframe</div>
-              {editMode ? (
-                <LabelInputContainer>
-                  <TimeframeSelect
-                    name="timeframe"
-                    selected={selectedTimeframes}
-                    onChange={setSelectedTimeframes}
-                    options={timeframe.map((t) => ({
-                      label: t.code,
-                      value: t.id,
-                    }))}
-                    placeholder="Pilih Timeframe"
-                  />
-                </LabelInputContainer>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {setup.timeframes?.map((tf) => (
-                    <Badge
-                      key={tf.id}
-                      variant="secondary"
-                      className="text-xs rounded-md bg-zinc-900 text-foreground"
+                          ? "bg-red-500 text-white"
+                          : "bg-sky-500 text-white"
+                        }`}
                     >
-                      {tf.code}
+                      {setup.winrate.toFixed(1)}%
                     </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="font-medium text-foreground mb-1">Indikator</div>
-              {editMode ? (
-                <LabelInputContainer>
-                  <IndicatorSelect
-                    name="indicatorIds"
-                    selected={selectedIndicators}
-                    onChange={setSelectedIndicators}
-                    options={indicator.map((i) => ({
-                      label: `${i.name} (${i.code})`,
-                      value: i.id,
-                    }))}
-                    placeholder="Pilih Indikator"
-                  />
-                </LabelInputContainer>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {setup.indicators?.map((ind) => (
-                    <Badge
-                      key={ind.id}
-                      variant="secondary"
-                      className="text-xs rounded-md bg-zinc-900 text-foreground"
-                    >
-                      {ind.name}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-zinc-950 rounded-md h-full py-2 px-4">
-              <div className="font-medium text-foreground mb-3">Catatan</div>
-              {editMode ? (
-                <Textarea
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleChange}
-                  className="border-zinc-800 mb-2"
-                />
-              ) : setup.notes?.trim() ? (
-                <div className="rounded-md p-3 text-sm text-foreground">
-                  {setup.notes}
-                </div>
-              ) : (
-                <span className="italic text-muted-foreground">
-                  Tidak ada catatan
+                  ) : (
+                    "-"
+                  )}
                 </span>
+              </div>
+
+              <div>
+                <div className="font-medium text-foreground mb-1">Timeframe</div>
+                {editMode ? (
+                  <LabelInputContainer>
+                    <TimeframeSelect
+                      name="timeframe"
+                      selected={selectedTimeframes}
+                      onChange={setSelectedTimeframes}
+                      options={timeframe.map((t) => ({
+                        label: t.code,
+                        value: t.id,
+                      }))}
+                      placeholder="Pilih Timeframe"
+                    />
+                  </LabelInputContainer>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {setup.timeframes?.map((tf) => (
+                      <Badge
+                        key={tf.id}
+                        variant="secondary"
+                        className="text-xs rounded-md bg-zinc-900 text-foreground"
+                      >
+                        {tf.code}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="font-medium text-foreground mb-1">Indikator</div>
+                {editMode ? (
+                  <LabelInputContainer>
+                    <IndicatorSelect
+                      name="indicatorIds"
+                      selected={selectedIndicators}
+                      onChange={setSelectedIndicators}
+                      options={indicator.map((i) => ({
+                        label: `${i.name} (${i.code})`,
+                        value: i.id,
+                      }))}
+                      placeholder="Pilih Indikator"
+                    />
+                  </LabelInputContainer>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {setup.indicators?.map((ind) => (
+                      <Badge
+                        key={ind.id}
+                        variant="secondary"
+                        className="text-xs rounded-md bg-zinc-900 text-foreground"
+                      >
+                        {ind.name}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-zinc-950 rounded-md h-full py-2 px-4">
+                <div className="font-medium text-foreground mb-3">Catatan</div>
+                {editMode ? (
+                  <Textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    className="border-zinc-800 mb-2"
+                  />
+                ) : setup.notes?.trim() ? (
+                  <div className="rounded-md p-3 text-sm text-foreground">
+                    {setup.notes}
+                  </div>
+                ) : (
+                  <span className="italic text-muted-foreground">
+                    Tidak ada catatan
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-background pt-6 mt-12 border-t border-zinc-800 flex justify-end">
+              {editMode ? (
+                <div className="flex gap-2 transition-all duration-200">
+                  <DeleteButton
+                    id={setup.id}
+                    title="Yakin ingin menghapus setup ini?"
+                    description="Setup yang dihapus tidak bisa dikembalikan." />
+                  <Button
+                    variant="ghost"
+                    onClick={() => setEditMode(false)}
+                    disabled={isPending}
+                  >
+                    Batal
+                  </Button>
+                  <SaveChangesButton
+                    setupId={setup.id}
+                    payload={{
+                      ...formData,
+                      indicatorIds: selectedIndicators.map((i) => i.value),
+                      timeframe: selectedTimeframes.map((t) => t.value),
+                    }}
+                    disabled={isPending}
+                    onSuccess={() => setEditMode(false)}
+                  />
+                </div>
+              ) : (
+                <Button onClick={() => setEditMode(true)} size="sm">Edit</Button>
               )}
             </div>
-          </div>
-
-          <div className="mt-10 flex justify-between">
-            <DeleteButton id={setup.id} />
-            {editMode ? (
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => setEditMode(false)}
-                  disabled={isPending}
-                >
-                  Batal
-                </Button>
-                <SaveChangesButton
-                  setupId={setup.id}
-                  payload={{
-                    ...formData,
-                    indicatorIds: selectedIndicators.map((i) => i.value),
-                    timeframe: selectedTimeframes.map((t) => t.value),
-                  }}
-                  disabled={isPending}
-                  onSuccess={() => setEditMode(false)}
-                />
-              </div>
-            ) : (
-              <Button onClick={() => setEditMode(true)}>Edit</Button>
-            )}
           </div>
         </DialogContent>
       </Dialog>

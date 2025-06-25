@@ -33,13 +33,13 @@ export default function JournalClient({ trades, pairs, setupTrade }: JournalClie
 
   // Filter berdasarkan entryPrice, bisa disesuaikan ke kolom lain
   const filteredTrades = trades.filter((trade) => {
-  const pair = trade.pair?.symbol?.toLowerCase() || "";
-  const result = trade.result?.toLowerCase() || "";
-  const direction = trade.direction?.toLowerCase() || "";
-  const keyword = filter.toLowerCase();
+    const pair = trade.pair?.symbol?.toLowerCase() || "";
+    const result = trade.result?.toLowerCase() || "";
+    const direction = trade.direction?.toLowerCase() || "";
+    const keyword = filter.toLowerCase();
 
-  return pair.includes(keyword) || result.includes(keyword) || direction.includes(keyword);
-});
+    return pair.includes(keyword) || result.includes(keyword) || direction.includes(keyword);
+  });
 
 
   return (
@@ -66,12 +66,13 @@ export default function JournalClient({ trades, pairs, setupTrade }: JournalClie
           </DialogTrigger>
 
           <DialogContent
-            className="p-0 rounded-3xl overflow-hidden"
-            style={{ height: '90vh' }} // kunci tinggi dialog
+            className="p-0 rounded-3xl overflow-y-auto"
+            style={{ height: '90vh' }}
             showCloseButton={false}
           >
-            <div className="flex flex-col h-full">
-              <div className="sticky top-0 z-50 bg-background py-6 px-1">
+            <div className="flex flex-col min-h-full">
+              {/* Sticky Header */}
+              <div className="sticky top-0 z-50 bg-background py-4 px-4 w-full">
                 <div className="flex justify-between items-center">
                   <DialogTitle className="text-2xl font-bold text-white">Tambah Jurnal</DialogTitle>
                   <DialogPrimitive.Close asChild>
@@ -82,17 +83,21 @@ export default function JournalClient({ trades, pairs, setupTrade }: JournalClie
                 </div>
                 <DialogDescription className="text-white/90 mt-1" />
               </div>
-              <div className="overflow-y-auto px-2 pb-6 space-y-4 flex-1">
+
+              {/* Scrollable Content */}
+              <div className="px-4 pb-6 space-y-4">
                 <TradeForm pairs={pairs} setupTrades={setupTrade} />
               </div>
             </div>
           </DialogContent>
+
+
         </Dialog>
       </div>
       {/* Tabel */}
       <DataTable
         columns={columns}
-        data={filteredTrades} 
+        data={filteredTrades}
       />
     </div>
   );

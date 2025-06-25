@@ -6,18 +6,8 @@ import { Loader2 } from "lucide-react"; // spinner icon
 import { Button } from "./ui/button";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { ConfirmDialog } from "./asset/confirm-dialog";
 
 type RegisterButtonProps = {
   children: React.ReactNode;
@@ -38,6 +28,13 @@ type MainButtonProps = {
 
 type DeleteButtonProps = {
   id: string;
+  onSuccess?: () => void;
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  buttonText?: string;
+  disabled?: boolean;
 };
 
 type SaveChangesButtonProps = {
@@ -49,6 +46,11 @@ type SaveChangesButtonProps = {
     indicatorIds: string[];
     timeframe: string[];
   };
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  buttonText?: string;
   disabled?: boolean;
   onSuccess?: () => void;
 };
@@ -149,7 +151,16 @@ export function SubmitButton({
   );
 }
 
-export function DeleteButton({ id }: DeleteButtonProps) {
+export function DeleteButton({
+  id,
+  onSuccess,
+  title = "Yakin ingin menghapus data ini?",
+  description = "Tindakan ini tidak bisa dibatalkan.",
+  confirmText = "Hapus",
+  cancelText = "Batal",
+  buttonText = "Hapus",
+  disabled = false,
+}: DeleteButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -160,50 +171,48 @@ export function DeleteButton({ id }: DeleteButtonProps) {
           method: "DELETE",
         });
 
-        if (!res.ok) {
-          throw new Error("Gagal menghapus setup");
-        }
+        if (!res.ok) throw new Error("Gagal menghapus setup");
 
-        toast.success("Setup berhasil dihapus");
-        router.refresh(); // atau router.push("/setup")
+        toast.success("Data berhasil dihapus");
+        onSuccess?.(); // optional callback
+        router.refresh();
       } catch (err) {
-        console.log(err);
-        toast.error("Gagal menghapus setup");
+        console.error(err);
+        toast.error("Gagal menghapus data");
       }
     });
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="destructive" size="sm">
-          Hapus
+    <ConfirmDialog
+      trigger={
+        <Button variant="default" disabled={isPending || disabled} className="border-red-700">
+          {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          {isPending ? "Menghapus..." : buttonText}
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Yakin ingin menghapus setup ini?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Tindakan ini tidak bisa dibatalkan. Data setup akan dihapus secara
-            permanen.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} disabled={isPending}>
-            {isPending ? "Menghapus..." : "Hapus"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+  
+      }
+      title={title}
+      description={description}
+      confirmText={confirmText}
+      cancelText={cancelText}
+      onConfirm={handleDelete}
+      isLoading={isPending}
+      disabled={disabled}
+    />
   );
 }
 
 export function SaveChangesButton({
   setupId,
   payload,
-  disabled = false,
   onSuccess,
+  disabled = false,
+  title = "Konfirmasi Simpan Perubahan",
+  description = "Apakah kamu yakin ingin menyimpan perubahan pada setup ini?",
+  confirmText = "Ya, Simpan",
+  cancelText = "Batal",
+  buttonText = "Simpan",
 }: SaveChangesButtonProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -219,51 +228,34 @@ export function SaveChangesButton({
           body: JSON.stringify(payload),
         });
 
-        if (!res.ok) {
-          throw new Error("Gagal menyimpan perubahan");
-        }
+        if (!res.ok) throw new Error("Gagal menyimpan perubahan");
 
         toast.success("Perubahan berhasil disimpan");
-        onSuccess?.(); // Optional: nonaktifkan edit mode, dll
+        onSuccess?.();
         router.refresh();
       } catch (err) {
-        console.log(err);
+        console.error(err);
         toast.error("Gagal menyimpan perubahan");
       }
     });
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button disabled={disabled || isPending} type="button">
-          {isPending ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Menyimpan...
-            </>
-          ) : (
-            <>
-              Simpan
-            </>
-          )}
+    <ConfirmDialog
+      trigger={
+        <Button disabled={isPending || disabled}>
+          {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          {isPending ? "Menyimpan..." : buttonText}
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Konfirmasi Simpan Perubahan</AlertDialogTitle>
-          <AlertDialogDescription>
-            Apakah kamu yakin ingin menyimpan perubahan pada setup ini?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={handleSave} disabled={isPending}>
-            Ya, Simpan
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      }
+      title={title}
+      description={description}
+      confirmText={confirmText}
+      cancelText={cancelText}
+      onConfirm={handleSave}
+      isLoading={isPending}
+      disabled={disabled}
+    />
   );
 }
 
