@@ -11,7 +11,24 @@ const formatUSD = (value: number) =>
     minimumFractionDigits: 2,
   }).format(value);
 
-export const columns: ColumnDef<TradeWithPair>[] = [
+type Pair = {
+  id: string;
+  symbol: string;
+};
+
+type SetupTrade = {
+  id: string;
+  name: string;
+};
+
+type Psychology = { id: string; name: string };
+
+export function getColumns(
+  pairs: Pair[],
+  setupTrades: SetupTrade[],
+  allPsychologies: Psychology[]
+): ColumnDef<TradeWithPair>[] {
+  return [
   {
     accessorKey: "date",
     header: () => <div className="text-center px-3 py-2">Tanggal</div>,
@@ -21,10 +38,10 @@ export const columns: ColumnDef<TradeWithPair>[] = [
         <div className="text-left px-3 py-2">
           {date && !isNaN(date.getTime())
             ? date.toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
             : "-"}
         </div>
       );
@@ -175,11 +192,17 @@ export const columns: ColumnDef<TradeWithPair>[] = [
       const trade = row.original;
       return (
         <div className="flex justify-center px-2 py-2">
-          <TradeDetailDialog trade={{ ...trade, psychologies: [] }} />
+          <TradeDetailDialog
+            trade={trade}
+            pairs={pairs}
+            setupTrades={setupTrades}
+            allPsychologies={allPsychologies}
+          />
         </div>
       );
     },
     enableSorting: false,
     enableHiding: false,
-  }
+  },
 ];
+}

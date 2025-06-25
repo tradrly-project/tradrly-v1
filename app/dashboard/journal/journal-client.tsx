@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import { getColumns } from "./columns";
 import { TradeWithPair } from "@/lib/types";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
@@ -19,17 +19,26 @@ import { Button } from "@/components/ui/button";
 import TradeForm from "@/components/journal/form";
 import { XIcon } from "lucide-react";
 
+interface Psychology {
+  id: string;
+  name: string;
+  // Tambahkan field lain jika ada
+}
+
+
 interface JournalClientProps {
   trades: TradeWithPair[];
   pairs: { id: string; symbol: string }[];
   setupTrade: { id: string; name: string }[];
+  allPsychologies: Psychology[];
 }
 
-export default function JournalClient({ trades, pairs, setupTrade }: JournalClientProps) {
+export default function JournalClient({ trades, pairs, setupTrade, allPsychologies }: JournalClientProps) {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
 
   const [filter, setFilter] = useState("");
+  const columns = getColumns(pairs, setupTrade, allPsychologies);
 
   // Filter berdasarkan entryPrice, bisa disesuaikan ke kolom lain
   const filteredTrades = trades.filter((trade) => {

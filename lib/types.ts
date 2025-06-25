@@ -1,4 +1,4 @@
-import { Pair, Trade, SetupTrade, Indicator, Timeframe } from "@prisma/client";
+import { Pair, Trade, SetupTrade, Indicator, Timeframe, Psychology } from "@prisma/client";
 
 export type JournalEntry = {
   id: string;
@@ -10,7 +10,8 @@ export type JournalEntry = {
 
 export type TradeWithPair = Trade & {
   pair: Pair;
-  setupTrade?: Pick<SetupTrade, "name"> | null;
+  setupTrade?: Pick<SetupTrade, "id" | "name"> | null;
+  psychologies: Psychology[];
 };
 
 export type TradeFormState = {

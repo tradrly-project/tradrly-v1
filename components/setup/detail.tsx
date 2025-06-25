@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import EllipsisHorizontalIcon from "@heroicons/react/24/solid/EllipsisHorizontalIcon";
@@ -18,6 +14,7 @@ import { TimeframeSelect } from "@/components/select/timeframe-select";
 import { IndicatorSelect } from "../select/indicator-select";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
+import type { SetupPayload } from "@/components/button";
 
 type Setup = {
   id: string;
@@ -113,7 +110,7 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
       >
         <DialogContent
           className="w-[480px] p-0 rounded-2xl overflow-y-auto bg-background"
-          style={{ maxHeight: '90vh' }}
+          style={{ maxHeight: "90vh" }}
           showCloseButton={false}
         >
           <div className="flex flex-col min-h-full">
@@ -163,12 +160,13 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
                   {setup.winrate !== null && setup.winrate !== undefined ? (
                     <Badge
                       variant="default"
-                      className={`text-xs px-2 py-1 rounded-md ${setup.winrate === 0
-                        ? "bg-zinc-700 text-white"
-                        : setup.winrate <= 50
+                      className={`text-xs px-2 py-1 rounded-md ${
+                        setup.winrate === 0
+                          ? "bg-zinc-700 text-white"
+                          : setup.winrate <= 50
                           ? "bg-red-500 text-white"
                           : "bg-sky-500 text-white"
-                        }`}
+                      }`}
                     >
                       {setup.winrate.toFixed(1)}%
                     </Badge>
@@ -179,7 +177,9 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
               </div>
 
               <div>
-                <div className="font-medium text-foreground mb-1">Timeframe</div>
+                <div className="font-medium text-foreground mb-1">
+                  Timeframe
+                </div>
                 {editMode ? (
                   <LabelInputContainer>
                     <TimeframeSelect
@@ -209,7 +209,9 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
               </div>
 
               <div>
-                <div className="font-medium text-foreground mb-1">Indikator</div>
+                <div className="font-medium text-foreground mb-1">
+                  Indikator
+                </div>
                 {editMode ? (
                   <LabelInputContainer>
                     <IndicatorSelect
@@ -265,7 +267,8 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
                   <DeleteButton
                     id={setup.id}
                     title="Yakin ingin menghapus setup ini?"
-                    description="Setup yang dihapus tidak bisa dikembalikan." />
+                    description="Setup yang dihapus tidak bisa dikembalikan."
+                  />
                   <Button
                     variant="ghost"
                     onClick={() => setEditMode(false)}
@@ -273,8 +276,9 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
                   >
                     Batal
                   </Button>
-                  <SaveChangesButton
-                    setupId={setup.id}
+                  <SaveChangesButton<SetupPayload>
+                    type="setup"
+                    id={setup.id}
                     payload={{
                       ...formData,
                       indicatorIds: selectedIndicators.map((i) => i.value),
@@ -285,7 +289,9 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
                   />
                 </div>
               ) : (
-                <Button onClick={() => setEditMode(true)} size="sm">Edit</Button>
+                <Button onClick={() => setEditMode(true)} size="sm">
+                  Edit
+                </Button>
               )}
             </div>
           </div>

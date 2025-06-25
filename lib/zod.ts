@@ -38,7 +38,7 @@ export const TradeBaseSchema = object({
   result: ResultEnum,
   profitLoss: number({ required_error: "Profit/loss wajib diisi" }),
   riskRatio: number({ required_error: "Risk ratio wajib diisi" }),
-  psychology: array(string()).optional(),
+  psychologyIds: array(string()).optional(),
   setupTradeId: string().uuid("Setup ID tidak valid").optional(),
   notes: string().optional().nullable(),
   screenshotUrl: string().url("URL tidak valid").optional().nullable(),

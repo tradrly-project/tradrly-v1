@@ -123,7 +123,7 @@ export async function createTrade(
 
   try {
     const {
-      psychology,
+      psychologyIds,
       setupTradeId,
       ...tradeData
     } = validated.data;
@@ -131,8 +131,8 @@ export async function createTrade(
     await prisma.trade.create({
       data: {
         ...tradeData,
-        psychologies: psychology?.length
-          ? { connect: psychology.map((id) => ({ id })) }
+        psychologies: psychologyIds?.length
+          ? { connect: psychologyIds.map((id) => ({ id })) }
           : undefined,
         setupTradeId: setupTradeId || undefined,
       },

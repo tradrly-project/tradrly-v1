@@ -32,7 +32,7 @@ export async function GET(request: Request) {
       include: {
         pair: true,
         setupTrade: {
-          select: { name: true },
+          select: { name: true, id: true },
         },
         psychologies: true,
       },
