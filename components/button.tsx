@@ -8,6 +8,7 @@ import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ConfirmDialog } from "./asset/confirm-dialog";
+import { TradeWithPair } from "@/lib/types";
 
 type RegisterButtonProps = {
   children: React.ReactNode;
@@ -252,6 +253,62 @@ export function SaveChangesButton({
       description={description}
       confirmText={confirmText}
       cancelText={cancelText}
+      onConfirm={handleSave}
+      isLoading={isPending}
+      disabled={disabled}
+    />
+  );
+}
+
+export function SaveTradeButton({
+  tradeId,
+  payload,
+  onSuccess,
+  disabled = false,
+}: {
+  tradeId: string;
+  payload: Partial<TradeWithPair>; // atau TradeUpdatePayload
+  onSuccess?: () => void;
+  disabled?: boolean;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  const handleSave = () => {
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/trade/${tradeId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error("Gagal menyimpan perubahan");
+
+        toast.success("Perubahan trade berhasil disimpan");
+        onSuccess?.();
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+        toast.error("Gagal menyimpan perubahan");
+      }
+    });
+  };
+
+  return (
+    <ConfirmDialog
+      trigger={
+        <Button disabled={isPending || disabled}>
+          {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          {isPending ? "Menyimpan..." : "Simpan"}
+        </Button>
+      }
+      title="Simpan Perubahan Trade"
+      description="Apakah kamu yakin ingin menyimpan perubahan pada trade ini?"
+      confirmText="Ya, Simpan"
+      cancelText="Batal"
       onConfirm={handleSave}
       isLoading={isPending}
       disabled={disabled}

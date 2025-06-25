@@ -21,10 +21,10 @@ export const columns: ColumnDef<TradeWithPair>[] = [
         <div className="text-left px-3 py-2">
           {date && !isNaN(date.getTime())
             ? date.toLocaleDateString("id-ID", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
             : "-"}
         </div>
       );
@@ -169,17 +169,17 @@ export const columns: ColumnDef<TradeWithPair>[] = [
     },
   },
   {
-  id: "actions",
-  header: () => <div className="text-center px-2 py-2">Aksi</div>,
-  cell: ({ row }) => {
-    const trade = row.original;
-    return (
-      <div className="flex justify-center px-2 py-2">
-        <TradeDetailDialog trade={trade} />
-      </div>
-    );
-  },
-  enableSorting: false,
-  enableHiding: false,
-}
+    id: "actions",
+    header: () => <div className="text-center px-2 py-2">Aksi</div>,
+    cell: ({ row }) => {
+      const trade = row.original;
+      return (
+        <div className="flex justify-center px-2 py-2">
+          <TradeDetailDialog trade={{ ...trade, psychologies: [] }} />
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  }
 ];
