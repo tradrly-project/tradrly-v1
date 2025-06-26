@@ -104,7 +104,7 @@ export async function createTrade(
     result: values.result,
     riskRatio: values.riskRatio ? Number(values.riskRatio) : undefined,
     profitLoss: values.profitLoss ? Number(values.profitLoss) : undefined,
-    psychology: values.psychology || undefined,
+    psychologyIds: values.psychology || undefined,
     setupTradeId: values.setupTradeId || undefined,
     notes: values.notes || undefined,
     screenshotUrl: values.screenshotUrl || undefined,

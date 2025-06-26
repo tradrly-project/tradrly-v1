@@ -14,19 +14,20 @@ import Image from "next/image";
 import { EllipsisHorizontalIcon } from "@heroicons/react/24/solid";
 import { TradeWithPair } from "@/lib/types";
 import { Decimal } from "@prisma/client/runtime/library";
-import { SaveChangesButton, TradePayload } from "../button";
+import { DeleteButton, SaveChangesButton, TradePayload } from "../button";
 import React from "react";
 import { PsychologySelect } from "../select/psychology-select";
 import { DatePickerWithPresets } from "../asset/date-picker";
 import { DropdownMenuSelect } from "../select/direction";
 import { TradeDirection } from "@prisma/client";
 import { ComboBox } from "../asset/combo-box";
+import { calculateDerivedFields as calculateTradeFields } from "@/lib/tradeCalculations";
+
 
 type Pair = { id: string; symbol: string };
 type SetupTrade = { id: string; name: string };
 type Psychology = { id: string; name: string };
 type Option = { label: string; value: string };
-
 type Props = {
   trade: TradeWithPair & { psychologies: Psychology[] };
   pairs: Pair[];
@@ -64,8 +65,12 @@ export function TradeDetailDialog({
   }));
 
   const [selectedPsychologies, setSelectedPsychologies] = useState<Option[]>(
-    availablePsychologies
+    trade.psychologies.map((p) => ({
+      label: p.name,
+      value: p.id,
+    }))
   );
+  
 
   const handleChange =
     (field: keyof typeof formData) =>
@@ -115,16 +120,18 @@ export function TradeDetailDialog({
     const tp = parseFloat(formData.takeProfit);
     const sl = parseFloat(formData.stoploss);
     const lot = parseFloat(formData.lotSize);
-    const pipValue = 10; // bisa kamu ubah
+    const direction = formData.direction;
 
-    const result = exit > entry ? "win" : exit < entry ? "loss" : "break-even";
-    const profitLoss = (exit - entry) * pipValue * lot;
-    const risk = Math.abs(entry - sl) * pipValue * lot;
-    const reward = Math.abs(tp - entry) * pipValue * lot;
-    const riskRatio = risk > 0 ? reward / risk : 0;
-
-    return { result, profitLoss, riskRatio };
+    return calculateTradeFields({
+      entryPrice: entry,
+      exitPrice: exit,
+      takeProfit: tp,
+      stoploss: sl,
+      lotSize: lot,
+      direction,
+    });
   };
+  
 
   return (
     <>
@@ -182,14 +189,20 @@ export function TradeDetailDialog({
                         stoploss: parseFloat(formData.stoploss),
                         exitPrice: parseFloat(formData.exitPrice),
                         lotSize: parseFloat(formData.lotSize),
+                        ...calculateDerivedFields(),
                       }}
                       disabled={isPending}
                       onSuccess={() => setIsEditing(false)}
                     />
-
                     <Button variant="ghost" onClick={() => setIsEditing(false)}>
                       Batal
                     </Button>
+                    <DeleteButton
+                      id={trade.id}
+                      type="trade"
+                      onSuccess={() => setOpenDialog(false)}
+                    />
+
                   </>
                 ) : (
                   <Button onClick={() => setIsEditing(true)}>Edit</Button>

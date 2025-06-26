@@ -160,13 +160,12 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
                   {setup.winrate !== null && setup.winrate !== undefined ? (
                     <Badge
                       variant="default"
-                      className={`text-xs px-2 py-1 rounded-md ${
-                        setup.winrate === 0
+                      className={`text-xs px-2 py-1 rounded-md ${setup.winrate === 0
                           ? "bg-zinc-700 text-white"
                           : setup.winrate <= 50
-                          ? "bg-red-500 text-white"
-                          : "bg-sky-500 text-white"
-                      }`}
+                            ? "bg-red-500 text-white"
+                            : "bg-sky-500 text-white"
+                        }`}
                     >
                       {setup.winrate.toFixed(1)}%
                     </Badge>
@@ -265,6 +264,7 @@ export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
               {editMode ? (
                 <div className="flex gap-2 transition-all duration-200">
                   <DeleteButton
+                    type="setup"
                     id={setup.id}
                     title="Yakin ingin menghapus setup ini?"
                     description="Setup yang dihapus tidak bisa dikembalikan."

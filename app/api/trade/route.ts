@@ -14,31 +14,51 @@ async function getUserId() {
 
 export async function POST(req: Request) {
   try {
-    const userId = await getUserId()
-    const formData = await req.formData()
-    const parsed = TradeCreateSchema.safeParse(Object.fromEntries(formData.entries()))
+    const userId = await getUserId();
+    const formData = await req.formData();
+    const raw = Object.fromEntries(formData.entries());
+
+    const psychologyIds = formData.getAll("psychologyIds").map((val) => val.toString());
+
+    const parsed = TradeCreateSchema.safeParse({
+      ...raw,
+      date: raw.date ? new Date(raw.date.toString()) : undefined,
+      psychologyIds,
+    });
 
     if (!parsed.success) {
-      return NextResponse.json({ errors: parsed.error.flatten().fieldErrors }, { status: 400 })
+      return NextResponse.json(
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+
+    const { psychologyIds: psyIds, ...rest } = parsed.data;
 
     const trade = await prisma.trade.create({
       data: {
-        ...parsed.data,
+        ...rest,
         userId,
+        psychologies: {
+          connect: (psyIds ?? []).map((id: string) => ({ id })),
+        },
       },
-    })
+    });
 
-    revalidatePath("/api/trade")
+    revalidatePath("/api/trade");
 
     return NextResponse.json(trade, {
       status: 201,
       headers: {
         "Cache-Control": "s-maxage=10, stale-while-revalidate=59",
       },
-    })
+    });
   } catch (error) {
-    console.error("POST trade error:", error)
-    return NextResponse.json({ error: "Gagal menambahkan trade" }, { status: 500 })
+    console.error("POST trade error:", error);
+    return NextResponse.json(
+      { error: "Gagal menambahkan trade" },
+      { status: 500 }
+    );
   }
 }
+

@@ -185,7 +185,7 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
             onChange={setDate}
             error={state.errors?.date}
           />
-          <input type="hidden" name="date" value={date.toISOString()} />
+          <input type="hidden" name="date" value={typeof date === "string" ? date : date.toISOString()} />
         </LabelInputContainer>
 
         <LabelInputContainer>

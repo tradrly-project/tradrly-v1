@@ -72,27 +72,73 @@ export async function PUT(request: Request) {
         { status: 400 }
       );
     }
+    console.log(userId)
 
-    const formData = await request.formData();
-    const parsed = TradeUpdateSchema.safeParse(
-      Object.fromEntries(formData.entries())
-    );
+    const json = await request.json();
 
+    // ⬅️ UBAH MANUAL SEBELUM ZOD VALIDATION
+    if (json.date && typeof json.date === "string") {
+      json.date = new Date(json.date);
+    }
+
+    const parsed = TradeUpdateSchema.safeParse(json);
+    console.log(parsed.data)
+    console.log("Body received:", json);
     if (!parsed.success) {
+      console.log("Validation error:", parsed.error);
       return NextResponse.json(
         { errors: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
-    const updated = await prisma.trade.updateMany({
-      where: { id, userId },
-      data: parsed.data,
+    const { psychologyIds, ...restData } = parsed.data;
+
+    const updated = await prisma.trade.update({
+      where: {
+        id,
+        userId,
+      },
+      data: {
+        ...restData,
+        ...(psychologyIds && {
+          psychologies: {
+            set: psychologyIds.map((id) => ({ id })),
+          },
+        }),
+      },
     });
+
+    // 🔁 Hitung ulang winrate setup setelah update trade
+    if (restData.setupTradeId) {
+      const relatedTrades = await prisma.trade.findMany({
+        where: {
+          setupTradeId: restData.setupTradeId,
+          userId,
+        },
+        select: {
+          result: true,
+        },
+      });
+
+      const total = relatedTrades.length;
+      const wins = relatedTrades.filter((t) => t.result === "win").length;
+      const winrate = total > 0 ? (wins / total) * 100 : 0;
+
+      await prisma.setupTrade.update({
+        where: {
+          id: restData.setupTradeId,
+        },
+        data: {
+          winrate,
+        },
+      });
+    }
+
 
     revalidatePath("/api/trade");
 
-    return NextResponse.json({ updatedCount: updated.count });
+    return NextResponse.json({ updated });
   } catch (error) {
     console.error("PUT trade error:", error);
     return NextResponse.json(
@@ -116,13 +162,61 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const deleted = await prisma.trade.deleteMany({
-      where: { id, userId },
+    // Ambil setupTradeId sebelum trade dihapus
+    const existingTrade = await prisma.trade.findUnique({
+      where: {
+        id,
+        userId,
+      },
+      select: {
+        setupTradeId: true,
+      },
     });
+
+    if (!existingTrade) {
+      return NextResponse.json(
+        { error: "Trade tidak ditemukan" },
+        { status: 404 }
+      );
+    }
+
+    // Hapus trade
+    await prisma.trade.delete({
+      where: {
+        id,
+        userId,
+      },
+    });
+
+    // Hitung ulang winrate untuk setupTrade
+    if (existingTrade.setupTradeId) {
+      const relatedTrades = await prisma.trade.findMany({
+        where: {
+          setupTradeId: existingTrade.setupTradeId,
+          userId,
+        },
+        select: {
+          result: true,
+        },
+      });
+
+      const total = relatedTrades.length;
+      const wins = relatedTrades.filter((t) => t.result === "win").length;
+      const winrate = total > 0 ? (wins / total) * 100 : 0;
+
+      await prisma.setupTrade.update({
+        where: {
+          id: existingTrade.setupTradeId,
+        },
+        data: {
+          winrate,
+        },
+      });
+    }
 
     revalidatePath("/api/trade");
 
-    return NextResponse.json({ deletedCount: deleted.count });
+    return NextResponse.json({ deleted: true });
   } catch (error) {
     console.error("DELETE trade error:", error);
     return NextResponse.json(

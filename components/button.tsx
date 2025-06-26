@@ -2,7 +2,7 @@
 import React, { useTransition } from "react";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import { cn } from "@/lib/utils"; // jika Anda pakai className helper
-import { Loader2 } from "lucide-react"; // spinner icon
+import { Loader2, Trash2 } from "lucide-react"; // spinner icon
 import { Button } from "./ui/button";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -28,13 +28,15 @@ type MainButtonProps = {
 
 type DeleteButtonProps = {
   id: string;
-  onSuccess?: () => void;
+  type: "setup" | "trade"; // extendable: "user", "journal", dll
   title?: string;
   description?: string;
   confirmText?: string;
   cancelText?: string;
   buttonText?: string;
+  iconOnly?: boolean;
   disabled?: boolean;
+  onSuccess?: () => void;
 };
 
 export type SetupPayload = {
@@ -141,9 +143,8 @@ export function MainButton({ children, className, ...props }: MainButtonProps) {
     <HoverBorderGradient
       containerClassName="rounded-full w-full"
       as="button"
-      className={`flex font-semibold items-center justify-center space-x-2 cursor-pointer ${
-        className ?? ""
-      }`}
+      className={`flex font-semibold items-center justify-center space-x-2 cursor-pointer ${className ?? ""
+        }`}
       {...props}
     >
       {children}
@@ -172,28 +173,30 @@ export function SubmitButton({
 
 export function DeleteButton({
   id,
+  type,
   onSuccess,
-  title = "Yakin ingin menghapus data ini?",
-  description = "Tindakan ini tidak bisa dibatalkan.",
-  confirmText = "Hapus",
+  disabled = false,
+  title = "Konfirmasi Hapus Data",
+  description = "Apakah kamu yakin ingin menghapus data ini? Tindakan ini tidak bisa dibatalkan.",
+  confirmText = "Ya, Hapus",
   cancelText = "Batal",
   buttonText = "Hapus",
-  disabled = false,
+  iconOnly = false,
 }: DeleteButtonProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleDelete = () => {
     startTransition(async () => {
       try {
-        const res = await fetch(`/api/setup/${id}`, {
+        const res = await fetch(`/api/${type}/${id}`, {
           method: "DELETE",
         });
 
-        if (!res.ok) throw new Error("Gagal menghapus setup");
+        if (!res.ok) throw new Error("Gagal menghapus data");
 
         toast.success("Data berhasil dihapus");
-        onSuccess?.(); // optional callback
+        onSuccess?.();
         router.refresh();
       } catch (err) {
         console.error(err);
@@ -205,11 +208,25 @@ export function DeleteButton({
   return (
     <ConfirmDialog
       trigger={
-        <Button variant="default" disabled={isPending || disabled} className="border-red-700">
-          {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          {isPending ? "Menghapus..." : buttonText}
+        <Button
+          variant="destructive"
+          size="sm"
+          disabled={isPending || disabled}
+        >
+          {isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Menghapus...
+            </>
+          ) : iconOnly ? (
+            <Trash2 className="w-4 h-4" />
+          ) : (
+            <>
+              <Trash2 className="w-4 h-4 mr-2" />
+              {buttonText}
+            </>
+          )}
         </Button>
-  
       }
       title={title}
       description={description}
