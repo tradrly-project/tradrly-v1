@@ -193,10 +193,10 @@ export function getColumns(
       return (
         <div className="flex justify-center px-2 py-2">
           <TradeDetailDialog
-            trade={trade}
+            trade={{ ...trade, screenshots: trade.screenshots ?? [] }}
             pairs={pairs}
             setupTrades={setupTrades}
-            allPsychologies={allPsychologies}
+            allPsychologies={allPsychologies}            
           />
         </div>
       );

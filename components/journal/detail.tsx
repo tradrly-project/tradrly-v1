@@ -27,8 +27,18 @@ type Pair = { id: string; symbol: string };
 type SetupTrade = { id: string; name: string };
 type Psychology = { id: string; name: string };
 type Option = { label: string; value: string };
+type TradeScreenshot = {
+  id: string;
+  tradeId: string;
+  type: "BEFORE" | "AFTER";
+  url: string;
+  createdAt: Date;
+};
 type Props = {
-  trade: TradeWithPair & { psychologies: Psychology[] };
+  trade: TradeWithPair & {
+    psychologies: Psychology[];
+    screenshots: TradeScreenshot[];
+  };
   pairs: Pair[];
   setupTrades: SetupTrade[];
   allPsychologies: Psychology[];
@@ -168,40 +178,6 @@ export function TradeDetailDialog({
                     <XIcon className="w-5 h-5" />
                   </button>
                 </DialogPrimitive.Close>
-              </div>
-              <div className="flex justify-end px-4 pb-2">
-                {isEditing ? (
-                  <>
-                    <SaveChangesButton<TradePayload>
-                      type="trade"
-                      id={trade.id}
-                      payload={{
-                        psychologyIds: selectedPsychologies.map((p) => p.value),
-                        date: formData.date,
-                        setupTradeId: formData.setupTradeId,
-                        direction: formData.direction,
-                        entryPrice: parseFloat(formData.entryPrice),
-                        takeProfit: parseFloat(formData.takeProfit),
-                        stoploss: parseFloat(formData.stoploss),
-                        exitPrice: parseFloat(formData.exitPrice),
-                        lotSize: parseFloat(formData.lotSize),
-                        ...calculateDerivedFields(),
-                      }}
-                      disabled={isPending}
-                      onSuccess={() => setIsEditing(false)}
-                    />
-                    <Button variant="ghost" onClick={() => setIsEditing(false)}>
-                      Batal
-                    </Button>
-                    <DeleteButton
-                      id={trade.id}
-                      type="trade"
-                      onSuccess={() => setOpenDialog(false)}
-                    />
-                  </>
-                ) : (
-                  <Button onClick={() => setIsEditing(true)}>Edit</Button>
-                )}
               </div>
             </div>
 
@@ -384,21 +360,74 @@ export function TradeDetailDialog({
                 )}
               </div>
 
-              {trade.screenshotUrl && (
+              {trade.screenshots && trade.screenshots.length > 0 && (
                 <div className="mt-4">
                   <div className="font-medium text-foreground mb-2">
                     Screenshot
                   </div>
-                  <Image
-                    src={trade.screenshotUrl}
-                    alt="Screenshot"
-                    width={400}
-                    height={200}
-                    className="rounded-md border border-zinc-800"
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    {["BEFORE", "AFTER"].map((type) => {
+                      const image = trade.screenshots.find(
+                        (s) => s.type === type
+                      );
+                      return (
+                        <div key={type}>
+                          <p className="text-sm font-semibold mb-1">{type}</p>
+                          {image ? (
+                            <Image
+                            unoptimized
+                              src={image.url}
+                              alt={type}
+                              width={400}
+                              height={400}
+                              className="rounded-md border border-zinc-800 object-cover aspect-square w-full"
+                            />
+                          ) : (
+                            <p className="text-sm italic text-muted-foreground">
+                              Tidak ada gambar {type.toLowerCase()}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
+          </div>
+          <div className="absolute bottom-0 bg-red-500 w-auto border-t border-zinc-800">
+            {isEditing ? (
+              <>
+                <SaveChangesButton<TradePayload>
+                  type="trade"
+                  id={trade.id}
+                  payload={{
+                    psychologyIds: selectedPsychologies.map((p) => p.value),
+                    date: formData.date,
+                    setupTradeId: formData.setupTradeId,
+                    direction: formData.direction,
+                    entryPrice: parseFloat(formData.entryPrice),
+                    takeProfit: parseFloat(formData.takeProfit),
+                    stoploss: parseFloat(formData.stoploss),
+                    exitPrice: parseFloat(formData.exitPrice),
+                    lotSize: parseFloat(formData.lotSize),
+                    ...calculateDerivedFields(),
+                  }}
+                  disabled={isPending}
+                  onSuccess={() => setIsEditing(false)}
+                />
+                <Button variant="ghost" onClick={() => setIsEditing(false)}>
+                  Batal
+                </Button>
+                <DeleteButton
+                  id={trade.id}
+                  type="trade"
+                  onSuccess={() => setOpenDialog(false)}
+                />
+              </>
+            ) : (
+              <Button onClick={() => setIsEditing(true)}>Edit</Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

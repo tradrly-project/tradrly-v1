@@ -6,6 +6,7 @@ import {
   Timeframe,
   Psychology,
   ScreenshotType,
+  TradeScreenshot,
 } from "@prisma/client";
 
 export type JournalEntry = {
@@ -20,6 +21,7 @@ export type TradeWithPair = Trade & {
   pair: Pair;
   setupTrade?: Pick<SetupTrade, "id" | "name"> | null;
   psychologies: Psychology[];
+  screenshots: TradeScreenshot[];
 };
 
 export type TradeFormState = {

@@ -406,7 +406,8 @@ export default function TradeForm({ pairs, setupTrades }: TradeFormProps) {
       </LabelInputContainer>
 
       {/* File Upload Before */}
-      <div className="flex grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
+        {/* Before */}
         <LabelInputContainer>
           <p className="text-sm font-medium">Before</p>
           <FileUpload
@@ -421,7 +422,7 @@ export default function TradeForm({ pairs, setupTrades }: TradeFormProps) {
           />
         </LabelInputContainer>
 
-        {/* File Upload After */}
+        {/* After */}
         <LabelInputContainer>
           <p className="text-sm font-medium">After</p>
           <FileUpload
@@ -435,26 +436,8 @@ export default function TradeForm({ pairs, setupTrades }: TradeFormProps) {
             }}
           />
         </LabelInputContainer>
-
-        {/* Hidden input for screenshots */}
-        {screenshots.map((s, i) => (
-          <React.Fragment key={i}>
-            <input
-              type="hidden"
-              name={`screenshots[${i}][type]`}
-              value={s.type}
-            />
-            {typeof s.url === "string" && (
-              <input
-                type="hidden"
-                name={`screenshots[${i}][url]`}
-                value={s.url}
-              />
-            )}
-          </React.Fragment>
-        ))}
-        <FieldError>{state.errors?.screenshots}</FieldError>
       </div>
+
       {/* Buttons */}
       <div className="flex justify-end mt-10">
         <SubmitButton />
