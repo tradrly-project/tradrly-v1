@@ -23,7 +23,6 @@ import { TradeDirection } from "@prisma/client";
 import { ComboBox } from "../asset/combo-box";
 import { calculateDerivedFields as calculateTradeFields } from "@/lib/tradeCalculations";
 
-
 type Pair = { id: string; symbol: string };
 type SetupTrade = { id: string; name: string };
 type Psychology = { id: string; name: string };
@@ -70,7 +69,6 @@ export function TradeDetailDialog({
       value: p.id,
     }))
   );
-  
 
   const handleChange =
     (field: keyof typeof formData) =>
@@ -131,7 +129,6 @@ export function TradeDetailDialog({
       direction,
     });
   };
-  
 
   return (
     <>
@@ -179,7 +176,6 @@ export function TradeDetailDialog({
                       type="trade"
                       id={trade.id}
                       payload={{
-                        pairId: formData.pairId,
                         psychologyIds: selectedPsychologies.map((p) => p.value),
                         date: formData.date,
                         setupTradeId: formData.setupTradeId,
@@ -202,7 +198,6 @@ export function TradeDetailDialog({
                       type="trade"
                       onSuccess={() => setOpenDialog(false)}
                     />
-
                   </>
                 ) : (
                   <Button onClick={() => setIsEditing(true)}>Edit</Button>
@@ -244,18 +239,10 @@ export function TradeDetailDialog({
 
                 <Field label="Pair">
                   {isEditing ? (
-                    <ComboBox
-                      name="pairId"
-                      value={formData.pairId}
-                      onChange={(value) =>
-                        setFormData((prev) => ({ ...prev, pairId: value }))
-                      }
-                      placeholder="Pilih Pair"
-                      options={pairs.map((pair) => ({
-                        value: pair.id,
-                        label: pair.symbol,
-                      }))}
-                    />
+                    <span className="text-foreground font-medium">
+                      {pairs.find((p) => p.id === formData.pairId)?.symbol ||
+                        "-"}
+                    </span>
                   ) : (
                     pairs.find((p) => p.id === formData.pairId)?.symbol || "-"
                   )}

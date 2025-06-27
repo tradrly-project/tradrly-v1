@@ -128,12 +128,25 @@ model Trade {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pair         Pair         @relation(fields: [pairId], references: [id])
-  setupTrade   SetupTrade?  @relation(fields: [setupTradeId], references: [id])
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pair         Pair              @relation(fields: [pairId], references: [id])
+  setupTrade   SetupTrade?       @relation(fields: [setupTradeId], references: [id])
   psychologies Psychology[]
+  screenshots  TradeScreenshot[]
 
   @@index([userId])
+}
+
+model TradeScreenshot {
+  id        String         @id @default(uuid())
+  tradeId   String
+  type      ScreenshotType
+  url       String
+  createdAt DateTime       @default(now())
+
+  trade Trade @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+
+  @@index([tradeId])
 }
 
 model Psychology {
@@ -217,4 +230,9 @@ enum SubscriptionTier {
   basic
   pro
   elite
+}
+
+enum ScreenshotType {
+  BEFORE
+  AFTER
 }

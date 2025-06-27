@@ -51,24 +51,39 @@ export async function createTrade(
     };
   }
 
-  const raw = Object.fromEntries(formData.entries());
+  function getString(key: string) {
+    return formData.get(key)?.toString() || undefined;
+  }
+
+  const screenshots: { type: "BEFORE" | "AFTER"; url: string }[] = [];
+
+  for (let i = 0; ; i++) {
+    const type = formData.get(`screenshots[${i}][type]`);
+    const url = formData.get(`screenshots[${i}][url]`);
+    if (!type || !url) break;
+
+    screenshots.push({
+      type: type.toString() as "BEFORE" | "AFTER",
+      url: url.toString(),
+    });
+  }
 
   const values: TradeFormValues = {
-    pairId: raw.pairId?.toString(),
-    direction: raw.direction?.toString(),
-    entryPrice: raw.entryPrice?.toString(),
-    stoploss: raw.stoploss?.toString(),
-    exitPrice: raw.exitPrice?.toString(),
-    takeProfit: raw.takeProfit?.toString(),
-    lotSize: raw.lotSize?.toString(),
-    result: raw.result?.toString(),
-    riskRatio: raw.riskRatio?.toString(),
-    profitLoss: raw.profitLoss?.toString(),
-    psychology: formData.getAll("psychology") as string[],
-    setupTradeId: raw.setupTradeId?.toString(),
-    notes: raw.notes?.toString(),
-    screenshotUrl: raw.screenshotUrl?.toString(),
-    date: raw.date?.toString(),
+    pairId: getString("pairId"),
+    direction: getString("direction"),
+    entryPrice: getString("entryPrice"),
+    stoploss: getString("stoploss"),
+    exitPrice: getString("exitPrice"),
+    takeProfit: getString("takeProfit"),
+    lotSize: getString("lotSize"),
+    result: getString("result"),
+    riskRatio: getString("riskRatio"),
+    profitLoss: getString("profitLoss"),
+    psychology: formData.getAll("psychology").map((p) => p.toString()),
+    setupTradeId: getString("setupTradeId"),
+    notes: getString("notes"),
+    date: getString("date"),
+    screenshots,
   };
 
   const angkaFields = [
@@ -84,8 +99,12 @@ export async function createTrade(
   if (angkaDiisi && (!values.direction || !values.pairId)) {
     return {
       errors: {
-        direction: !values.direction ? ["Posisi wajib diisi terlebih dahulu."] : undefined,
-        pairId: !values.pairId ? ["Pair wajib diisi terlebih dahulu."] : undefined,
+        direction: !values.direction
+          ? ["Posisi wajib diisi terlebih dahulu."]
+          : undefined,
+        pairId: !values.pairId
+          ? ["Pair wajib diisi terlebih dahulu."]
+          : undefined,
       },
       message: "Lengkapi Pair/Posisi terlebih dahulu.",
       values,
@@ -107,7 +126,7 @@ export async function createTrade(
     psychologyIds: values.psychology || undefined,
     setupTradeId: values.setupTradeId || undefined,
     notes: values.notes || undefined,
-    screenshotUrl: values.screenshotUrl || undefined,
+    screenshots: values.screenshots || [],
     date: values.date ? new Date(values.date) : undefined,
   };
 
@@ -122,13 +141,10 @@ export async function createTrade(
   }
 
   try {
-    const {
-      psychologyIds,
-      setupTradeId,
-      ...tradeData
-    } = validated.data;
+    const { psychologyIds, setupTradeId, screenshots, ...tradeData } =
+      validated.data;
 
-    await prisma.trade.create({
+    const trade = await prisma.trade.create({
       data: {
         ...tradeData,
         psychologies: psychologyIds?.length
@@ -138,7 +154,18 @@ export async function createTrade(
       },
     });
 
-    // ✅ Update winrate setelah trade dibuat
+    // ✅ Tambahkan screenshots jika ada
+    if (screenshots?.length) {
+      await prisma.tradeScreenshot.createMany({
+        data: screenshots.map((s) => ({
+          tradeId: trade.id,
+          type: s.type,
+          url: s.url,
+        })),
+      });
+    }
+
+    // ✅ Update winrate jika ada setupTrade
     if (setupTradeId) {
       await updateSetupTradeWinrate(setupTradeId);
     }

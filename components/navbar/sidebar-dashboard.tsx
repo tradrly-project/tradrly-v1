@@ -32,6 +32,11 @@ const MainItems = [
     icon: Squares2X2Icon,
   },
   {
+    title: "Setup Trade",
+    url: "/dashboard/setup",
+    icon: RectangleStackIcon,
+  },
+  {
     title: "Journal",
     url: "/dashboard/journal",
     icon: TableCellsIcon,
@@ -41,11 +46,7 @@ const MainItems = [
     url: "/dashboard/statistik",
     icon: ArrowTrendingUpIcon,
   },
-  {
-    title: "Setup Trade",
-    url: "/dashboard/setup",
-    icon: RectangleStackIcon,
-  },
+  
 ];
 
 const OthersItems = [

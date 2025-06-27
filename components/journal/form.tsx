@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import { useActionState } from "react";
 import { createTrade } from "@/lib/actions/trade";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { ComboBox } from "../asset/combo-box";
 import { FloatingLabelInput } from "../asset/floating-placeholder";
 import { RightPlaceholderInput } from "../asset/placeholder-right";
 import { LeftPlaceholderInput } from "../asset/placeholder-left";
-import { FileUpload } from "../ui/file-upload";
+import { FileUpload, FileWithMeta } from "../ui/file-upload";
 import { SubmitButton } from "../button";
 import { notifyError, notifySuccess } from "../asset/notify";
 import { PsychologySelect } from "../select/psychology-select";
@@ -23,17 +23,11 @@ type TradeFormProps = {
   setupTrades: { id: string; name: string }[];
 };
 
-type Option = {
-  label: string;
-  value: string;
-};
+type Option = { label: string; value: string };
+type Psychology = { id: string; name: string };
+type Screenshot = { type: "BEFORE" | "AFTER"; url: string; file?: File };
 
-type Psychology = {
-  id: string;
-  name: string;
-};
-
-export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
+export default function TradeForm({ pairs, setupTrades }: TradeFormProps) {
   const initialState = {
     message: "",
     errors: {} as Record<string, string[] | string>,
@@ -48,35 +42,35 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
   const [state, formAction] = useActionState(createTrade, initialState);
 
   const [date, setDate] = React.useState<Date>(
-    state.values.date ? new Date(state.values.date) : new Date()
+    new Date(state.values.date ?? Date.now())
   );
-  const [direction, setDirection] = React.useState<string>(
-    state.values.direction || ""
+  const [direction, setDirection] = useState(state.values.direction || "");
+  const [pairId, setPairId] = useState(state.values.pairId || "");
+  const [setupTradeId, setSetupTradeId] = useState("");
+
+  const [entryPrice, setEntryPrice] = useState(0);
+  const [exitPrice, setExitPrice] = useState(0);
+  const [lotSize, setLotSize] = useState<number | "">(0.01);
+  const [takeProfit, setTakeProfit] = useState(0);
+  const [stoploss, setStoploss] = useState(0);
+
+  const [result, setResult] = useState("");
+  const [riskRatio, setRiskRatio] = useState("");
+  const [profitLoss, setProfitLoss] = useState("");
+
+  const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
+  const [beforeFiles, setBeforeFiles] = useState<FileWithMeta[]>([]);
+  const [afterFiles, setAfterFiles] = useState<FileWithMeta[]>([]);
+
+  const [selectedPsychologies, setSelectedPsychologies] = useState<Option[]>(
+    []
   );
-  const [pairId, setPairId] = React.useState<string>(state.values.pairId || "");
-  const [setupTradeId, setSetupTradeId] = React.useState<string>("");
+  const [availablePsychologies, setAvailablePsychologies] = useState<Option[]>(
+    []
+  );
 
-
-  const [entryPrice, setEntryPrice] = React.useState<number>(0);
-  const [exitPrice, setExitPrice] = React.useState<number>(0);
-  const [lotSize, setLotSize] = React.useState<number | "">(0.01);
-  const [takeProfit, setTakeProfit] = React.useState<number>(0);
-  const [stoploss, setStoploss] = React.useState<number>(0);
-
-  const [result, setResult] = React.useState<string>("");
-  const [riskRatio, setRiskRatio] = React.useState<string>("");
-  const [profitLoss, setProfitLoss] = React.useState<string>("");
-  const [screenshotUrl, setScreenshotUrl] = React.useState<string>("");
-
-  const [selectedPsychologies, setSelectedPsychologies] = React.useState<
-    Option[]
-  >([]);
-
-  const [availablePsychologies, setAvailablePsychologies] = React.useState<
-    Option[]
-  >([]);
-
-  React.useEffect(() => {
+  // Fetch psychology options
+  useEffect(() => {
     fetch("/api/psychologies")
       .then((res) => res.json())
       .then((data: { psychologies: Psychology[] }) => {
@@ -89,21 +83,50 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
       });
   }, []);
 
+  // Submit handler
   const handleSubmit = async (formData: FormData) => {
-    const psychologyIds = selectedPsychologies.map((p) => p.value);
-    formData.set("psychologies", JSON.stringify(psychologyIds));
+    const uploadedScreenshots = await Promise.all(
+      screenshots.map(async (s) => {
+        let url = s.url;
+
+        if (s.file instanceof File) {
+          const uploadForm = new FormData();
+          uploadForm.append("file", s.file);
+          const res = await fetch("/api/upload", {
+            method: "PUT",
+            body: uploadForm,
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Upload failed");
+          url = data.url;
+        }
+
+        return { type: s.type, url };
+      })
+    );
+
+    uploadedScreenshots.forEach((s, i) => {
+      formData.set(`screenshots[${i}][type]`, s.type);
+      formData.set(`screenshots[${i}][url]`, s.url);
+    });
+
+    formData.set(
+      "psychologies",
+      JSON.stringify(selectedPsychologies.map((p) => p.value))
+    );
     formData.set("setupTradeId", setupTradeId);
-    formAction(formData);
+
+    startTransition(() => formAction(formData));
   };
 
-  React.useEffect(() => {
+  // Show notification + reset form if needed
+  useEffect(() => {
     if (state.message) {
-      if (state.errors && Object.keys(state.errors).length > 0) {
+      if (Object.keys(state.errors ?? {}).length > 0) {
         notifyError("Gagal menyimpan trade.");
       } else {
         notifySuccess(state.message);
 
-        // Reset form ke nilai awal
         setEntryPrice(0);
         setExitPrice(0);
         setLotSize(0.01);
@@ -116,13 +139,16 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
         setResult("");
         setRiskRatio("");
         setProfitLoss("");
-        setScreenshotUrl("");
         setSelectedPsychologies([]);
+        setScreenshots([]);
+        setBeforeFiles([]);
+        setAfterFiles([]);
       }
     }
   }, [state]);
 
-  React.useEffect(() => {
+  // Auto-calculate result, RR, and profit/loss
+  useEffect(() => {
     const allFilled =
       direction &&
       pairId &&
@@ -142,12 +168,16 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
     }
 
     let _result = "bep";
-    if (direction === "buy") {
-      if (exitPrice > entryPrice) _result = "win";
-      else if (exitPrice < entryPrice) _result = "loss";
-    } else if (direction === "sell") {
-      if (exitPrice < entryPrice) _result = "win";
-      else if (exitPrice > entryPrice) _result = "loss";
+    if (
+      (direction === "buy" && exitPrice > entryPrice) ||
+      (direction === "sell" && exitPrice < entryPrice)
+    ) {
+      _result = "win";
+    } else if (
+      (direction === "buy" && exitPrice < entryPrice) ||
+      (direction === "sell" && exitPrice > entryPrice)
+    ) {
+      _result = "loss";
     }
 
     const rr =
@@ -174,6 +204,13 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
     date,
   ]);
 
+  // Helper untuk handle upload screenshot
+  const handleScreenshotUpload = (file: File, type: "BEFORE" | "AFTER") => {
+    const previewUrl = URL.createObjectURL(file);
+    const updated = screenshots.filter((s) => s.type !== type);
+    setScreenshots([...updated, { type, url: previewUrl, file }]);
+  };
+
   return (
     <form action={handleSubmit} className="space-y-4 h-full">
       {/* Date + Direction */}
@@ -185,7 +222,11 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
             onChange={setDate}
             error={state.errors?.date}
           />
-          <input type="hidden" name="date" value={typeof date === "string" ? date : date.toISOString()} />
+          <input
+            type="hidden"
+            name="date"
+            value={typeof date === "string" ? date : date.toISOString()}
+          />
         </LabelInputContainer>
 
         <LabelInputContainer>
@@ -350,7 +391,7 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
               value={setupTradeId}
               onChange={setSetupTradeId}
               placeholder="Pilih Setup Trade"
-              options={setupTrades.map(s => ({ value: s.id, label: s.name }))}
+              options={setupTrades.map((s) => ({ value: s.id, label: s.name }))}
             />
             <input type="hidden" name="setupTradeId" value={setupTradeId} />
             <FieldError>{state.errors?.setupTradeId}</FieldError>
@@ -364,18 +405,56 @@ export default function TradeForm({ pairs, setupTrades,  }: TradeFormProps) {
         <FieldError>{state.errors?.notes}</FieldError>
       </LabelInputContainer>
 
-      {/* Screenshot URL */}
-      <LabelInputContainer>
-        <FileUpload
-          onChange={(urls) => {
-            const url = urls[0];
-            setScreenshotUrl(url); // simpan di state
-          }}
-        />
-        <input type="hidden" name="screenshotUrl" value={screenshotUrl} />
-        <FieldError>{state.errors?.screenshotUrl}</FieldError>
-      </LabelInputContainer>
+      {/* File Upload Before */}
+      <div className="flex grid-cols-2 gap-4">
+        <LabelInputContainer>
+          <p className="text-sm font-medium">Before</p>
+          <FileUpload
+            mode="manual"
+            role="BEFORE"
+            files={beforeFiles}
+            setFiles={setBeforeFiles}
+            onChange={(filesOrUrls) => {
+              const file = filesOrUrls.find((f) => f instanceof File);
+              if (file) handleScreenshotUpload(file, "BEFORE");
+            }}
+          />
+        </LabelInputContainer>
 
+        {/* File Upload After */}
+        <LabelInputContainer>
+          <p className="text-sm font-medium">After</p>
+          <FileUpload
+            mode="manual"
+            role="AFTER"
+            files={afterFiles}
+            setFiles={setAfterFiles}
+            onChange={(filesOrUrls) => {
+              const file = filesOrUrls.find((f) => f instanceof File);
+              if (file) handleScreenshotUpload(file, "AFTER");
+            }}
+          />
+        </LabelInputContainer>
+
+        {/* Hidden input for screenshots */}
+        {screenshots.map((s, i) => (
+          <React.Fragment key={i}>
+            <input
+              type="hidden"
+              name={`screenshots[${i}][type]`}
+              value={s.type}
+            />
+            {typeof s.url === "string" && (
+              <input
+                type="hidden"
+                name={`screenshots[${i}][url]`}
+                value={s.url}
+              />
+            )}
+          </React.Fragment>
+        ))}
+        <FieldError>{state.errors?.screenshots}</FieldError>
+      </div>
       {/* Buttons */}
       <div className="flex justify-end mt-10">
         <SubmitButton />

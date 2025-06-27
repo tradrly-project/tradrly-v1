@@ -132,7 +132,7 @@ export const createSetupColumns = ({
   },
   {
     id: "actions",
-    header: () => <div className="text-center px-2 py-2">Aksi</div>,
+    header: () => <div className="text-center px-2 py-2"/>,
     cell: ({ row }) => {
       const setup = row.original;
 

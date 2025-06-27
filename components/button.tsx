@@ -49,7 +49,6 @@ export type SetupPayload = {
 
 export type TradePayload = {
   date: string;
-  pairId: string;
   setupTradeId?: string;
   psychologyIds: string[];
   direction: "buy" | "sell";

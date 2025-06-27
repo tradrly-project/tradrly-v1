@@ -1,4 +1,12 @@
-import { Pair, Trade, SetupTrade, Indicator, Timeframe, Psychology } from "@prisma/client";
+import {
+  Pair,
+  Trade,
+  SetupTrade,
+  Indicator,
+  Timeframe,
+  Psychology,
+  ScreenshotType,
+} from "@prisma/client";
 
 export type JournalEntry = {
   id: string;
@@ -29,8 +37,8 @@ export type SetupTradeWithIndicator = SetupTrade & {
 export type SetupTradeFormValues = {
   name: string;
   strategy: string;
-  timeframe: string [];
-  indicator: string[] // Ini menyimpan indicatorId (string)
+  timeframe: string[];
+  indicator: string[]; // Ini menyimpan indicatorId (string)
   notes?: string;
 };
 
@@ -55,6 +63,9 @@ export type TradeFormValues = {
   strategy?: string[];
   setupTradeId?: string;
   notes?: string;
-  screenshotUrl?: string;
+  screenshots?: {
+    type: ScreenshotType; // atau "BEFORE" | "AFTER"
+    url: string;
+  }[];
   date?: string;
 };

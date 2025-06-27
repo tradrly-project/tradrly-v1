@@ -187,7 +187,7 @@ export function getColumns(
   },
   {
     id: "actions",
-    header: () => <div className="text-center px-2 py-2">Aksi</div>,
+    header: () => <div className="text-center px-2 py-2"/>,
     cell: ({ row }) => {
       const trade = row.original;
       return (

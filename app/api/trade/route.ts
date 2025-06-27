@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
-import { revalidatePath } from "next/cache"
-import { TradeCreateSchema } from "@/lib/zod"
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
+import { TradeCreateSchema } from "@/lib/zod";
 
 async function getUserId() {
-  const session = await auth()
+  const session = await auth();
   if (!session?.user?.id) {
-    throw new Error("User tidak terautentikasi")
+    throw new Error("User tidak terautentikasi");
   }
-  return session.user.id
+  return session.user.id;
 }
 
 export async function POST(req: Request) {
@@ -18,7 +18,9 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const raw = Object.fromEntries(formData.entries());
 
-    const psychologyIds = formData.getAll("psychologyIds").map((val) => val.toString());
+    const psychologyIds = formData
+      .getAll("psychologyIds")
+      .map((val) => val.toString());
 
     const parsed = TradeCreateSchema.safeParse({
       ...raw,
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { psychologyIds: psyIds, ...rest } = parsed.data;
+    const { psychologyIds: psyIds, screenshots, ...rest } = parsed.data;
 
     const trade = await prisma.trade.create({
       data: {
@@ -42,6 +44,16 @@ export async function POST(req: Request) {
         psychologies: {
           connect: (psyIds ?? []).map((id: string) => ({ id })),
         },
+        ...(screenshots?.length
+          ? {
+              screenshots: {
+                create: screenshots.map((s) => ({
+                  url: s.url,
+                  type: s.type,
+                })),
+              },
+            }
+          : {}),
       },
     });
 
@@ -61,4 +73,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

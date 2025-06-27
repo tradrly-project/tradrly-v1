@@ -24,6 +24,7 @@ export const SigninSchema = object({
 
 export const TradeDirectionEnum = zEnum(["buy", "sell"]);
 export const ResultEnum = zEnum(["win", "loss", "bep"]);
+export const ScreenshotEnum = zEnum(["BEFORE", "AFTER"]);
 
 // Base schema tanpa refine dulu
 export const TradeBaseSchema = object({
@@ -41,7 +42,12 @@ export const TradeBaseSchema = object({
   psychologyIds: array(string()).optional(),
   setupTradeId: string().uuid("Setup ID tidak valid").optional(),
   notes: string().optional().nullable(),
-  screenshotUrl: string().url("URL tidak valid").optional().nullable(),
+  screenshots: array(
+    object({
+      type: ScreenshotEnum,
+      url: string().url("URL tidak valid"),
+    })
+  ).optional(),
   date: date({ required_error: "Tanggal buka wajib diisi" }),
 });
 
@@ -72,7 +78,9 @@ export const TradeSchema = TradeBaseSchema.refine(
 
 // Buat schema create dan update
 export const TradeCreateSchema = TradeSchema;
-export const TradeUpdateSchema = TradeBaseSchema.partial();
+export const TradeUpdateSchema = TradeBaseSchema
+  .omit({ userId: true, pairId: true }) // 🛑 tidak boleh diupdate
+  .partial();
 
 const BaseSetupTradeSchema = object({
   name: string().min(1, "Nama setup wajib diisi").max(30, "Maksimal 50 karakter"),

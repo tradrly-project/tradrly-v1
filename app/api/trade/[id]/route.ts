@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { TradeUpdateSchema } from "@/lib/zod";
 import { TradeWithPair } from "@/lib/types";
+import { Prisma, ScreenshotType } from "@prisma/client";
 
 async function getUserId() {
   const session = await auth();
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
           select: { name: true, id: true },
         },
         psychologies: true,
+        screenshots: true,
       },
     });
 
@@ -60,6 +62,12 @@ export async function GET(request: Request) {
 }
 
 // PUT trade by ID
+function sanitize<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined && v !== null)
+  ) as Partial<T>;
+}
+
 export async function PUT(request: Request) {
   try {
     const userId = await getUserId();
@@ -72,75 +80,91 @@ export async function PUT(request: Request) {
         { status: 400 }
       );
     }
-    console.log(userId)
 
     const json = await request.json();
 
-    // ⬅️ UBAH MANUAL SEBELUM ZOD VALIDATION
+    // Parse tanggal string ke Date object jika ada
     if (json.date && typeof json.date === "string") {
       json.date = new Date(json.date);
     }
 
+    // Kosongkan string kosong jadi undefined
+    if (json.setupTradeId === "") {
+      json.setupTradeId = undefined;
+    }
+
     const parsed = TradeUpdateSchema.safeParse(json);
-    console.log(parsed.data)
-    console.log("Body received:", json);
+
     if (!parsed.success) {
-      console.log("Validation error:", parsed.error);
       return NextResponse.json(
         { errors: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
-    const { psychologyIds, ...restData } = parsed.data;
+    const { psychologyIds, screenshots, setupTradeId, ...rest } = parsed.data;
 
+    // Siapkan data update
+    const updateData: Prisma.TradeUpdateInput = {
+      ...sanitize(rest),
+    };
+
+    // Relasi psychology
+    if (psychologyIds) {
+      updateData.psychologies = {
+        set: psychologyIds.map((id: string) => ({ id })),
+      };
+    }
+
+    // Relasi screenshots (hapus semua lalu tambah)
+    if (screenshots) {
+      updateData.screenshots = {
+        deleteMany: {},
+        create: screenshots.map((s) => ({
+          type: s.type as ScreenshotType, // 👈 cast string menjadi enum ScreenshotType
+          url: s.url,
+        })),
+      };
+    }
+
+    // Relasi setupTrade
+    if (setupTradeId !== undefined) {
+      updateData.setupTrade = setupTradeId
+        ? { connect: { id: setupTradeId } }
+        : { disconnect: true };
+    }
+
+    // Jalankan update
     const updated = await prisma.trade.update({
       where: {
         id,
         userId,
       },
-      data: {
-        ...restData,
-        ...(psychologyIds && {
-          psychologies: {
-            set: psychologyIds.map((id) => ({ id })),
-          },
-        }),
-      },
+      data: updateData,
     });
 
-    // 🔁 Hitung ulang winrate setup setelah update trade
-    if (restData.setupTradeId) {
-      const relatedTrades = await prisma.trade.findMany({
-        where: {
-          setupTradeId: restData.setupTradeId,
-          userId,
-        },
-        select: {
-          result: true,
-        },
+    // Hitung ulang winrate jika ada setup
+    if (setupTradeId) {
+      const related = await prisma.trade.findMany({
+        where: { setupTradeId, userId },
+        select: { result: true },
       });
 
-      const total = relatedTrades.length;
-      const wins = relatedTrades.filter((t) => t.result === "win").length;
-      const winrate = total > 0 ? (wins / total) * 100 : 0;
+      const total = related.length;
+      const win = related.filter((t) => t.result === "win").length;
+      const winrate = total > 0 ? (win / total) * 100 : 0;
 
       await prisma.setupTrade.update({
-        where: {
-          id: restData.setupTradeId,
-        },
-        data: {
-          winrate,
-        },
+        where: { id: setupTradeId },
+        data: { winrate },
       });
     }
-
 
     revalidatePath("/api/trade");
 
     return NextResponse.json({ updated });
   } catch (error) {
-    console.error("PUT trade error:", error);
+    console.error("Trade PUT error:", error);
     return NextResponse.json(
       { error: "Gagal mengupdate trade" },
       { status: 500 }
