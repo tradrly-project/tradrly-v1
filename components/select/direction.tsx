@@ -23,6 +23,7 @@ type Props = {
     options: Option[]
     placeholder?: string
     error?: string | string[]
+    className?: string
 }
 
 export function DropdownMenuSelect({
@@ -32,6 +33,7 @@ export function DropdownMenuSelect({
     options,
     placeholder = "Pilih posisi",
     error,
+    className
 }: Props) {
     return (
         <div className="w-full">
@@ -45,7 +47,8 @@ export function DropdownMenuSelect({
                         value
                             ? "bg-background hover:bg-foreground/7"
                             : "bg-white/5 hover:bg-white/10",
-                        error && "border-red-500"
+                        error && "border-red-500",
+                        className
                     )}
                 >
                     <SelectValue placeholder={placeholder} />

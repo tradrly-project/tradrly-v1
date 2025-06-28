@@ -18,6 +18,7 @@ export type FileWithMeta = {
 
 export type FileUploadProps = {
   mode?: "immediate" | "manual";
+  hidePreview?: boolean;
   role: Role;
   files: FileWithMeta[];
   setFiles: React.Dispatch<React.SetStateAction<FileWithMeta[]>>;
@@ -49,6 +50,7 @@ export const FileUpload = ({
   mode = "immediate",
   role,
   files,
+  hidePreview,
   setFiles,
   onChange,
 }: FileUploadProps) => {
@@ -103,7 +105,7 @@ export const FileUpload = ({
         onClick={triggerInput}
         whileHover="animate"
         initial="initial"
-        className={`group cursor-pointer w-full h-[255px] flex transition-all items-center
+        className={`group cursor-pointer w-full h-[200px] flex transition-all items-center
     ${files.length > 0 ? "py-4 px-3" : "py-8 px-6"}`}
       >
         <input
@@ -118,7 +120,7 @@ export const FileUpload = ({
         />
 
         <>
-          {displayedFiles.length === 0 ? (
+          {hidePreview || displayedFiles.length === 0 ? (
             <div className="flex flex-col items-center gap-4">
               <motion.div
                 layoutId={`upload-${role}`}

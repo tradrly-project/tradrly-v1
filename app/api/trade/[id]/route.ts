@@ -120,7 +120,7 @@ export async function PUT(request: Request) {
     if (screenshots) {
       updateData.screenshots = {
         deleteMany: {},
-        create: screenshots.map((s) => ({
+        create: screenshots.map((s) => ({ 
           type: s.type as ScreenshotType, // 👈 cast string menjadi enum ScreenshotType
           url: s.url,
         })),

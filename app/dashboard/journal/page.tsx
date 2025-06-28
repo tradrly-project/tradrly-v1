@@ -36,6 +36,7 @@ export default async function JournalPage() {
         },
       },
       psychologies: true,
+      screenshots: true,
     },
     orderBy: { date: "desc" },
   });

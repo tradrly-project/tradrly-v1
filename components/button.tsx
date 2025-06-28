@@ -47,6 +47,11 @@ export type SetupPayload = {
   timeframe: string[];
 };
 
+export type ScreenshotPayload = {
+  type: "BEFORE" | "AFTER";
+  url: string;
+};
+
 export type TradePayload = {
   date: string;
   setupTradeId?: string;
@@ -58,6 +63,7 @@ export type TradePayload = {
   exitPrice: number;
   lotSize: number;
   notes?: string;
+  screenshots?: ScreenshotPayload[];
 };
 
 

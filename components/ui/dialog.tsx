@@ -65,7 +65,7 @@ function DialogContent({
         {...props}
       >
         {/* 👉 Scroll wrapper: sticky akan bekerja di dalam ini */}
-        <div className="max-h-[90vh] overflow-y-auto px-6 pb-10 pt-0 rounded-3xl">
+        <div className="max-h-[90vh] overflow-y-auto px-6 rounded-3xl">
           {children}
         </div>
 
