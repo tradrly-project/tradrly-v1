@@ -37,16 +37,28 @@ export default async function SetupTradePage() {
     },
   });
 
-  const rawTimeframes = await prisma.timeframe.findMany({
+  const userTimeframes = await prisma.userTimeframe.findMany({
     where: {
-      OR: [
-        { userId: null },
-        { userId: userId },
-      ],
+      userId,
+      hidden: false, // kalau kamu hanya ingin yang aktif saja
+    },
+    include: {
+      timeframe: true,
     },
   });
 
+  const rawTimeframes = userTimeframes.map((ut) => ({
+    ...ut.timeframe,
+    code: ut.customCode || ut.timeframe.code, // kalau user rename TF, pakai itu
+  }));
+
   const timeframes = sortTimeframes(rawTimeframes);
 
-  return <SetupClient setups={setups} indicators={indicators} timeframes={timeframes} />;
+  return (
+    <SetupClient
+      setups={setups}
+      indicators={indicators}
+      timeframes={timeframes}
+    />
+  );
 }

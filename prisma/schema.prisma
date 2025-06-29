@@ -33,7 +33,7 @@ model User {
   strategy      Strategy[]
   setupTrades   SetupTrade[]
   indicators    Indicator[]
-  timeframes    Timeframe[]
+  userTimeFrame UserTimeframe[]
 }
 
 model Account {
@@ -180,13 +180,23 @@ model Indicator {
 }
 
 model Timeframe {
-  id          String       @id @default(cuid())
-  code        String
-  userId      String? // null → global, ada → custom user
-  user        User?        @relation(fields: [userId], references: [id])
-  setupTrades SetupTrade[] @relation("TimeframesOnSetupTrade")
+  id            String          @id @default(cuid())
+  code          String
+  setupTrades   SetupTrade[]    @relation("TimeframesOnSetupTrade")
+  UserTimeframe UserTimeframe[]
+}
 
-  @@unique([code, userId]) // prevent duplicate per user
+model UserTimeframe {
+  id          String  @id @default(cuid())
+  userId      String
+  timeframeId String
+  hidden      Boolean @default(false) // kalau user hide TF global
+  customCode  String? // jika user ingin rename TF (opsional)
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeframe Timeframe @relation(fields: [timeframeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, timeframeId]) // satu TF bisa di-override 1x per user
 }
 
 model Payment {
@@ -208,6 +218,13 @@ enum SubscriptionStatus {
   expired
 }
 
+enum SubscriptionTier {
+  trial
+  basic
+  pro
+  elite
+}
+
 enum PaymentStatus {
   pending
   paid
@@ -223,13 +240,6 @@ enum Result {
   win
   loss
   bep
-}
-
-enum SubscriptionTier {
-  trial
-  basic
-  pro
-  elite
 }
 
 enum ScreenshotType {

@@ -25,7 +25,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email },
-          include: { accounts: true },
+          include: {
+            accounts: true,
+            subscriptions: {
+              where: {
+                status: "active",
+              },
+              include: {
+                plan: true,
+              },
+            },
+          },
         });
 
         if (!user || !user.password) throw new Error("Akun belum terdaftar");
@@ -37,11 +47,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           name: user.name,
           userName: user.username,
+          email: user.email,
           role: user.role,
           accounts: user.accounts.map((acc) => ({
             id: acc.id,
             brokerName: acc.brokerName,
           })),
+          subscription: user.subscriptions?.[0] && {
+            status: user.subscriptions[0].status,
+            startedAt: user.subscriptions[0].startedAt.toISOString(),
+            endsAt: user.subscriptions[0].endsAt.toISOString(),
+            plan: {
+              id: user.subscriptions[0].plan.id,
+              name: user.subscriptions[0].plan.name,
+              price: user.subscriptions[0].plan.price.toNumber(),
+              tier: user.subscriptions[0].plan.tier,
+              features: user.subscriptions[0].plan.features,
+            },
+          },
         };
       },
     }),
@@ -66,6 +89,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = user.role;
         token.accounts = user.accounts;
         token.userName = user.userName;
+        token.email = user.email;
+        token.subscription = user.subscription;
       }
       return token;
     },
@@ -78,6 +103,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: token.role,
           accounts: token.accounts,
           userName: token.userName,
+          email: token.email,
+          subscription: token.subscription,
         },
       };
     },

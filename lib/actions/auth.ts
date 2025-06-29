@@ -11,7 +11,7 @@ import { defaultIndicators } from "../default/indicator";
 import { defaultTimeframes } from "../default/timeframe";
 
 export const signUpCredentials = async (
-  prevState: unknown,
+  _prevState: unknown,
   formData: FormData
 ) => {
   const validatedFields = RegisterSchema.safeParse(
@@ -55,9 +55,25 @@ export const signUpCredentials = async (
       })),
     });
 
-    await prisma.timeframe.createMany({
-      data: defaultTimeframes,
-      skipDuplicates: true, // biar aman kalau sudah ada
+    // ✅ 4. Cek apakah Timeframe global sudah ada
+    const existingTimeframes = await prisma.timeframe.findMany();
+    if (existingTimeframes.length === 0) {
+      await prisma.timeframe.createMany({
+        data: defaultTimeframes.map((tf) => ({
+          code: tf.code,
+        })),
+      });
+    }
+
+    // ✅ 5. Ambil semua Timeframe global dari DB
+    const globalTimeframes = await prisma.timeframe.findMany();
+
+    // ✅ 6. Kaitkan user baru ke semua timeframe global
+    await prisma.userTimeframe.createMany({
+      data: globalTimeframes.map((tf) => ({
+        userId: user.id,
+        timeframeId: tf.id,
+      })),
     });
   } catch (error) {
     console.error("Sign up error:", error);
@@ -66,14 +82,13 @@ export const signUpCredentials = async (
     };
   }
 
-  // 3. Redirect ke login
   redirect("/login");
 };
 
 // Login Credential
 
 export const signInCredentials = async (
-  prevState: unknown,
+  _prevState: unknown,
   formData: FormData
 ) => {
   const validatedFields = SigninSchema.safeParse(

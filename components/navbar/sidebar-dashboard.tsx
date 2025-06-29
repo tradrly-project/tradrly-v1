@@ -18,8 +18,9 @@ import {
   ChatBubbleLeftRightIcon,
   RectangleStackIcon,
   Squares2X2Icon,
-  TableCellsIcon,
+  BookmarkIcon,
   WrenchScrewdriverIcon,
+  NewspaperIcon,
 } from "@heroicons/react/24/outline";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
@@ -39,12 +40,17 @@ const MainItems = [
   {
     title: "Journal",
     url: "/dashboard/journal",
-    icon: TableCellsIcon,
+    icon: BookmarkIcon,
   },
   {
     title: "Statistik",
-    url: "/dashboard/statistik",
+    url: "/dashboard/statistics",
     icon: ArrowTrendingUpIcon,
+  },
+  {
+    title: "News",
+    url: "/dashboard/news",
+    icon: NewspaperIcon,
   },
   
 ];

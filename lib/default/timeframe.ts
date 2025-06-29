@@ -35,11 +35,11 @@ export function sortTimeframes<T extends Pick<Timeframe, "code">>(timeframes: T[
  * Default global timeframes
  */
 export const defaultTimeframes: Timeframe[] = [
-  { code: "1D" },
-  { code: "4H" },
-  { code: "1H" },
+  { code: "1d" },
+  { code: "1h" },
   { code: "45m" },
   { code: "15m" },
+  { code: "1m" },
 ];
 
 /**
