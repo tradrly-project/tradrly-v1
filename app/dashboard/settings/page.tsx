@@ -6,13 +6,17 @@ import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import UserSettingsForm from "@/components/settings/user";
 import { useSidebar } from "@/components/ui/sidebar";
+import { PairSettingsForm } from "@/components/settings/pair";
+import { PsychologySettingsForm } from "@/components/settings/psychology";
+import { TimeframeSettingsForm } from "@/components/settings/timeframe";
+import { IndicatorSettingsForm } from "@/components/settings/indicator";
 
 const settingTabs = [
   { id: "user", label: "User", content: <UserSettingsForm /> },
-  { id: "pair", label: "Pair", content: "CRUD Pair di sini." },
-  { id: "psikologi", label: "Psikologi", content: "CRUD Psikologi di sini." },
-  { id: "timeframe", label: "Timeframe", content: "CRUD Timeframe di sini." },
-  { id: "indikator", label: "Indikator", content: "CRUD Indikator di sini." },
+  { id: "pair", label: "Pair", content: <PairSettingsForm /> },
+  { id: "psikologi", label: "Psikologi", content: <PsychologySettingsForm/> },
+  { id: "timeframe", label: "Timeframe", content: <TimeframeSettingsForm/> },
+  { id: "indikator", label: "Indikator", content: <IndicatorSettingsForm/> },
 ];
 
 export default function SettingsPage() {
@@ -32,7 +36,7 @@ export default function SettingsPage() {
   }, [activeTab]);
 
   return (
-    <div className="mx-auto mt-6 px-4"
+    <div className="mt-4 px-4"
     style={{ width: `calc(100vw - ${sidebarWidth})` }}>
       <Tabs
         defaultValue="account"
@@ -71,7 +75,7 @@ export default function SettingsPage() {
 
         {/* Tab Content */}
         {settingTabs.map((tab) => (
-          <TabsContent key={tab.id} value={tab.id} className="mt-6">
+          <TabsContent key={tab.id} value={tab.id} className="mt-4">
              {tab.content}
           </TabsContent>
         ))}

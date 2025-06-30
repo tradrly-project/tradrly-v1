@@ -60,10 +60,10 @@ export default function UserSettingsForm() {
 
   return (
     <div className="w-[40%]">
-      <Card className="border border-muted bg-background shadow-md rounded-2xl col-span-3">
+      <Card className="bg-background shadow-md rounded-2xl">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-foreground text-lg font-semibold tracking-tight">
-            Informasi User
+            Pengaturan User
           </CardTitle>
           <Button className="cursor-pointer" size="sm">
             Upgrade Plan
@@ -144,7 +144,7 @@ export default function UserSettingsForm() {
               ) : (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button size="sm" onClick={handleEditToggle}>
+                    <Button size="sm" onClick={handleEditToggle} className="cursor-pointer">
                       <PencilSquareIcon className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>

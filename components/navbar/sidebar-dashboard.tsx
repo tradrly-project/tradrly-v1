@@ -57,7 +57,7 @@ const MainItems = [
 
 const OthersItems = [
   {
-    title: "Settings",
+    title: "Pengaturan",
     url: "/dashboard/settings",
     icon: WrenchScrewdriverIcon,
   },
