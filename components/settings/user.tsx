@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { notifyError, notifySuccess } from "../asset/notify";
 import { ConfirmDialog } from "../asset/confirm-dialog";
+import { signOut } from "next-auth/react";
 
 export default function UserSettingsForm() {
   const [isEditing, setIsEditing] = useState(false);
@@ -38,6 +39,18 @@ export default function UserSettingsForm() {
       plan: { name: "" },
     },
   });
+
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const handlePasswordChange = (
+    field: keyof typeof passwordForm,
+    value: string
+  ) => {
+    setPasswordForm({ ...passwordForm, [field]: value });
+  };
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -124,6 +137,42 @@ export default function UserSettingsForm() {
 
   if (loading)
     return <div className="text-sm text-muted-foreground">Memuat data...</div>;
+
+  const handleSubmitPassword = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      notifyError("Konfirmasi password tidak cocok");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/user/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(passwordForm),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        notifyError(result.error || "Gagal mengganti password");
+        return;
+      }
+
+      notifySuccess("Password berhasil diubah. Anda akan logout...");
+
+      setIsPasswordDialogOpen(false);
+
+      // Logout pakai next-auth
+      setTimeout(() => {
+        signOut({ callbackUrl: "/login" });
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      notifyError("Terjadi kesalahan saat mengganti password");
+    }
+  };
 
   return (
     <div className="w-[40%]">
@@ -276,15 +325,43 @@ export default function UserSettingsForm() {
             <DialogTitle>Ubah Password</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
-            <Input type="password" placeholder="Password lama" />
-            <Input type="password" placeholder="Password baru" />
-            <Input type="password" placeholder="Konfirmasi password baru" />
+            <Input
+              type="password"
+              placeholder="Password lama"
+              value={passwordForm.oldPassword}
+              onChange={(e) =>
+                handlePasswordChange("oldPassword", e.target.value)
+              }
+            />
+            <Input
+              type="password"
+              placeholder="Password baru"
+              value={passwordForm.newPassword}
+              onChange={(e) =>
+                handlePasswordChange("newPassword", e.target.value)
+              }
+            />
+            <Input
+              type="password"
+              placeholder="Konfirmasi password baru"
+              value={passwordForm.confirmPassword}
+              onChange={(e) =>
+                handlePasswordChange("confirmPassword", e.target.value)
+              }
+            />
           </div>
           <DialogFooter>
             <Button onClick={() => setIsPasswordDialogOpen(false)}>
               Batal
             </Button>
-            <Button type="submit">Simpan</Button>
+            <ConfirmDialog
+              trigger={<Button type="button">Simpan</Button>}
+              title="Konfirmasi Ubah Password"
+              description="Apakah kamu yakin ingin mengubah password? Kamu akan logout setelah berhasil."
+              confirmText="Ya, Ubah"
+              cancelText="Batal"
+              onConfirm={handleSubmitPassword}
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>

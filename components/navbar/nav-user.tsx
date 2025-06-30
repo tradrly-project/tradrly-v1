@@ -7,7 +7,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react";
-
+import { signOut } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -58,17 +58,8 @@ export function NavUser({
     onClick: () => console.log("Logged out"),
   };
 
-    const handleLogout = async () => {
-    const response = await fetch("/api/auth/logout", {
-      method: "POST",
-    });
-
-    if (response.ok) {
-      // Redirect ke halaman login setelah logout berhasil
-      window.location.href = "/login";
-    } else {
-      console.error("Logout failed");
-    }
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/login" }); // redirect otomatis
   };
 
   return (
