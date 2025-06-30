@@ -22,6 +22,20 @@ export const SigninSchema = object({
     .max(5, "Password harus lebih dari 5 karakter"),
 });
 
+
+export const UserUpdateSchema = object({
+  name: string().min(1, "Harus lebih dari 1 huruf !"),
+  username: string().min(1, "Harus lebih dari 1 huruf !"),
+  email: string().email("Email tidak valid"),
+  image: string().refine(
+    (val) => val === "" || /^https?:\/\/.+\..+/.test(val),
+    {
+      message: "URL tidak valid",
+    }
+  ),
+});
+
+
 export const TradeDirectionEnum = zEnum(["buy", "sell"]);
 export const ResultEnum = zEnum(["win", "loss", "bep"]);
 export const ScreenshotEnum = zEnum(["BEFORE", "AFTER"]);

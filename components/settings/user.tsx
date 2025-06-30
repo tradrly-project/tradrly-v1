@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { PencilSquareIcon } from "@heroicons/react/24/solid";
-import { useAppSession } from "@/context/session-context";
 import {
   Dialog,
   DialogContent,
@@ -20,43 +20,110 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { notifyError, notifySuccess } from "../asset/notify";
+import { ConfirmDialog } from "../asset/confirm-dialog";
 
 export default function UserSettingsForm() {
-  const session = useAppSession();
-  const status = session?.user.subscription?.status;
-
-  const statusMap = {
-    active: {
-      label: "Aktif",
-      className: "bg-sky-500 text-white",
-    },
-    cancelled: {
-      label: "Ditangguhkan",
-      className: "bg-zinc-900 text-white",
-    },
-    expired: {
-      label: "Expired",
-      className: "bg-red-500 text-white",
-    },
-  } as const;
-
-  const badge = status ? statusMap[status] : null;
-
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const [formData, setFormData] = useState({
-    name: session?.user.name || "",
-    userName: session?.user.userName || "",
-    email: session?.user.email || "",
-    image: session?.user.image || "",
+    name: "",
+    userName: "",
+    email: "",
+    image: "",
+    subscription: {
+      status: "",
+      plan: { name: "" },
+    },
   });
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("/api/user/me");
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Gagal memuat data user");
+
+      setFormData({
+        name: data.name,
+        userName: data.username,
+        email: data.email,
+        image: data.image || "",
+        subscription: data.subscription || {
+          status: "expired",
+          plan: { name: "-" },
+        },
+      });
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        notifyError(err.message);
+      } else {
+        notifyError("Terjadi kesalahan yang tidak diketahui.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
   const handleEditToggle = () => setIsEditing((prev) => !prev);
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch("/api/user/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          username: formData.userName,
+          email: formData.email,
+          image: formData.image,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Gagal menyimpan data");
+
+      notifySuccess("Data berhasil diperbarui!");
+      setFormData((prev) => ({
+        ...prev,
+        name: result.name,
+        userName: result.username,
+        email: result.email,
+        image: result.image || "",
+      }));
+      setIsEditing(false);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        notifyError(err.message);
+      } else {
+        notifyError("Terjadi kesalahan yang tidak diketahui.");
+      }
+    }
+  };
+
+  const badgeMap = {
+    active: { label: "Aktif", className: "bg-sky-500 text-white" },
+    cancelled: { label: "Ditangguhkan", className: "bg-zinc-900 text-white" },
+    expired: { label: "Expired", className: "bg-red-500 text-white" },
+  } as const;
+
+  const badge =
+    badgeMap[formData.subscription?.status as keyof typeof badgeMap];
+
+  if (loading)
+    return <div className="text-sm text-muted-foreground">Memuat data...</div>;
 
   return (
     <div className="w-[40%]">
@@ -103,10 +170,10 @@ export default function UserSettingsForm() {
                 ) : (
                   <>
                     <Label className="text-[16px] font-bold">
-                      {session?.user.name}
+                      {formData.name}
                     </Label>
                     <Label className="text-[14px] font-bold text-zinc-700">
-                      @{session?.user.userName}
+                      @{formData.userName}
                     </Label>
                   </>
                 )}
@@ -115,36 +182,27 @@ export default function UserSettingsForm() {
             <div className="flex flex-col text-foreground">
               {isEditing ? (
                 <div className="flex flex-col gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button size="sm">
-                        Simpan
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <p>Simpan perubahan</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <ConfirmDialog
+                    trigger={<Button size="sm">Simpan</Button>}
+                    title="Konfirmasi Perubahan User"
+                    description="Apakah kamu yakin ingin menyimpan perubahan ini?"
+                    confirmText="Ya, Simpan"
+                    cancelText="Batal"
+                    onConfirm={handleSave}
+                  />
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleEditToggle}
-                      >
-                        Batal
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <p>Batal edit</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleEditToggle}
+                  >
+                    Batal
+                  </Button>
                 </div>
               ) : (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button size="sm" onClick={handleEditToggle} className="cursor-pointer">
+                    <Button size="sm" onClick={handleEditToggle}>
                       <PencilSquareIcon className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -158,8 +216,7 @@ export default function UserSettingsForm() {
 
           {/* Body */}
           <div className="flex flex-col mt-6 text-foreground gap-4">
-            {/* Email */}
-            <div className="flex flex-row items-center justify-between border-b border-zinc-800 pb-2">
+            <div className="flex justify-between border-b border-zinc-800 pb-2">
               <Label className="text-sm font-bold">Email</Label>
               {isEditing ? (
                 <Input
@@ -169,13 +226,12 @@ export default function UserSettingsForm() {
                 />
               ) : (
                 <span className="text-sm text-foreground mr-2">
-                  {session?.user.email}
+                  {formData.email}
                 </span>
               )}
             </div>
 
-            {/* Password */}
-            <div className="flex flex-row items-center justify-between border-b border-zinc-800 pb-2">
+            <div className="flex justify-between border-b border-zinc-800 pb-2">
               <Label className="text-sm font-bold">Password</Label>
               <Button
                 variant="outline"
@@ -186,8 +242,7 @@ export default function UserSettingsForm() {
               </Button>
             </div>
 
-            {/* Status Akun */}
-            <div className="flex flex-row items-center justify-between border-b border-zinc-800 pb-2">
+            <div className="flex justify-between border-b border-zinc-800 pb-2">
               <Label className="text-sm font-bold">Status Akun</Label>
               {badge && (
                 <Badge className={`text-xs mr-2 rounded-sm ${badge.className}`}>
@@ -196,20 +251,16 @@ export default function UserSettingsForm() {
               )}
             </div>
 
-            {/* Limit */}
-            <div className="flex flex-row items-center justify-between border-b border-zinc-800 pb-2">
+            <div className="flex justify-between border-b border-zinc-800 pb-2">
               <Label className="text-sm font-bold">Limit Jurnal</Label>
               <span className="text-sm text-foreground mr-2">5 dari 10</span>
             </div>
 
-            {/* Paket Akun */}
-            <div className="flex flex-row items-center justify-between border-b border-zinc-800 pb-2">
+            <div className="flex justify-between border-b border-zinc-800 pb-2">
               <Label className="text-sm font-bold">Paket Akun</Label>
-              <span className="text-sm text-foreground mr-2">
-                <Badge className="rounded-sm">
-                  {session?.user.subscription?.plan.name}
-                </Badge>
-              </span>
+              <Badge className="rounded-sm">
+                {formData.subscription?.plan?.name || "-"}
+              </Badge>
             </div>
           </div>
         </CardContent>
