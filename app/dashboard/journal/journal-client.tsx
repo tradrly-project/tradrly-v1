@@ -25,15 +25,14 @@ interface Psychology {
   // Tambahkan field lain jika ada
 }
 
-
 interface JournalClientProps {
-  trades: TradeWithPair[];
+  journals: TradeWithPair[];
   pairs: { id: string; symbol: string }[];
   setupTrade: { id: string; name: string }[];
   allPsychologies: Psychology[];
 }
 
-export default function JournalClient({ trades, pairs, setupTrade, allPsychologies }: JournalClientProps) {
+export default function JournalClient({ journals, pairs, setupTrade, allPsychologies }: JournalClientProps) {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
 
@@ -41,10 +40,10 @@ export default function JournalClient({ trades, pairs, setupTrade, allPsychologi
   const columns = getColumns(pairs, setupTrade, allPsychologies);
 
   // Filter berdasarkan entryPrice, bisa disesuaikan ke kolom lain
-  const filteredTrades = trades.filter((trade) => {
-    const pair = trade.pair?.symbol?.toLowerCase() || "";
-    const result = trade.result?.toLowerCase() || "";
-    const direction = trade.direction?.toLowerCase() || "";
+  const filteredJournals = journals.filter((journal) => {
+    const pair = journal.pair?.pair?.symbol?.toLowerCase() || "";
+    const result = journal.result?.toLowerCase() || "";
+    const direction = journal.direction?.toLowerCase() || "";
     const keyword = filter.toLowerCase();
 
     return pair.includes(keyword) || result.includes(keyword) || direction.includes(keyword);
@@ -106,7 +105,7 @@ export default function JournalClient({ trades, pairs, setupTrade, allPsychologi
       {/* Tabel */}
       <DataTable
         columns={columns}
-        data={filteredTrades}
+        data={filteredJournals}
       />
     </div>
   );

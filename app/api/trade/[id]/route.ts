@@ -28,26 +28,35 @@ export async function GET(request: Request) {
       );
     }
 
-    const trade: TradeWithPair | null = await prisma.trade.findFirst({
+    const journal: TradeWithPair | null = await prisma.journal.findFirst({
       where: { id, userId },
       include: {
-        pair: true,
+        pair: {
+          include: {
+            pair: true, // ambil simbol dari Pair global
+          },
+        },
         setupTrade: {
           select: { name: true, id: true },
         },
-        psychologies: true,
+        psychologies: {
+          include: {
+            psychology: true, // agar bisa ambil nama dari Psychology global
+          },
+        },
         screenshots: true,
       },
     });
+    
 
-    if (!trade) {
+    if (!journal) {
       return NextResponse.json(
         { error: "Trade tidak ditemukan" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(trade, {
+    return NextResponse.json(journal, {
       headers: {
         "Cache-Control": "s-maxage=10, stale-while-revalidate=59",
       },
@@ -105,14 +114,14 @@ export async function PUT(request: Request) {
     const { psychologyIds, screenshots, setupTradeId, ...rest } = parsed.data;
 
     // Siapkan data update
-    const updateData: Prisma.TradeUpdateInput = {
+    const updateData: Prisma.JournalUpdateInput = {
       ...sanitize(rest),
     };
 
     // Relasi psychology
     if (psychologyIds) {
       updateData.psychologies = {
-        set: psychologyIds.map((id: string) => ({ id })),
+        set: psychologyIds.map((id: string) => ({ id })), // id = UserPsychology ID
       };
     }
 
@@ -135,7 +144,7 @@ export async function PUT(request: Request) {
     }
 
     // Jalankan update
-    const updated = await prisma.trade.update({
+    const updated = await prisma.journal.update({
       where: {
         id,
         userId,
@@ -145,7 +154,7 @@ export async function PUT(request: Request) {
 
     // Hitung ulang winrate jika ada setup
     if (setupTradeId) {
-      const related = await prisma.trade.findMany({
+      const related = await prisma.journal.findMany({
         where: { setupTradeId, userId },
         select: { result: true },
       });
@@ -187,7 +196,7 @@ export async function DELETE(request: Request) {
     }
 
     // Ambil setupTradeId sebelum trade dihapus
-    const existingTrade = await prisma.trade.findUnique({
+    const existingTrade = await prisma.journal.findUnique({
       where: {
         id,
         userId,
@@ -205,7 +214,7 @@ export async function DELETE(request: Request) {
     }
 
     // Hapus trade
-    await prisma.trade.delete({
+    await prisma.journal.delete({
       where: {
         id,
         userId,
@@ -214,7 +223,7 @@ export async function DELETE(request: Request) {
 
     // Hitung ulang winrate untuk setupTrade
     if (existingTrade.setupTradeId) {
-      const relatedTrades = await prisma.trade.findMany({
+      const relatedTrades = await prisma.journal.findMany({
         where: {
           setupTradeId: existingTrade.setupTradeId,
           userId,

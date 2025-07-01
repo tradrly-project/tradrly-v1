@@ -12,44 +12,56 @@ export default async function SetupTradePage() {
     throw new Error("User tidak terautentikasi");
   }
 
-  const setups = await prisma.setupTrade.findMany({
+  const setupsRaw = await prisma.setupTrade.findMany({
     where: { userId },
     include: {
-      indicators: true,
-      timeframes: true,
+      indicators: {
+        include: { indicator: true },
+      },
+      timeframes: {
+        include: { timeframe: true },
+      },
     },
     orderBy: {
       createdAt: "desc",
     },
   });
 
-  // Ambil semua indikator user untuk opsi dropdown dsb
-  const indicators = await prisma.indicator.findMany({
+  const setups = setupsRaw.map((setup) => ({
+    ...setup,
+    indicators: setup.indicators.map((i) => ({
+      id: i.indicator.id,
+      name: i.indicator.name,
+      code: i.customCode || i.indicator.code,
+    })),
+    timeframes: setup.timeframes.map((tf) => ({
+      id: tf.timeframe.id,
+      code: tf.customCode || tf.timeframe.code,
+    })),
+  }));
+
+  const indicatorsRaw = await prisma.userIndicator.findMany({
     where: { userId },
-    select: {
-      id: true,
-      name: true,
-      code: true,
-      userId: true,
-    },
+    include: { indicator: true },
     orderBy: {
-      name: "asc",
+      indicator: { name: "asc" },
     },
   });
 
+  const indicators = indicatorsRaw.map((ui) => ({
+    id: ui.indicator.id,
+    name: ui.indicator.name,
+    code: ui.customCode || ui.indicator.code,
+  }));
+
   const userTimeframes = await prisma.userTimeframe.findMany({
-    where: {
-      userId,
-      hidden: false, // kalau kamu hanya ingin yang aktif saja
-    },
-    include: {
-      timeframe: true,
-    },
+    where: { userId, hidden: false },
+    include: { timeframe: true },
   });
 
   const rawTimeframes = userTimeframes.map((ut) => ({
     ...ut.timeframe,
-    code: ut.customCode || ut.timeframe.code, // kalau user rename TF, pakai itu
+    code: ut.customCode || ut.timeframe.code,
   }));
 
   const timeframes = sortTimeframes(rawTimeframes);
@@ -61,4 +73,5 @@ export default async function SetupTradePage() {
       timeframes={timeframes}
     />
   );
+  
 }

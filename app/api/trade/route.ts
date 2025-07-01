@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
     const { psychologyIds: psyIds, screenshots, ...rest } = parsed.data;
 
-    const trade = await prisma.trade.create({
+    const trade = await prisma.journal.create({
       data: {
         ...rest,
         userId,

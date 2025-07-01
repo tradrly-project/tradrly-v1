@@ -15,14 +15,26 @@ export async function GET() {
   try {
     const userId = await getUserId()
 
-    const psychologies = await prisma.psychology.findMany({
-      where: { userId },
-      orderBy: { name: "asc" },
-      select: {
-        id: true,
-        name: true,
+    const userPsychologies = await prisma.userPsychology.findMany({
+      where: {
+        userId,
+        hidden: false, // Optional: hanya yang aktif
+      },
+      include: {
+        psychology: true, // join ke global Psychology
+      },
+      orderBy: {
+        psychology: {
+          name: "asc",
+        },
       },
     })
+
+    const psychologies = userPsychologies.map((up) => ({
+      id: up.psychology.id,
+      name: up.psychology.name,
+    }))
+    
 
     return NextResponse.json({ psychologies }, {
       headers: {

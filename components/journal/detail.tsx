@@ -20,7 +20,7 @@ import React from "react";
 import { PsychologySelect } from "../select/psychology-select";
 import { DatePickerWithPresets } from "../asset/date-picker";
 import { DropdownMenuSelect } from "../select/direction";
-import { ScreenshotType, TradeDirection } from "@prisma/client";
+import { ScreenshotType, TradeDirection, UserPsychology } from "@prisma/client";
 import { ComboBox } from "../asset/combo-box";
 import { calculateDerivedFields as calculateTradeFields } from "@/lib/tradeCalculations";
 import LabelInputContainer from "../asset/label-input";
@@ -41,8 +41,8 @@ type TradeScreenshot = {
 };
 type Screenshot = { type: "BEFORE" | "AFTER"; url: string; file?: File };
 type Props = {
-  trade: TradeWithPair & {
-    psychologies: Psychology[];
+  journal: TradeWithPair & {
+    psychologies: (UserPsychology & { psychology: Psychology })[];
     screenshots: TradeScreenshot[];
   };
   pairs: Pair[];
@@ -51,7 +51,7 @@ type Props = {
 };
 
 export function TradeDetailDialog({
-  trade,
+  journal,
   pairs,
   setupTrades,
   allPsychologies,
@@ -66,19 +66,19 @@ export function TradeDetailDialog({
   const [afterFiles, setAfterFiles] = useState<FileWithMeta[]>([]);
   const [showUploadBefore, setShowUploadBefore] = useState(false);
   const [showUploadAfter, setShowUploadAfter] = useState(false);
-  const [notes, setNotes] = useState(trade.notes || "");
+  const [notes, setNotes] = useState(journal.notes || "");
 
   const [formData, setFormData] = useState({
-    date: new Date(trade.date).toISOString().slice(0, 10),
-    pairId: trade.pair?.id || "",
-    setupTradeId: trade.setupTrade?.id || "",
-    psychologyIds: trade.psychologies.map((p) => p.id),
-    direction: trade.direction,
-    entryPrice: trade.entryPrice.toString(),
-    takeProfit: trade.takeProfit.toString(),
-    stoploss: trade.stoploss.toString(),
-    exitPrice: trade.exitPrice.toString(),
-    lotSize: trade.lotSize.toString(),
+    date: new Date(journal.date).toISOString().slice(0, 10),
+    pairId: journal.pair?.id || "",
+    setupTradeId: journal.setupTrade?.id || "",
+    psychologyIds: journal.psychologies.map((p) => p.id),
+    direction: journal.direction,
+    entryPrice: journal.entryPrice.toString(),
+    takeProfit: journal.takeProfit.toString(),
+    stoploss: journal.stoploss.toString(),
+    exitPrice: journal.exitPrice.toString(),
+    lotSize: journal.lotSize.toString(),
   });
 
   const availablePsychologies = allPsychologies.map((p) => ({
@@ -87,17 +87,17 @@ export function TradeDetailDialog({
   }));
 
   const [selectedPsychologies, setSelectedPsychologies] = useState<Option[]>(
-    trade.psychologies.map((p) => ({
-      label: p.name,
-      value: p.id,
+    journal.psychologies.map((p) => ({
+      label: p.psychology.name,
+      value: p.psychology.id,
     }))
   );
-
+  
   const handleChange =
     (field: keyof typeof formData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData({ ...formData, [field]: e.target.value });
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [field]: e.target.value });
+      };
 
   const formatDecimal = (
     value: Decimal | number | string | null | undefined,
@@ -183,11 +183,11 @@ export function TradeDetailDialog({
 
   useEffect(() => {
     if (isEditing) {
-      setScreenshots(trade.screenshots); // ambil gambar dari server/backend
+      setScreenshots(journal.screenshots); // ambil gambar dari server/backend
       setShowUploadBefore(false);
       setShowUploadAfter(false);
     }
-  }, [isEditing, trade.screenshots]);
+  }, [isEditing, journal.screenshots]);
 
   return (
     <>
@@ -248,26 +248,24 @@ export function TradeDetailDialog({
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Result */}
                       <Badge
-                        className={`text-xs rounded-sm ${
-                          calculateDerivedFields().result === "win"
+                        className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
                             ? "bg-sky-500 text-white"
                             : calculateDerivedFields().result === "loss"
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-700 text-white"
-                        }`}
+                              ? "bg-red-500 text-white"
+                              : "bg-zinc-700 text-white"
+                          }`}
                       >
                         {calculateDerivedFields().result.toUpperCase()}
                       </Badge>
 
                       {/* PnL */}
                       <Badge
-                        className={`text-xs rounded-sm ${
-                          calculateDerivedFields().profitLoss > 0
+                        className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
                             ? "bg-sky-500 text-white"
                             : calculateDerivedFields().profitLoss < 0
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-700 text-white"
-                        }`}
+                              ? "bg-red-500 text-white"
+                              : "bg-zinc-700 text-white"
+                          }`}
                       >
                         PnL {formatDollar(calculateDerivedFields().profitLoss)}
                       </Badge>
@@ -304,37 +302,34 @@ export function TradeDetailDialog({
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     {/* Direction */}
                     <Badge
-                      className={`text-xs font-semibold tracking-wide rounded-sm ${
-                        formData.direction === "buy"
+                      className={`text-xs font-semibold tracking-wide rounded-sm ${formData.direction === "buy"
                           ? "bg-sky-500 text-white"
                           : "bg-red-500 text-white"
-                      }`}
+                        }`}
                     >
                       {formData.direction?.toUpperCase()}
                     </Badge>
 
                     {/* Result */}
                     <Badge
-                      className={`text-xs rounded-sm ${
-                        calculateDerivedFields().result === "win"
+                      className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
                           ? "bg-sky-500 text-white"
                           : calculateDerivedFields().result === "loss"
-                          ? "bg-red-500 text-white"
-                          : "bg-zinc-700 text-white"
-                      }`}
+                            ? "bg-red-500 text-white"
+                            : "bg-zinc-700 text-white"
+                        }`}
                     >
                       {calculateDerivedFields().result.toUpperCase()}
                     </Badge>
 
                     {/* Profit / Loss */}
                     <Badge
-                      className={`text-xs rounded-sm ${
-                        calculateDerivedFields().profitLoss > 0
+                      className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
                           ? "bg-sky-500 text-white"
                           : calculateDerivedFields().profitLoss < 0
-                          ? "bg-red-500 text-white"
-                          : "bg-zinc-700 text-white"
-                      }`}
+                            ? "bg-red-500 text-white"
+                            : "bg-zinc-700 text-white"
+                        }`}
                     >
                       PnL {formatDollar(calculateDerivedFields().profitLoss)}
                     </Badge>
@@ -415,14 +410,14 @@ export function TradeDetailDialog({
                           }));
                         }}
                       />
-                    ) : trade.psychologies && trade.psychologies.length > 0 ? (
-                      trade.psychologies.map((p) => (
+                    ) : journal.psychologies && journal.psychologies.length > 0 ? (
+                      journal.psychologies.map((p) => (
                         <Badge
-                          key={p.id}
+                          key={p.psychology.id}
                           variant="secondary"
                           className="text-xs bg-zinc-900 mr-1 text-foreground"
                         >
-                          {p.name}
+                          {p.psychology.name}
                         </Badge>
                       ))
                     ) : (
@@ -486,7 +481,7 @@ export function TradeDetailDialog({
                     <LabelInputContainer>
                       <p className="text-sm font-medium">Before</p>
                       {screenshots.find((s) => s.type === "BEFORE") &&
-                      !showUploadBefore ? (
+                        !showUploadBefore ? (
                         <div className="relative">
                           <Image
                             unoptimized
@@ -531,7 +526,7 @@ export function TradeDetailDialog({
                     <LabelInputContainer>
                       <p className="text-sm font-medium">After</p>
                       {screenshots.find((s) => s.type === "AFTER") &&
-                      !showUploadAfter ? (
+                        !showUploadAfter ? (
                         <div className="relative">
                           <Image
                             unoptimized
@@ -572,7 +567,7 @@ export function TradeDetailDialog({
                   </>
                 ) : (
                   ["BEFORE", "AFTER"].map((type) => {
-                    const image = trade.screenshots.find(
+                    const image = journal.screenshots.find(
                       (s) => s.type === type
                     );
                     return (
@@ -608,7 +603,7 @@ export function TradeDetailDialog({
               <>
                 <SaveChangesButton<TradePayload>
                   type="trade"
-                  id={trade.id}
+                  id={journal.id}
                   payload={{
                     psychologyIds: selectedPsychologies.map((p) => p.value),
                     date: formData.date,
@@ -630,7 +625,7 @@ export function TradeDetailDialog({
                   Batal
                 </Button>
                 <DeleteButton
-                  id={trade.id}
+                  id={journal.id}
                   type="trade"
                   onSuccess={() => setOpenDialog(false)}
                 />

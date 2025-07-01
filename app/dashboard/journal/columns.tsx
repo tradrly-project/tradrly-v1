@@ -51,7 +51,7 @@ export function getColumns(
     accessorKey: "pair.symbol",
     header: () => <div className="text-center px-3 py-2">Simbol</div>,
     cell: ({ row }) => (
-      <div className="text-left px-3 py-2">{row.original.pair.symbol}</div>
+      <div className="text-left px-3 py-2">{row.original.pair.pair.symbol}</div>
     ),
   },
   {
@@ -189,15 +189,19 @@ export function getColumns(
     id: "actions",
     header: () => <div className="text-center px-2 py-2"/>,
     cell: ({ row }) => {
-      const trade = row.original;
+      const journal = row.original;
       return (
         <div className="flex justify-center px-2 py-2">
           <TradeDetailDialog
-            trade={{ ...trade, screenshots: trade.screenshots ?? [] }}
+            journal={{
+              ...journal,
+              screenshots: journal.screenshots ?? []
+            }}
             pairs={pairs}
             setupTrades={setupTrades}
-            allPsychologies={allPsychologies}            
+            allPsychologies={allPsychologies}
           />
+
         </div>
       );
     },

@@ -8,8 +8,8 @@ function serializeDecimals<T>(data: T): T {
   return JSON.parse(
     JSON.stringify(data, (key, value) =>
       typeof value === "object" &&
-      value !== null &&
-      value.constructor?.name === "Decimal"
+        value !== null &&
+        value.constructor?.name === "Decimal"
         ? Number(value)
         : value
     )
@@ -25,33 +25,43 @@ export default async function JournalPage() {
   }
 
   // ✅ Ambil semua trade milik user
-  const tradesRaw: TradeWithPair[] = await prisma.trade.findMany({
+  const tradesRaw: TradeWithPair[] = await prisma.journal.findMany({
     where: { userId },
     include: {
-      pair: true,
+      pair: {
+        include: {
+          pair: true, // ✅ nested Pair (global)
+        },
+      },
       setupTrade: {
         select: {
           id: true,
           name: true,
         },
       },
-      psychologies: true,
+      psychologies: {
+        include: {
+          psychology: true,
+        },
+      },
       screenshots: true,
     },
     orderBy: { date: "desc" },
   });
 
-  // ✅ Ambil semua pair
-  const pairs = await prisma.pair.findMany({
+  // ✅ Ambil semua UserPair milik user
+  const pairs = await prisma.userPair.findMany({
     where: { userId },
-    select: {
-      id: true,
-      symbol: true,
+    include: {
+      pair: true, // ✅ agar dapat symbol
     },
     orderBy: {
-      symbol: "asc",
+      pair: {
+        symbol: "asc",
+      },
     },
   });
+
 
   // ✅ Ambil semua setupTrade
   const setupTrade = await prisma.setupTrade.findMany({
@@ -80,8 +90,11 @@ export default async function JournalPage() {
 
   return (
     <JournalClient
-      trades={trades}
-      pairs={pairs}
+      journals={trades}
+      pairs={pairs.map((p) => ({
+        id: p.pair.id,
+        symbol: p.pair.symbol,
+      }))}
       setupTrade={setupTrade}
       allPsychologies={allPsychologies} // ✅ Tidak error lagi
     />

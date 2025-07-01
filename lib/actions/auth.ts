@@ -10,10 +10,7 @@ import { defaultPairs } from "@/lib/default/pairs";
 import { defaultIndicators } from "../default/indicator";
 import { defaultTimeframes } from "../default/timeframe";
 
-export const signUpCredentials = async (
-  _prevState: unknown,
-  formData: FormData
-) => {
+export const signUpCredentials = async (_prevState: unknown, formData: FormData) => {
   const validatedFields = RegisterSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
@@ -38,43 +35,95 @@ export const signUpCredentials = async (
       },
     });
 
-    // 2. Buat pairs default untuk user baru
-    await prisma.pair.createMany({
-      data: defaultPairs.map((pair) => ({
-        symbol: pair.symbol,
-        userId: user.id,
-      })),
-    });
+    /**
+     * ================================================
+     * 2. Handle Pairs: Global + UserPair Binding
+     * ================================================
+     */
 
-    // 3. Buat indikator default untuk user baru
-    await prisma.indicator.createMany({
-      data: defaultIndicators.map((indicator) => ({
-        name: indicator.name,
-        code: indicator.code,
-        userId: user.id,
-      })),
-    });
-
-    // ✅ 4. Cek apakah Timeframe global sudah ada
-    const existingTimeframes = await prisma.timeframe.findMany();
-    if (existingTimeframes.length === 0) {
-      await prisma.timeframe.createMany({
-        data: defaultTimeframes.map((tf) => ({
-          code: tf.code,
-        })),
+    // a. Buat pair global jika belum ada (1x seumur hidup)
+    for (const pair of defaultPairs) {
+      await prisma.pair.upsert({
+        where: { symbol: pair.symbol },
+        update: {},
+        create: { symbol: pair.symbol },
       });
     }
 
-    // ✅ 5. Ambil semua Timeframe global dari DB
+    // b. Ambil semua pair global
+    const globalPairs = await prisma.pair.findMany({
+      where: {
+        symbol: { in: defaultPairs.map((p) => p.symbol) },
+      },
+    });
+
+    // c. Buat UserPair (binding user ke pair global)
+    await prisma.userPair.createMany({
+      data: globalPairs.map((p) => ({
+        userId: user.id,
+        pairId: p.id,
+      })),
+    });
+
+    /**
+     * ================================================
+     * 3. Handle Indicators: Global + UserIndicator Binding
+     * ================================================
+     */
+
+    // a. Buat indikator global jika belum ada
+    for (const indicator of defaultIndicators) {
+      await prisma.indicator.upsert({
+        where: { code: indicator.code },
+        update: {},
+        create: {
+          name: indicator.name,
+          code: indicator.code,
+        },
+      });
+    }
+
+    // b. Ambil semua indikator global
+    const globalIndicators = await prisma.indicator.findMany({
+      where: {
+        code: { in: defaultIndicators.map((i) => i.code) },
+      },
+    });
+
+    // c. Buat UserIndicator
+    await prisma.userIndicator.createMany({
+      data: globalIndicators.map((i) => ({
+        userId: user.id,
+        indicatorId: i.id,
+      })),
+    });
+
+    /**
+     * ================================================
+     * 4. Handle Timeframes: Global + UserTimeframe Binding
+     * ================================================
+     */
+
+    // a. Buat timeframe global jika belum ada
+    for (const tf of defaultTimeframes) {
+      await prisma.timeframe.upsert({
+        where: { code: tf.code },
+        update: {},
+        create: { code: tf.code },
+      });
+    }
+
+    // b. Ambil semua timeframe global
     const globalTimeframes = await prisma.timeframe.findMany();
 
-    // ✅ 6. Kaitkan user baru ke semua timeframe global
+    // c. Buat UserTimeframe
     await prisma.userTimeframe.createMany({
       data: globalTimeframes.map((tf) => ({
         userId: user.id,
         timeframeId: tf.id,
       })),
     });
+
   } catch (error) {
     console.error("Sign up error:", error);
     return {

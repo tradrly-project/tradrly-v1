@@ -24,16 +24,16 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  trades        Trade[]
-  tags          Psychology[]
+  journals      Journal[]
+  psychologies  UserPsychology[]
   subscriptions Subscription[]
   payments      Payment[]
   accounts      Account[]
-  pairs         Pair[]
+  pairs         UserPair[]
   strategy      Strategy[]
   setupTrades   SetupTrade[]
-  indicators    Indicator[]
-  userTimeFrame UserTimeframe[]
+  indicators    UserIndicator[]
+  timeframes    UserTimeframe[]
 }
 
 model Account {
@@ -51,43 +51,6 @@ model Account {
   @@index([userId])
 }
 
-model SubscriptionPlan {
-  id        String           @id @default(uuid())
-  name      String
-  price     Decimal
-  tier      SubscriptionTier
-  features  Json?
-  createdAt DateTime         @default(now())
-
-  subscriptions Subscription[]
-}
-
-model Subscription {
-  id        String             @id @default(uuid())
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  plan      SubscriptionPlan   @relation(fields: [planId], references: [id])
-  planId    String
-  status    SubscriptionStatus
-  startedAt DateTime
-  endsAt    DateTime
-  paymentId String?
-
-  @@index([userId])
-}
-
-model Pair {
-  id        String   @id @default(cuid())
-  symbol    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  Trade     Trade[]
-
-  @@unique([symbol, userId])
-}
-
 model SetupTrade {
   id        String   @id @default(uuid())
   userId    String
@@ -98,17 +61,16 @@ model SetupTrade {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  indicators Indicator[] @relation("SetupTradeIndicators")
-  timeframes Timeframe[] @relation("TimeframesOnSetupTrade")
-
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   strategies Strategy[]
-  trades     Trade[]
+  journals   Journal[]
+  indicators UserIndicator[]
+  timeframes  UserTimeframe[]
 
   @@index([userId])
 }
 
-model Trade {
+model Journal {
   id            String         @id @default(uuid())
   userId        String
   pairId        String
@@ -129,9 +91,9 @@ model Trade {
   updatedAt     DateTime       @updatedAt
 
   user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pair         Pair              @relation(fields: [pairId], references: [id])
+  pair         UserPair          @relation(fields: [pairId], references: [id])
   setupTrade   SetupTrade?       @relation(fields: [setupTradeId], references: [id])
-  psychologies Psychology[]
+  psychologies UserPsychology[]
   screenshots  TradeScreenshot[]
 
   @@index([userId])
@@ -144,19 +106,61 @@ model TradeScreenshot {
   url       String
   createdAt DateTime       @default(now())
 
-  trade Trade @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+  journal Journal @relation(fields: [tradeId], references: [id], onDelete: Cascade)
 
   @@index([tradeId])
 }
 
-model Psychology {
-  id     String  @id @default(uuid())
-  name   String
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
-  trades Trade[]
+model Pair {
+  id        String   @id @default(cuid())
+  symbol    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([userId])
+  // Relasi ke UserPair
+  userPairs UserPair[]
+}
+
+model UserPair {
+  id         String   @id @default(cuid())
+  userId     String
+  pairId     String
+  customName String? // Bisa diubah user, default-nya dari pair.symbol
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relasi
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pair     Pair      @relation(fields: [pairId], references: [id])
+  journals Journal[] // Relasi ke Trade (jika ada)
+
+  @@unique([userId, pairId]) // 1 user hanya boleh punya 1 instance dari pair tertentu
+}
+
+model Psychology {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userPsychologies UserPsychology[]
+}
+
+model UserPsychology {
+  id           String   @id @default(cuid())
+  userId       String
+  psychologyId String
+  customName   String?
+  hidden       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  psychology Psychology @relation(fields: [psychologyId], references: [id])
+  journals   Journal[]
+
+  @@unique([userId, psychologyId])
 }
 
 model Strategy {
@@ -168,21 +172,33 @@ model Strategy {
 }
 
 model Indicator {
-  id     String @id @default(uuid())
-  name   String
-  code   String
-  userId String
+  id   String @id @default(uuid())
+  name String
+  code String @unique
 
-  setups SetupTrade[] @relation("SetupTradeIndicators")
-  User   User         @relation(fields: [userId], references: [id])
+  userIndicators UserIndicator[]
+}
 
-  @@index([userId])
+model UserIndicator {
+  id          String   @id @default(cuid())
+  userId      String
+  indicatorId String
+  customCode  String?
+  hidden      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  indicator Indicator    @relation(fields: [indicatorId], references: [id])
+  setups    SetupTrade[]
+
+  @@unique([userId, indicatorId])
 }
 
 model Timeframe {
-  id            String          @id @default(cuid())
-  code          String
-  setupTrades   SetupTrade[]    @relation("TimeframesOnSetupTrade")
+  id   String @id @default(cuid())
+  code String @unique
+
   UserTimeframe UserTimeframe[]
 }
 
@@ -193,10 +209,36 @@ model UserTimeframe {
   hidden      Boolean @default(false) // kalau user hide TF global
   customCode  String? // jika user ingin rename TF (opsional)
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  timeframe Timeframe @relation(fields: [timeframeId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeframe   Timeframe    @relation(fields: [timeframeId], references: [id], onDelete: Cascade)
+  setupTrades SetupTrade[]
 
   @@unique([userId, timeframeId]) // satu TF bisa di-override 1x per user
+}
+
+model Subscription {
+  id        String             @id @default(uuid())
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  plan      SubscriptionPlan   @relation(fields: [planId], references: [id])
+  planId    String
+  status    SubscriptionStatus
+  startedAt DateTime
+  endsAt    DateTime
+  paymentId String?
+
+  @@index([userId])
+}
+
+model SubscriptionPlan {
+  id        String           @id @default(uuid())
+  name      String
+  price     Decimal
+  tier      SubscriptionTier
+  features  Json?
+  createdAt DateTime         @default(now())
+
+  subscriptions Subscription[]
 }
 
 model Payment {

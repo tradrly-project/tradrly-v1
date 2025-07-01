@@ -10,7 +10,7 @@ import type { TradeFormState, TradeFormValues } from "@/lib/types";
 async function updateSetupTradeWinrate(setupTradeId: string) {
   if (!setupTradeId) return;
 
-  const trades = await prisma.trade.findMany({
+  const trades = await prisma.journal.findMany({
     where: {
       setupTradeId,
     },
@@ -144,7 +144,7 @@ export async function createTrade(
     const { psychologyIds, setupTradeId, screenshots, ...tradeData } =
       validated.data;
 
-    const trade = await prisma.trade.create({
+    const trade = await prisma.journal.create({
       data: {
         ...tradeData,
         psychologies: psychologyIds?.length

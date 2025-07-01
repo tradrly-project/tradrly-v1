@@ -1,12 +1,14 @@
 import {
   Pair,
-  Trade,
+  Journal,
   SetupTrade,
   Indicator,
   Timeframe,
   Psychology,
   ScreenshotType,
   TradeScreenshot,
+  UserPair,
+  UserPsychology,
 } from "@prisma/client";
 
 export type JournalEntry = {
@@ -17,10 +19,14 @@ export type JournalEntry = {
   userId: string;
 };
 
-export type TradeWithPair = Trade & {
-  pair: Pair;
+export type TradeWithPair = Journal & {
+  pair: UserPair & {
+    pair: Pair; // dari model global
+  };
   setupTrade?: Pick<SetupTrade, "id" | "name"> | null;
-  psychologies: Psychology[];
+  psychologies: (UserPsychology & {
+    psychology: Psychology;
+  })[];
   screenshots: TradeScreenshot[];
 };
 

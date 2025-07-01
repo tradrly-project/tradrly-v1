@@ -15,16 +15,27 @@ export async function GET() {
   try {
     const userId = await getUserId();
 
-    const indicators = await prisma.indicator.findMany({
-      where: { userId },
-      orderBy: { name: "asc" },
-      select: {
-        id: true,
-        name: true,
-        code: true,
+    const userIndicators = await prisma.userIndicator.findMany({
+      where: {
+        userId,
+        hidden: false,
+      },
+      include: {
+        indicator: true,
+      },
+      orderBy: {
+        indicator: {
+          name: "asc",
+        },
       },
     });
 
+    const indicators = userIndicators.map((ui) => ({
+      id: ui.indicator.id,
+      name: ui.indicator.name,
+      code: ui.customCode || ui.indicator.code,
+    }));
+    
     return NextResponse.json({ indicators }, {
       headers: {
         "Cache-Control": "s-maxage=10, stale-while-revalidate=59",

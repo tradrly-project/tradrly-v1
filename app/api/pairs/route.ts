@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
-// Fungsi bantu untuk ambil user ID
+// 🔐 Ambil user ID dari session
 async function getUserId() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -12,73 +12,107 @@ async function getUserId() {
   return session.user.id;
 }
 
-// ✅ GET: Ambil semua pairs milik user
+// ✅ GET: Ambil semua pairs aktif milik user dari UserPair
 export async function GET() {
   try {
     const userId = await getUserId();
 
-    const pairs = await prisma.pair.findMany({
-      where: { userId },
+    const pairs = await prisma.userPair.findMany({
+      where: {
+        userId,
+        isActive: true, // hanya tampilkan yang aktif
+      },
       orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        symbol: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        pair: true, // ambil detail Pair global (symbol, etc.)
       },
     });
 
-    return NextResponse.json({ pairs }, {
-      headers: {
-        "Cache-Control": "s-maxage=10, stale-while-revalidate=59",
-      },
-    });
+    return NextResponse.json(
+      { pairs },
+      {
+        headers: {
+          "Cache-Control": "s-maxage=10, stale-while-revalidate=59",
+        },
+      }
+    );
   } catch (error) {
-    console.error("Error fetching pairs:", error);
-    return NextResponse.json({ error: "Gagal mengambil pairs" }, { status: 500 });
+    console.error("Error fetching userPairs:", error);
+    return NextResponse.json(
+      { error: "Gagal mengambil pairs" },
+      { status: 500 }
+    );
   }
 }
 
-// ✅ POST: Tambah pair baru
+// ✅ POST: Tambah userPair berdasarkan Pair global
 export async function POST(req: Request) {
   try {
-    const { symbol } = await req.json();
+    const { pairId, customName } = await req.json();
     const userId = await getUserId();
 
-    const newPair = await prisma.pair.create({
+    const existing = await prisma.userPair.findUnique({
+      where: {
+        userId_pairId: {
+          userId,
+          pairId,
+        },
+      },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "Pair ini sudah ditambahkan." },
+        { status: 400 }
+      );
+    }
+
+    const newUserPair = await prisma.userPair.create({
       data: {
-        symbol,
         userId,
+        pairId,
+        customName,
+        isActive: true,
       },
     });
 
     revalidatePath("/api/pairs");
 
-    return NextResponse.json({ pair: newPair });
+    return NextResponse.json({ pair: newUserPair });
   } catch (error) {
-    console.error("Error creating pair:", error);
-    return NextResponse.json({ error: "Gagal menambah pair" }, { status: 500 });
+    console.error("Error creating userPair:", error);
+    return NextResponse.json(
+      { error: "Gagal menambah pair" },
+      { status: 500 }
+    );
   }
 }
 
-// ✅ DELETE: Hapus pair berdasarkan ID (dikirim via JSON)
+// ✅ DELETE: Soft delete UserPair (set isActive = false)
 export async function DELETE(req: Request) {
   try {
-    const { id } = await req.json();
+    const { id } = await req.json(); // ID dari userPair
     const userId = await getUserId();
 
-    const deleted = await prisma.pair.deleteMany({
+    const updated = await prisma.userPair.updateMany({
       where: {
         id,
-        userId, // hanya boleh hapus pair milik sendiri
+        userId,
+        isActive: true,
+      },
+      data: {
+        isActive: false,
       },
     });
 
     revalidatePath("/api/pairs");
 
-    return NextResponse.json({ deletedCount: deleted.count });
+    return NextResponse.json({ deletedCount: updated.count });
   } catch (error) {
-    console.error("Error deleting pair:", error);
-    return NextResponse.json({ error: "Gagal menghapus pair" }, { status: 500 });
+    console.error("Error deleting userPair:", error);
+    return NextResponse.json(
+      { error: "Gagal menghapus pair" },
+      { status: 500 }
+    );
   }
 }
