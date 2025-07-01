@@ -29,16 +29,21 @@ const uploadToServer = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch("/api/upload", {
-    method: "PUT",
-    body: formData,
-  });
+  const res = await fetch("/api/file/upload", {
+  method: "PUT",
+  body: formData,
+});
 
+// Coba baca JSON kalau status OK
+if (res.ok) {
   const data = await res.json();
-
-  if (!res.ok) throw new Error(data.error || "Upload failed");
-
   return data.url;
+}
+
+// Kalau tidak OK, coba baca text (bisa jadi HTML)
+const errorText = await res.text();
+console.error("Upload failed with HTML response:", errorText);
+throw new Error("Upload failed: " + res.status);
 };
 
 const mainVariant = {
@@ -141,7 +146,7 @@ export const FileUpload = ({
                 key={`${f.file.name}-${f.file.lastModified}-${role}`}
                 layoutId={`file-${f.file.name}-${role}`}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="relative aspect-[4/5] w-full max-w-xs rounded-lg overflow-hidden shadow border border-zinc-600 bg-background"
+                className="relative aspect-[3/3] w-full rounded-lg overflow-hidden shadow border border-zinc-600 bg-background"
               >
                 {/* Gambar Preview */}
                 {f.file.type.startsWith("image/") ? (

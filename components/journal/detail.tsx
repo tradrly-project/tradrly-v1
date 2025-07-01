@@ -25,8 +25,6 @@ import { ComboBox } from "../asset/combo-box";
 import { calculateDerivedFields as calculateTradeFields } from "@/lib/tradeCalculations";
 import LabelInputContainer from "../asset/label-input";
 import { FileUpload, FileWithMeta } from "../ui/file-upload";
-import { uploadScreenshot } from "@/lib/actions/uploadFile";
-import { toast } from "sonner";
 
 type Pair = { id: string; symbol: string };
 type SetupTrade = { id: string; name: string };
@@ -95,9 +93,9 @@ export function TradeDetailDialog({
 
   const handleChange =
     (field: keyof typeof formData) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [field]: e.target.value });
-      };
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData({ ...formData, [field]: e.target.value });
+    };
 
   const formatDecimal = (
     value: Decimal | number | string | null | undefined,
@@ -164,21 +162,10 @@ export function TradeDetailDialog({
     lotSize: "Lot Size",
   };
 
-  const handleScreenshotUpload = async (file: File, type: ScreenshotType) => {
-    try {
-      const url = await uploadScreenshot(file); // upload ke blob
-
-      setScreenshots((prev) => {
-        const other = prev.filter((s) => s.type !== type);
-        return [...other, { type, url }];
-      });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        toast.error(err.message);
-      } else {
-        toast.error("Gagal upload gambar");
-      }
-    }
+  const handleScreenshotUpload = (file: File, type: ScreenshotType) => {
+    const previewUrl = URL.createObjectURL(file);
+    const updated = screenshots.filter((s) => s.type !== type);
+    setScreenshots([...updated, { type, url: previewUrl, file }]);
   };
 
   useEffect(() => {
@@ -188,6 +175,57 @@ export function TradeDetailDialog({
       setShowUploadAfter(false);
     }
   }, [isEditing, journal.screenshots]);
+
+  const preparePayloadBeforeSave = async (): Promise<TradePayload> => {
+    const uploadedScreenshots = await Promise.all(
+      screenshots.map(async (s) => {
+        if (s.file) {
+          const formData = new FormData();
+          formData.append("file", s.file);
+          const res = await fetch("/api/file/upload", {
+            method: "PUT",
+            body: formData,
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Upload failed");
+          return { type: s.type, url: data.url };
+        }
+        return { type: s.type, url: s.url };
+      })
+    );
+
+    // Hapus file dari Vercel Blob jika URL-nya ditandai
+    await Promise.all(
+      deletedUrls.map(async (url) => {
+        try {
+          await fetch("/api/file/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url }),
+          });
+        } catch (err) {
+          console.error("Failed to delete file from blob:", err);
+        }
+      })
+    );
+
+    return {
+      psychologyIds: selectedPsychologies.map((p) => p.value),
+      date: formData.date,
+      setupTradeId: formData.setupTradeId,
+      direction: formData.direction,
+      entryPrice: parseFloat(formData.entryPrice),
+      takeProfit: parseFloat(formData.takeProfit),
+      stoploss: parseFloat(formData.stoploss),
+      exitPrice: parseFloat(formData.exitPrice),
+      lotSize: parseFloat(formData.lotSize),
+      notes,
+      screenshots: uploadedScreenshots,
+      ...calculateDerivedFields(),
+    };
+  };
+
+  const [deletedUrls, setDeletedUrls] = useState<string[]>([]);
 
   return (
     <>
@@ -248,24 +286,26 @@ export function TradeDetailDialog({
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Result */}
                       <Badge
-                        className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
-                          ? "bg-sky-500 text-white"
-                          : calculateDerivedFields().result === "loss"
+                        className={`text-xs rounded-sm ${
+                          calculateDerivedFields().result === "win"
+                            ? "bg-sky-500 text-white"
+                            : calculateDerivedFields().result === "loss"
                             ? "bg-red-500 text-white"
                             : "bg-zinc-700 text-white"
-                          }`}
+                        }`}
                       >
                         {calculateDerivedFields().result.toUpperCase()}
                       </Badge>
 
                       {/* PnL */}
                       <Badge
-                        className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
-                          ? "bg-sky-500 text-white"
-                          : calculateDerivedFields().profitLoss < 0
+                        className={`text-xs rounded-sm ${
+                          calculateDerivedFields().profitLoss > 0
+                            ? "bg-sky-500 text-white"
+                            : calculateDerivedFields().profitLoss < 0
                             ? "bg-red-500 text-white"
                             : "bg-zinc-700 text-white"
-                          }`}
+                        }`}
                       >
                         PnL {formatDollar(calculateDerivedFields().profitLoss)}
                       </Badge>
@@ -302,34 +342,37 @@ export function TradeDetailDialog({
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     {/* Direction */}
                     <Badge
-                      className={`text-xs font-semibold tracking-wide rounded-sm ${formData.direction === "buy"
-                        ? "bg-sky-500 text-white"
-                        : "bg-red-500 text-white"
-                        }`}
+                      className={`text-xs font-semibold tracking-wide rounded-sm ${
+                        formData.direction === "buy"
+                          ? "bg-sky-500 text-white"
+                          : "bg-red-500 text-white"
+                      }`}
                     >
                       {formData.direction?.toUpperCase()}
                     </Badge>
 
                     {/* Result */}
                     <Badge
-                      className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
-                        ? "bg-sky-500 text-white"
-                        : calculateDerivedFields().result === "loss"
+                      className={`text-xs rounded-sm ${
+                        calculateDerivedFields().result === "win"
+                          ? "bg-sky-500 text-white"
+                          : calculateDerivedFields().result === "loss"
                           ? "bg-red-500 text-white"
                           : "bg-zinc-700 text-white"
-                        }`}
+                      }`}
                     >
                       {calculateDerivedFields().result.toUpperCase()}
                     </Badge>
 
                     {/* Profit / Loss */}
                     <Badge
-                      className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
-                        ? "bg-sky-500 text-white"
-                        : calculateDerivedFields().profitLoss < 0
+                      className={`text-xs rounded-sm ${
+                        calculateDerivedFields().profitLoss > 0
+                          ? "bg-sky-500 text-white"
+                          : calculateDerivedFields().profitLoss < 0
                           ? "bg-red-500 text-white"
                           : "bg-zinc-700 text-white"
-                        }`}
+                      }`}
                     >
                       PnL {formatDollar(calculateDerivedFields().profitLoss)}
                     </Badge>
@@ -410,7 +453,8 @@ export function TradeDetailDialog({
                           }));
                         }}
                       />
-                    ) : journal.psychologies && journal.psychologies.length > 0 ? (
+                    ) : journal.psychologies &&
+                      journal.psychologies.length > 0 ? (
                       journal.psychologies.map((p) => (
                         <Badge
                           key={p.psychology.id}
@@ -481,7 +525,7 @@ export function TradeDetailDialog({
                     <LabelInputContainer>
                       <p className="text-sm font-medium">Before</p>
                       {screenshots.find((s) => s.type === "BEFORE") &&
-                        !showUploadBefore ? (
+                      !showUploadBefore ? (
                         <div className="relative">
                           <Image
                             unoptimized
@@ -495,7 +539,22 @@ export function TradeDetailDialog({
                           />
                           <button
                             onClick={() => {
-                              setScreenshots((prev) => prev.filter((s) => s.type !== "BEFORE"));
+                              const screenshot = screenshots.find(
+                                (s) => s.type === "BEFORE"
+                              );
+
+                              // Jika screenshot berasal dari blob (tidak ada file lokalnya)
+                              if (screenshot?.url && !screenshot.file) {
+                                setDeletedUrls((prev) => [
+                                  ...prev,
+                                  screenshot.url,
+                                ]);
+                              }
+
+                              // Hapus dari state lokal & munculkan uploader lagi
+                              setScreenshots((prev) =>
+                                prev.filter((s) => s.type !== "BEFORE")
+                              );
                               setShowUploadBefore(true);
                             }}
                             className="absolute top-1 right-1 bg-zinc-500 hover:text-foreground/25 text-white text-xs p-1 rounded-md z-10 cursor-pointer"
@@ -529,7 +588,7 @@ export function TradeDetailDialog({
                     <LabelInputContainer>
                       <p className="text-sm font-medium">After</p>
                       {screenshots.find((s) => s.type === "AFTER") &&
-                        !showUploadAfter ? (
+                      !showUploadAfter ? (
                         <div className="relative">
                           <Image
                             unoptimized
@@ -542,10 +601,12 @@ export function TradeDetailDialog({
                             className="rounded-md border border-zinc-800 object-cover aspect-square w-full max-h-44"
                           />
                           <button
-                              onClick={() => {
-                                setScreenshots((prev) => prev.filter((s) => s.type !== "AFTER"));
-                                setShowUploadAfter(true);
-                              }}
+                            onClick={() => {
+                              setScreenshots((prev) =>
+                                prev.filter((s) => s.type !== "AFTER")
+                              );
+                              setShowUploadAfter(true);
+                            }}
                             className="absolute top-1 right-1 bg-zinc-500 hover:text-foreground/25 text-white text-xs p-1 rounded-md z-10 cursor-pointer"
                           >
                             <XIcon className="w-4 h-4" />
@@ -610,23 +671,14 @@ export function TradeDetailDialog({
                 <SaveChangesButton<TradePayload>
                   type="trade"
                   id={journal.id}
-                  payload={{
-                    psychologyIds: selectedPsychologies.map((p) => p.value),
-                    date: formData.date,
-                    setupTradeId: formData.setupTradeId,
-                    direction: formData.direction,
-                    entryPrice: parseFloat(formData.entryPrice),
-                    takeProfit: parseFloat(formData.takeProfit),
-                    stoploss: parseFloat(formData.stoploss),
-                    exitPrice: parseFloat(formData.exitPrice),
-                    lotSize: parseFloat(formData.lotSize),
-                    notes, // ✅ tambahkan catatan
-                    screenshots: screenshots,
-                    ...calculateDerivedFields(),
-                  }}
                   disabled={isPending}
-                  onSuccess={() => setIsEditing(false)}
+                  onSuccess={() => {
+                    setIsEditing(false);
+                    setDeletedUrls([]);
+                  }}
+                  payload={preparePayloadBeforeSave}
                 />
+
                 <Button variant="ghost" onClick={() => setIsEditing(false)}>
                   Batal
                 </Button>

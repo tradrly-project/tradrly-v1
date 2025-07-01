@@ -69,7 +69,7 @@ export type TradePayload = {
 
 type SaveChangesButtonProps<T> = {
   id: string;
-  payload: T;
+  payload: T | (() => Promise<T>);
   type: "setup" | "trade"; // bisa kamu tambah "journal", "user", dll
   title?: string;
   description?: string;
@@ -262,12 +262,16 @@ export function SaveChangesButton<T extends SetupPayload | TradePayload>({
   const handleSave = () => {
     startTransition(async () => {
       try {
+        const resolvedPayload = typeof payload === "function"
+          ? await payload()
+          : payload;
+
         const res = await fetch(`/api/${type}/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(resolvedPayload),
         });
 
         if (!res.ok) throw new Error("Gagal menyimpan perubahan");
@@ -300,5 +304,6 @@ export function SaveChangesButton<T extends SetupPayload | TradePayload>({
     />
   );
 }
+
 
 

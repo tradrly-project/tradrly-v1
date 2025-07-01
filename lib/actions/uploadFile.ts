@@ -3,7 +3,7 @@ export async function uploadScreenshot(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch("/api/upload", {
+  const res = await fetch("/api/file/upload", {
     method: "PUT",
     body: formData,
   });

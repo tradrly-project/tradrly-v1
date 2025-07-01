@@ -92,7 +92,7 @@ export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
         if (s.file instanceof File) {
           const uploadForm = new FormData();
           uploadForm.append("file", s.file);
-          const res = await fetch("/api/upload", {
+          const res = await fetch("/api/file/upload", {
             method: "PUT",
             body: uploadForm,
           });
