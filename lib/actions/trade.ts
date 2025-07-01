@@ -6,20 +6,14 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import type { TradeFormState, TradeFormValues } from "@/lib/types";
 
-// ✅ Fungsi untuk menghitung dan update winrate
+// Fungsi untuk update winrate setup
 async function updateSetupTradeWinrate(setupTradeId: string) {
-  if (!setupTradeId) return;
-
   const trades = await prisma.journal.findMany({
-    where: {
-      setupTradeId,
-    },
-    select: {
-      result: true,
-    },
+    where: { setupTradeId },
+    select: { result: true },
   });
 
-  if (trades.length === 0) {
+  if (!trades.length) {
     await prisma.setupTrade.update({
       where: { id: setupTradeId },
       data: { winrate: 0 },
@@ -27,9 +21,8 @@ async function updateSetupTradeWinrate(setupTradeId: string) {
     return;
   }
 
-  const total = trades.length;
-  const wins = trades.filter((t) => t.result === "win").length; // Pastikan enum "WIN"
-  const winrate = (wins / total) * 100;
+  const wins = trades.filter((t) => t.result === "win").length;
+  const winrate = (wins / trades.length) * 100;
 
   await prisma.setupTrade.update({
     where: { id: setupTradeId },
@@ -37,6 +30,7 @@ async function updateSetupTradeWinrate(setupTradeId: string) {
   });
 }
 
+// Fungsi utama untuk create journal trade
 export async function createTrade(
   prevState: TradeFormState,
   formData: FormData
@@ -56,16 +50,11 @@ export async function createTrade(
   }
 
   const screenshots: { type: "BEFORE" | "AFTER"; url: string }[] = [];
-
   for (let i = 0; ; i++) {
     const type = formData.get(`screenshots[${i}][type]`);
     const url = formData.get(`screenshots[${i}][url]`);
     if (!type || !url) break;
-
-    screenshots.push({
-      type: type.toString() as "BEFORE" | "AFTER",
-      url: url.toString(),
-    });
+    screenshots.push({ type: type.toString() as "BEFORE" | "AFTER", url: url.toString() });
   }
 
   const values: TradeFormValues = {
@@ -86,52 +75,78 @@ export async function createTrade(
     screenshots,
   };
 
-  const angkaFields = [
-    values.entryPrice,
-    values.takeProfit,
-    values.stoploss,
-    values.exitPrice,
-    values.lotSize,
-  ];
-
+  // Cek pair & direction minimal jika ada angka
+  const angkaFields = [values.entryPrice, values.takeProfit, values.stoploss, values.exitPrice, values.lotSize];
   const angkaDiisi = angkaFields.some((val) => val && val.trim() !== "");
-
   if (angkaDiisi && (!values.direction || !values.pairId)) {
     return {
       errors: {
-        direction: !values.direction
-          ? ["Posisi wajib diisi terlebih dahulu."]
-          : undefined,
-        pairId: !values.pairId
-          ? ["Pair wajib diisi terlebih dahulu."]
-          : undefined,
+        direction: !values.direction ? ["Posisi wajib diisi terlebih dahulu."] : undefined,
+        pairId: !values.pairId ? ["Pair wajib diisi terlebih dahulu."] : undefined,
       },
       message: "Lengkapi Pair/Posisi terlebih dahulu.",
       values,
     };
   }
 
+  // Validasi foreign key: pair, psychology, setupTrade
+  const [pairValid, setupValid, validPsychologies] = await Promise.all([
+    values.pairId
+      ? prisma.userPair.findFirst({ where: { id: values.pairId, userId }, select: { id: true } })
+      : null,
+    values.setupTradeId
+      ? prisma.setupTrade.findFirst({ where: { id: values.setupTradeId, userId }, select: { id: true } })
+      : null,
+    values.psychology?.length
+      ? prisma.userPsychology.findMany({
+        where: { id: { in: values.psychology }, userId },
+        select: { id: true },
+      })
+      : [],
+  ]);
+
+  if (values.pairId && !pairValid) {
+    return {
+      message: "Pair tidak ditemukan atau bukan milik user.",
+      values,
+    };
+  }
+
+  if (values.setupTradeId && !setupValid) {
+    return {
+      message: "Setup tidak ditemukan atau bukan milik user.",
+      values,
+    };
+  }
+
+  if (values.psychology && validPsychologies.length !== values.psychology.length) {
+    return {
+      message: "Beberapa psikologi tidak ditemukan atau bukan milik user.",
+      values,
+    };
+  }
+
+  // Parse angka dan tanggal
   const parsedValues = {
     userId,
     pairId: values.pairId,
     direction: values.direction,
-    entryPrice: values.entryPrice ? Number(values.entryPrice) : undefined,
-    stoploss: values.stoploss ? Number(values.stoploss) : undefined,
-    exitPrice: values.exitPrice ? Number(values.exitPrice) : undefined,
-    takeProfit: values.takeProfit ? Number(values.takeProfit) : undefined,
-    lotSize: values.lotSize ? Number(values.lotSize) : undefined,
+    entryPrice: values.entryPrice ? Number(values.entryPrice) : null,
+    stoploss: values.stoploss ? Number(values.stoploss) : null,
+    exitPrice: values.exitPrice ? Number(values.exitPrice) : null,
+    takeProfit: values.takeProfit ? Number(values.takeProfit) : null,
+    lotSize: values.lotSize ? Number(values.lotSize) : null,
     result: values.result,
-    riskRatio: values.riskRatio ? Number(values.riskRatio) : undefined,
-    profitLoss: values.profitLoss ? Number(values.profitLoss) : undefined,
-    psychologyIds: values.psychology || undefined,
-    setupTradeId: values.setupTradeId || undefined,
-    notes: values.notes || undefined,
+    riskRatio: values.riskRatio ? Number(values.riskRatio) : null,
+    profitLoss: values.profitLoss ? Number(values.profitLoss) : null,
+    setupTradeId: values.setupTradeId ?? null,
+    notes: values.notes || null,
     screenshots: values.screenshots || [],
-    date: values.date ? new Date(values.date) : undefined,
+    date: values.date ? new Date(values.date) : new Date(),
+    psychologyIds: validPsychologies.map((p) => p.id),
   };
 
   const validated = TradeCreateSchema.safeParse(parsedValues);
-
   if (!validated.success) {
     return {
       errors: validated.error.flatten().fieldErrors,
@@ -141,20 +156,18 @@ export async function createTrade(
   }
 
   try {
-    const { psychologyIds, setupTradeId, screenshots, ...tradeData } =
-      validated.data;
+    const { psychologyIds, setupTradeId, screenshots, ...tradeData } = validated.data;
 
     const trade = await prisma.journal.create({
       data: {
         ...tradeData,
-        psychologies: psychologyIds?.length
-          ? { connect: psychologyIds.map((id) => ({ id })) }
-          : undefined,
         setupTradeId: setupTradeId || undefined,
+        psychologies: psychologyIds?.length ? {
+          connect: psychologyIds.map((id) => ({ id })),
+        } : undefined,
       },
     });
 
-    // ✅ Tambahkan screenshots jika ada
     if (screenshots?.length) {
       await prisma.tradeScreenshot.createMany({
         data: screenshots.map((s) => ({
@@ -165,7 +178,6 @@ export async function createTrade(
       });
     }
 
-    // ✅ Update winrate jika ada setupTrade
     if (setupTradeId) {
       await updateSetupTradeWinrate(setupTradeId);
     }
@@ -177,7 +189,7 @@ export async function createTrade(
       values: {},
     };
   } catch (error) {
-    console.error("CREATE_TRADE_ERROR:", error);
+    console.error("CREATE_TRADE_ERROR:", JSON.stringify(error, null, 2));
     return {
       message: "Gagal menyimpan trade",
       values,

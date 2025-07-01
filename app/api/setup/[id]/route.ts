@@ -70,13 +70,16 @@ export async function PUT(request: Request) {
         strategy: data.strategy,
         notes: data.notes,
         indicators: {
-          set: data.indicator?.map((id) => ({ id })),
+          set: data.indicatorIds?.map((id) => ({ id })),
         },
         timeframes: {
           set: data.timeframe?.map((id) => ({ id })),
         },
       },
     });
+    
+    
+    
 
     revalidatePath("/api/setup");
     return NextResponse.json({ updated: true });

@@ -230,7 +230,7 @@ export function TimeframeSelect({
         <input
           key={item.value}
           type="hidden"
-          name="timeframeIds"
+          name="timeframe"
           value={item.value}
         />
       ))}

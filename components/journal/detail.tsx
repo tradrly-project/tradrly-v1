@@ -92,7 +92,7 @@ export function TradeDetailDialog({
       value: p.psychology.id,
     }))
   );
-  
+
   const handleChange =
     (field: keyof typeof formData) =>
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,10 +249,10 @@ export function TradeDetailDialog({
                       {/* Result */}
                       <Badge
                         className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
-                            ? "bg-sky-500 text-white"
-                            : calculateDerivedFields().result === "loss"
-                              ? "bg-red-500 text-white"
-                              : "bg-zinc-700 text-white"
+                          ? "bg-sky-500 text-white"
+                          : calculateDerivedFields().result === "loss"
+                            ? "bg-red-500 text-white"
+                            : "bg-zinc-700 text-white"
                           }`}
                       >
                         {calculateDerivedFields().result.toUpperCase()}
@@ -261,10 +261,10 @@ export function TradeDetailDialog({
                       {/* PnL */}
                       <Badge
                         className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
-                            ? "bg-sky-500 text-white"
-                            : calculateDerivedFields().profitLoss < 0
-                              ? "bg-red-500 text-white"
-                              : "bg-zinc-700 text-white"
+                          ? "bg-sky-500 text-white"
+                          : calculateDerivedFields().profitLoss < 0
+                            ? "bg-red-500 text-white"
+                            : "bg-zinc-700 text-white"
                           }`}
                       >
                         PnL {formatDollar(calculateDerivedFields().profitLoss)}
@@ -303,8 +303,8 @@ export function TradeDetailDialog({
                     {/* Direction */}
                     <Badge
                       className={`text-xs font-semibold tracking-wide rounded-sm ${formData.direction === "buy"
-                          ? "bg-sky-500 text-white"
-                          : "bg-red-500 text-white"
+                        ? "bg-sky-500 text-white"
+                        : "bg-red-500 text-white"
                         }`}
                     >
                       {formData.direction?.toUpperCase()}
@@ -313,10 +313,10 @@ export function TradeDetailDialog({
                     {/* Result */}
                     <Badge
                       className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
-                          ? "bg-sky-500 text-white"
-                          : calculateDerivedFields().result === "loss"
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-700 text-white"
+                        ? "bg-sky-500 text-white"
+                        : calculateDerivedFields().result === "loss"
+                          ? "bg-red-500 text-white"
+                          : "bg-zinc-700 text-white"
                         }`}
                     >
                       {calculateDerivedFields().result.toUpperCase()}
@@ -325,10 +325,10 @@ export function TradeDetailDialog({
                     {/* Profit / Loss */}
                     <Badge
                       className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
-                          ? "bg-sky-500 text-white"
-                          : calculateDerivedFields().profitLoss < 0
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-700 text-white"
+                        ? "bg-sky-500 text-white"
+                        : calculateDerivedFields().profitLoss < 0
+                          ? "bg-red-500 text-white"
+                          : "bg-zinc-700 text-white"
                         }`}
                     >
                       PnL {formatDollar(calculateDerivedFields().profitLoss)}
@@ -494,7 +494,10 @@ export function TradeDetailDialog({
                             className="rounded-md border border-zinc-800 object-cover aspect-square w-full max-h-44"
                           />
                           <button
-                            onClick={() => setShowUploadBefore(true)}
+                            onClick={() => {
+                              setScreenshots((prev) => prev.filter((s) => s.type !== "BEFORE"));
+                              setShowUploadBefore(true);
+                            }}
                             className="absolute top-1 right-1 bg-zinc-500 hover:text-foreground/25 text-white text-xs p-1 rounded-md z-10 cursor-pointer"
                           >
                             <XIcon className="w-4 h-4" />
@@ -539,7 +542,10 @@ export function TradeDetailDialog({
                             className="rounded-md border border-zinc-800 object-cover aspect-square w-full max-h-44"
                           />
                           <button
-                            onClick={() => setShowUploadAfter(true)}
+                              onClick={() => {
+                                setScreenshots((prev) => prev.filter((s) => s.type !== "AFTER"));
+                                setShowUploadAfter(true);
+                              }}
                             className="absolute top-1 right-1 bg-zinc-500 hover:text-foreground/25 text-white text-xs p-1 rounded-md z-10 cursor-pointer"
                           >
                             <XIcon className="w-4 h-4" />

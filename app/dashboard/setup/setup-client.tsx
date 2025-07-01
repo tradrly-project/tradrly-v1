@@ -17,13 +17,13 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import SetupTradeForm from "@/components/setup/form";
 import { XIcon } from "lucide-react";
-import { Indicator, Timeframe } from "@prisma/client";
 
 type SetupClientProps = {
   setups: SetupTradeWithIndicator[];
-  indicators: Indicator[];
-  timeframes: Timeframe[];
+  indicators: { id: string; name: string; code: string }[];
+  timeframes: { id: string; code: string }[];
 };
+
 
 export default function SetupClient({ setups, indicators, timeframes }: SetupClientProps) {
   const { state } = useSidebar();

@@ -50,7 +50,7 @@ export default async function JournalPage() {
   });
 
   // ✅ Ambil semua UserPair milik user
-  const pairs = await prisma.userPair.findMany({
+  const userPairs = await prisma.userPair.findMany({
     where: { userId },
     include: {
       pair: true, // ✅ agar dapat symbol
@@ -91,10 +91,7 @@ export default async function JournalPage() {
   return (
     <JournalClient
       journals={trades}
-      pairs={pairs.map((p) => ({
-        id: p.pair.id,
-        symbol: p.pair.symbol,
-      }))}
+      pairs={userPairs.map((p) => ({ id: p.id, symbol: p.pair.symbol }))}
       setupTrade={setupTrade}
       allPsychologies={allPsychologies} // ✅ Tidak error lagi
     />

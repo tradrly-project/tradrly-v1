@@ -46,7 +46,7 @@ export type SetupTradeFormValues = {
   name: string;
   strategy: string;
   timeframe: string[];
-  indicator: string[]; // Ini menyimpan indicatorId (string)
+  indicatorIds: string[]; // Ini menyimpan indicatorId (string)
   notes?: string;
 };
 

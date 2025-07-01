@@ -2,8 +2,8 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { SetupTradeDetailDialog } from "@/components/setup/detail";
 import { SetupTrade } from "@prisma/client";
+import SetupTradeDetailDialog from "@/components/setup/detail";
 
 export const createSetupColumns = ({
   indicator,

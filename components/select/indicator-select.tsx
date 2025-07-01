@@ -228,7 +228,7 @@ export function IndicatorSelect({
       </Popover>
 
       {selected.map((item) => (
-        <input key={item.value} type="hidden" name="indicatorIds" value={item.value} />
+        <input key={item.value} type="hidden" name="indicator" value={item.value} />
       ))}
 
       {error && (

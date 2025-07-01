@@ -49,10 +49,12 @@ export default async function SetupTradePage() {
   });
 
   const indicators = indicatorsRaw.map((ui) => ({
-    id: ui.indicator.id,
+    id: ui.id, // ✅ gunakan id dari tabel UserIndicator
     name: ui.indicator.name,
     code: ui.customCode || ui.indicator.code,
   }));
+  
+
 
   const userTimeframes = await prisma.userTimeframe.findMany({
     where: { userId, hidden: false },
@@ -60,18 +62,21 @@ export default async function SetupTradePage() {
   });
 
   const rawTimeframes = userTimeframes.map((ut) => ({
-    ...ut.timeframe,
+    id: ut.id, // ✅ ambil dari UserTimeframe
     code: ut.customCode || ut.timeframe.code,
   }));
 
   const timeframes = sortTimeframes(rawTimeframes);
+  
+  
 
   return (
     <SetupClient
       setups={setups}
-      indicators={indicators}
-      timeframes={timeframes}
+      indicators={indicators}  // ✅ benar
+      timeframes={timeframes}  // ✅ benar
     />
+
   );
-  
+
 }

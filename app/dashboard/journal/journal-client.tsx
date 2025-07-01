@@ -94,7 +94,7 @@ export default function JournalClient({ journals, pairs, setupTrade, allPsycholo
 
               {/* Scrollable Content */}
               <div className="px-4 pb-6 space-y-4">
-                <TradeForm pairs={pairs} setupTrades={setupTrade} />
+                <TradeForm userPairs={pairs} setupTrades={setupTrade} />
               </div>
             </div>
           </DialogContent>

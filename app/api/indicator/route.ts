@@ -31,10 +31,11 @@ export async function GET() {
     });
 
     const indicators = userIndicators.map((ui) => ({
-      id: ui.indicator.id,
+      id: ui.id, // <- pakai id dari tabel userIndicator
       name: ui.indicator.name,
       code: ui.customCode || ui.indicator.code,
     }));
+    
     
     return NextResponse.json({ indicators }, {
       headers: {

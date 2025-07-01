@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         notes: parsed.data.notes,
         userId,
         indicators: {
-          connect: parsed.data.indicator?.map((id) => ({ id })) ?? [],
+          connect: parsed.data.indicatorIds?.map((id) => ({ id })) ?? [],
         },
         timeframes: {
           connect: parsed.data.timeframe?.map((id) => ({ id })) ?? [],

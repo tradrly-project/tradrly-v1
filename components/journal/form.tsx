@@ -19,7 +19,7 @@ import LabelInputContainer from "../asset/label-input";
 import FieldError from "../asset/field-error";
 
 type TradeFormProps = {
-  pairs: { id: string; symbol: string }[];
+  userPairs: { id: string; symbol: string }[];
   setupTrades: { id: string; name: string }[];
 };
 
@@ -27,7 +27,7 @@ type Option = { label: string; value: string };
 type Psychology = { id: string; name: string };
 type Screenshot = { type: "BEFORE" | "AFTER"; url: string; file?: File };
 
-export default function TradeForm({ pairs, setupTrades }: TradeFormProps) {
+export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
   const initialState = {
     message: "",
     errors: {} as Record<string, string[] | string>,
@@ -250,7 +250,7 @@ export default function TradeForm({ pairs, setupTrades }: TradeFormProps) {
           value={pairId}
           onChange={setPairId}
           placeholder="Pilih Pair"
-          options={pairs.map((pair) => ({
+          options={userPairs.map((pair) => ({
             value: pair.id,
             label: pair.symbol,
           }))}

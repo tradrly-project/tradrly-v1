@@ -29,7 +29,7 @@ export default function SetupTradeForm({
       strategy: "",
       timeframe: [] as string[],
       notes: "",
-      indicator: [] as string[], // ✅ FIXED: harus array
+      indicatorIds: [] as string[], // ✅ FIXED: harus array
     },
   };
 
@@ -42,11 +42,7 @@ export default function SetupTradeForm({
   >([]);
 
   const handleSubmit = async (formData: FormData) => {
-    const indicatorIds = selectedIndicators.map((i) => i.value);
-    const timeframeIds = selectedTimeframes.map((i) => i.value);
 
-    indicatorIds.forEach((id) => formData.append("indicator", id));
-    timeframeIds.forEach((id) => formData.append("timeframe", id));
 
     const result = await createSetupTrade(state, formData);
     setState(result);
@@ -102,15 +98,15 @@ export default function SetupTradeForm({
       {/* Indikator */}
       <LabelInputContainer>
         <IndicatorSelect
-          name="indicatorIds"
+          name="indicator"
           selected={selectedIndicators}
           onChange={setSelectedIndicators}
           options={indicator.map((i) => ({
             label: `${i.name} (${i.code})`,
-            value: i.id,
+            value: i.id, // ✅ userIndicator.id
           }))}
           placeholder="Pilih Indikator"
-          error={state.errors?.indicator}
+          error={state.errors?.indicatorIds}
         />
       </LabelInputContainer>
 

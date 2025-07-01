@@ -32,7 +32,7 @@ type Props = {
   indicator: { id: string; name: string; code: string }[];
 };
 
-export function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
+export default function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
     name: setup.name,
