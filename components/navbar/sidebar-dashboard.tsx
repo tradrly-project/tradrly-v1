@@ -76,12 +76,6 @@ export async function AppSidebar({
     redirect("/login");
   }
 
-  const user = {
-    name: session?.user?.name ?? "Unknown",
-    userName: session?.user.userName ?? "@Unknown",
-    avatar: session?.user?.image ?? "/avatars/default.jpg",
-  };
-
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
       <SidebarHeader className="items-center">
@@ -102,7 +96,7 @@ export async function AppSidebar({
       </SidebarHeader>
       <SidebarContent className="py-1.5 px-2 group-data-[collapsible=icon]:p-0">
         <SidebarGroup>
-          <NavUser user={user}></NavUser>
+          <NavUser />
         </SidebarGroup>
 
         <SidebarGroup>

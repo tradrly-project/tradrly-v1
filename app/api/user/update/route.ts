@@ -1,9 +1,11 @@
 // app/api/user/update/route.ts
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { UserUpdateSchema } from "@/lib/zod";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 export async function PUT(request: Request) {
   try {
@@ -29,6 +31,7 @@ export async function PUT(request: Request) {
 
     const { name, username, email, image } = parsed.data;
 
+    // Cek email sudah dipakai user lain
     const existingUser = await prisma.user.findFirst({
       where: {
         email,
@@ -43,6 +46,7 @@ export async function PUT(request: Request) {
       );
     }
 
+    // Update user
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -53,7 +57,21 @@ export async function PUT(request: Request) {
       },
     });
 
-    revalidatePath("/"); // optional: sesuaikan path yang perlu di-revalidate
+    // Revalidate halaman yang menampilkan data user
+    revalidatePath("/");
+
+    // Force refresh session cookie (untuk next-auth v5 + JWT mode)
+    const sessionToken =
+      (await cookies()).get("next-auth.session-token")?.value ||
+      (await cookies()).get("__Secure-next-auth.session-token")?.value;
+
+    if (sessionToken) {
+      (await cookies()).set("next-auth.session-token", sessionToken, {
+        path: "/",
+        httpOnly: true,
+      });
+    }
+
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("PUT user error:", error);

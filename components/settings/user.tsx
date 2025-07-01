@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { signOut, useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,9 +23,9 @@ import {
 } from "@/components/ui/dialog";
 import { notifyError, notifySuccess } from "../asset/notify";
 import { ConfirmDialog } from "../asset/confirm-dialog";
-import { signOut } from "next-auth/react";
 
 export default function UserSettingsForm() {
+  const { data: session, update } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,7 @@ export default function UserSettingsForm() {
     newPassword: "",
     confirmPassword: "",
   });
+
   const handlePasswordChange = (
     field: keyof typeof passwordForm,
     value: string
@@ -56,37 +58,21 @@ export default function UserSettingsForm() {
     setFormData({ ...formData, [field]: value });
   };
 
-  const fetchUser = async () => {
-    try {
-      const res = await fetch("/api/user/me");
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Gagal memuat data user");
-
+  useEffect(() => {
+    if (session?.user) {
       setFormData({
-        name: data.name,
-        userName: data.username,
-        email: data.email,
-        image: data.image || "",
-        subscription: data.subscription || {
+        name: session.user.name || "",
+        userName: session.user.userName || "",
+        email: session.user.email || "",
+        image: session.user.image || "",
+        subscription: session.user.subscription || {
           status: "expired",
           plan: { name: "-" },
         },
       });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        notifyError(err.message);
-      } else {
-        notifyError("Terjadi kesalahan yang tidak diketahui.");
-      }
-    } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
+  }, [session]);
 
   const handleEditToggle = () => setIsEditing((prev) => !prev);
 
@@ -109,6 +95,10 @@ export default function UserSettingsForm() {
       if (!response.ok) throw new Error(result.error || "Gagal menyimpan data");
 
       notifySuccess("Data berhasil diperbarui!");
+
+      // Paksa refresh session agar data langsung update
+      await update();
+
       setFormData((prev) => ({
         ...prev,
         name: result.name,
@@ -116,6 +106,7 @@ export default function UserSettingsForm() {
         email: result.email,
         image: result.image || "",
       }));
+
       setIsEditing(false);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -125,18 +116,6 @@ export default function UserSettingsForm() {
       }
     }
   };
-
-  const badgeMap = {
-    active: { label: "Aktif", className: "bg-sky-500 text-white" },
-    cancelled: { label: "Ditangguhkan", className: "bg-zinc-900 text-white" },
-    expired: { label: "Expired", className: "bg-red-500 text-white" },
-  } as const;
-
-  const badge =
-    badgeMap[formData.subscription?.status as keyof typeof badgeMap];
-
-  if (loading)
-    return <div className="text-sm text-muted-foreground">Memuat data...</div>;
 
   const handleSubmitPassword = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -160,19 +139,30 @@ export default function UserSettingsForm() {
         return;
       }
 
-      notifySuccess("Password berhasil diubah. Anda akan logout...");
+      notifySuccess("Password berhasil diubah. Silahkan login kembali.");
+
+      setTimeout(() => {
+        signOut({ callbackUrl: "/login" }); // Logout dan redirect ke /login
+      }, 1500);
 
       setIsPasswordDialogOpen(false);
-
-      // Logout pakai next-auth
-      setTimeout(() => {
-        signOut({ callbackUrl: "/login" });
-      }, 1500);
     } catch (err) {
       console.error(err);
       notifyError("Terjadi kesalahan saat mengganti password");
     }
   };
+
+  const badgeMap = {
+    active: { label: "Aktif", className: "bg-sky-500 text-white" },
+    cancelled: { label: "Ditangguhkan", className: "bg-zinc-900 text-white" },
+    expired: { label: "Expired", className: "bg-red-500 text-white" },
+  } as const;
+
+  const badge =
+    badgeMap[formData.subscription?.status as keyof typeof badgeMap];
+
+  if (loading)
+    return <div className="text-sm text-muted-foreground">Memuat data...</div>;
 
   return (
     <div className="w-[40%]">
@@ -185,9 +175,7 @@ export default function UserSettingsForm() {
             Upgrade Plan
           </Button>
         </CardHeader>
-
         <CardContent>
-          {/* Header */}
           <div className="flex flex-col-3 justify-between h-auto">
             <div className="flex items-center">
               <Avatar className="rounded-lg w-18 h-18">
@@ -239,7 +227,6 @@ export default function UserSettingsForm() {
                     cancelText="Batal"
                     onConfirm={handleSave}
                   />
-
                   <Button
                     size="sm"
                     variant="outline"
@@ -263,7 +250,6 @@ export default function UserSettingsForm() {
             </div>
           </div>
 
-          {/* Body */}
           <div className="flex flex-col mt-6 text-foreground gap-4">
             <div className="flex justify-between border-b border-zinc-800 pb-2">
               <Label className="text-sm font-bold">Email</Label>
@@ -315,7 +301,6 @@ export default function UserSettingsForm() {
         </CardContent>
       </Card>
 
-      {/* Dialog Ubah Password */}
       <Dialog
         open={isPasswordDialogOpen}
         onOpenChange={setIsPasswordDialogOpen}
@@ -357,7 +342,7 @@ export default function UserSettingsForm() {
             <ConfirmDialog
               trigger={<Button type="button">Simpan</Button>}
               title="Konfirmasi Ubah Password"
-              description="Apakah kamu yakin ingin mengubah password? Kamu akan logout setelah berhasil."
+              description="Apakah kamu yakin ingin mengubah password?"
               confirmText="Ya, Ubah"
               cancelText="Batal"
               onConfirm={handleSubmitPassword}

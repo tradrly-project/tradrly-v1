@@ -7,7 +7,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -25,16 +25,19 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    userName: string;
-    avatar: string;
-  };
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar();
+  const { data: session } = useSession();
+
+  if (!session?.user) return null; // or a loading skeleton
+
+  const user = {
+    name: session.user.name ?? "Unknown",
+    userName: session.user.userName ?? "@Unknown",
+    avatar: session.user.image ?? "",
+  };
+  
+  
   const menuItems = [
     {
       label: "Upgrade Account",
@@ -80,12 +83,12 @@ export function NavUser({
               <Avatar className="h-8 w-8 rounded-lg text-sidebar font-bold group-data-[state=open]:text-sidebar-accent">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback
-                  className="rounded-lg 
+                  className="rounded-lg text-xl font-bold
                 group-data-[state=open]:bg-black
                 group-data-[collapsible=icon]:group-data-[state=open]:bg-sidebar-accent
                 group-data-[collapsible=icon]:group-data-[state=open]:text-sidebar"
                 >
-                  CN
+                  {user.name.charAt(0).toUpperCase() || "?"}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -107,8 +110,8 @@ export function NavUser({
               <div className="flex items-center gap-4 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg text-sidebar font-bold">
-                    CN
+                  <AvatarFallback className="rounded-lg text-sidebar font-bold text-xl">
+                    {user.name.charAt(0).toUpperCase() || "?"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
