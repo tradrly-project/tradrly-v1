@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { DataTable } from "./data-table";
-import { createSetupColumns  } from "./columns";
+import { createSetupColumns } from "./columns";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   Dialog,
@@ -15,28 +15,40 @@ import { Input } from "@/components/ui/input";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import SetupTradeForm from "@/components/setup/form";
-import { XIcon } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Loader2, XIcon } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchSetupTrade, type SetupTradeResponse } from "@/lib/api/setup";
 
 export default function SetupClient() {
+  const queryClient = useQueryClient();
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
   const [filter, setFilter] = useState("");
-  
-  const {
-    data,
-    isLoading,
-    isError,
-  } = useQuery<SetupTradeResponse>({
+
+  const { data, error, isLoading } = useQuery<SetupTradeResponse>({
     queryKey: ["setup-trade"],
     queryFn: fetchSetupTrade,
   });
 
-  
+  if (isLoading) {
+    return (
+      <div className="h-full p-4 flex flex-col gap-6 transition-all ease-in-out duration-800">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-semibold mb-1">Setup Trade</h1>
+        </div>
 
-  if (isLoading) return <div>Memuat data...</div>;
-  if (isError || !data) return <div>Gagal memuat data setup</div>;
+        {/* Spinner */}
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return null;
+  }
 
   const { setups, indicators, timeframes } = data;
 
@@ -45,13 +57,8 @@ export default function SetupClient() {
     const strategy = setup.strategy?.toLowerCase() || "";
     const keyword = filter.toLowerCase();
 
-    return (
-      name.includes(keyword) ||
-      strategy.includes(keyword)
-    );
+    return name.includes(keyword) || strategy.includes(keyword);
   });
-
-  
 
   return (
     <div
@@ -88,14 +95,25 @@ export default function SetupClient() {
                 </button>
               </DialogPrimitive.Close>
             </div>
-            <SetupTradeForm indicator={indicators} timeframe={timeframes} />
+            <SetupTradeForm
+              indicator={indicators}
+              timeframe={timeframes}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ["setup-trade"] }); // ✅ Paksa refetch langsung
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
       {/* Tabel Data Setup */}
-      <DataTable columns={createSetupColumns({ indicator: indicators, timeframe: timeframes })} data={filteredSetups} />
-
+      <DataTable
+        columns={createSetupColumns({
+          indicator: indicators,
+          timeframe: timeframes,
+        })}
+        data={filteredSetups}
+      />
     </div>
   );
 }

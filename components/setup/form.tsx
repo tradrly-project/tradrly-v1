@@ -28,11 +28,13 @@ const initialFormState: SetupTradeFormState = {
 type SetupTradeFormProps = {
   indicator: { id: string; name: string; code: string }[];
   timeframe: { id: string; code: string }[];
+  onSuccess?: () => void
 };
 
 export default function SetupTradeForm({
   indicator,
   timeframe,
+  onSuccess,
 }: SetupTradeFormProps) {
   const [state, setState] = useState<SetupTradeFormState>(initialFormState);
   const [selectedIndicators, setSelectedIndicators] = useState<{ label: string; value: string }[]>([]);
@@ -70,15 +72,18 @@ export default function SetupTradeForm({
       } else {
         notifySuccess(state.message);
 
+        queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
+        onSuccess?.();
+
         // ✅ Gunakan salinan nilai awal, bukan `initialState` dari dalam fungsi
         setState({ ...initialFormState });
         setSelectedIndicators([]);
         setSelectedTimeframes([]);
 
-        queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
+        
       }
     }
-  }, [state.message, state.errors, queryClient]);
+  }, [state, queryClient, onSuccess]);
 
   return (
     <form action={handleSubmit} className="space-y-6 h-full">

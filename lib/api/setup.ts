@@ -1,5 +1,4 @@
 // /lib/api/setup.ts
-// types/setup.ts
 
 export type Indicator = {
     id: string;
@@ -44,7 +43,15 @@ export type SetupTradeWithIndicator = SetupTradeClient & {
   
   
 export async function fetchSetupTrade(): Promise<SetupTradeResponse> {
-    const res = await fetch("/api/setup");
+    const res = await fetch("/api/setup", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+    }
+
+    );
+
+
     if (!res.ok) throw new Error("Gagal mengambil data setup trade");
 
     const data = await res.json();
@@ -59,10 +66,3 @@ export async function fetchSetupTrade(): Promise<SetupTradeResponse> {
 
     return data;
 }
-
-export const fetchSetups = async (): Promise<SetupTradeResponse[]> => {
-    const res = await fetch("/api/setup"); // atau endpoint kamu
-    if (!res.ok) throw new Error("Failed to fetch");
-    return res.json();
-  };
-  

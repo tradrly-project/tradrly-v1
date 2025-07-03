@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import TradeForm from "@/components/journal/form";
-import { XIcon } from "lucide-react";
+import { Loader2, XIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchJournalData } from "@/lib/api/journal";
 
@@ -26,21 +26,29 @@ export default function JournalClient() {
 
   const [filter, setFilter] = useState("");
 
-  const { data, error } = useQuery({
+  const { data, error, isLoading } = useQuery({
     queryKey: ["journal-data"],
     queryFn: fetchJournalData,
   });
 
-
-  if (error || !data) {
+  if (isLoading) {
     return (
-      <div
-        className="h-full p-4 transition-all ease-in-out duration-400"
-        style={{ width: `calc(100vw - ${sidebarWidth})` }}
-      >
-        Gagal memuat data jurnal
+      <div className="h-full p-4 flex flex-col gap-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-semibold mb-1">Jurnal Trade</h1>
+        </div>
+
+        {/* Spinner */}
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Loader2 className="h-10 w-10 animate-spin" />
+        </div>
       </div>
     );
+  }
+
+  if (error || !data) {
+    return null;
   }
 
   const { journals, pairs, setupTrade, allPsychologies } = data;
@@ -53,7 +61,11 @@ export default function JournalClient() {
     const direction = journal.direction?.toLowerCase() || "";
     const keyword = filter.toLowerCase();
 
-    return pair.includes(keyword) || result.includes(keyword) || direction.includes(keyword);
+    return (
+      pair.includes(keyword) ||
+      result.includes(keyword) ||
+      direction.includes(keyword)
+    );
   });
 
   return (
@@ -74,21 +86,27 @@ export default function JournalClient() {
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="border-zinc-700 cursor-pointer hover:bg-foreground/10 hover:text-foreground">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-zinc-700 cursor-pointer hover:bg-foreground/10 hover:text-foreground"
+            >
               <PlusIcon className="mr-1 h-4 w-4" /> Jurnal
             </Button>
           </DialogTrigger>
 
           <DialogContent
             className="p-0 rounded-3xl overflow-y-auto"
-            style={{ height: '90vh' }}
+            style={{ height: "90vh" }}
             showCloseButton={false}
           >
             <div className="flex flex-col min-h-full">
               {/* Sticky Header */}
               <div className="sticky top-0 z-50 bg-background py-4 px-4 w-full">
                 <div className="flex justify-between items-center">
-                  <DialogTitle className="text-2xl font-bold text-white">Tambah Jurnal</DialogTitle>
+                  <DialogTitle className="text-2xl font-bold text-white">
+                    Tambah Jurnal
+                  </DialogTitle>
                   <DialogPrimitive.Close asChild>
                     <button className="cursor-pointer text-white">
                       <XIcon className="w-5 h-5" />
@@ -108,10 +126,7 @@ export default function JournalClient() {
       </div>
 
       {/* Tabel */}
-      <DataTable
-        columns={columns}
-        data={filteredJournals}
-      />
+      <DataTable columns={columns} data={filteredJournals} />
     </div>
   );
 }

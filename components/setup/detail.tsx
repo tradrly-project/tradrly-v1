@@ -14,7 +14,7 @@ import { IndicatorSelect } from "../select/indicator-select";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import type { SetupPayload } from "@/components/button";
-import { useQueryClient } from "@tanstack/react-query";
+import {  useQueryClient } from "@tanstack/react-query";
 
 type Setup = {
   id: string;
@@ -85,6 +85,7 @@ export default function SetupTradeDetailDialog({
     setOpenTooltip(false); // Tutup tooltip
     setOpenDialog(true); // Buka dialog
   };
+
 
   return (
     <>
