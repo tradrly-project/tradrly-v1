@@ -32,7 +32,11 @@ type Props = {
   indicator: { id: string; name: string; code: string }[];
 };
 
-export default function SetupTradeDetailDialog({ setup, timeframe, indicator }: Props) {
+export default function SetupTradeDetailDialog({
+  setup,
+  timeframe,
+  indicator,
+}: Props) {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
     name: setup.name,
@@ -109,8 +113,8 @@ export default function SetupTradeDetailDialog({ setup, timeframe, indicator }: 
         }}
       >
         <DialogContent
-          className="w-[480px] p-0 rounded-2xl overflow-y-auto bg-background"
-          style={{ maxHeight: "90vh" }}
+          className="w-[480px] px-2 py-4 rounded-2xl bg-background overflow-hidden"
+          style={{ minHeight: "90vh" }}
           showCloseButton={false}
         >
           <div className="flex flex-col min-h-full">
@@ -127,7 +131,7 @@ export default function SetupTradeDetailDialog({ setup, timeframe, indicator }: 
               </div>
             </div>
 
-            <div className="space-y-5 text-sm text-muted-foreground px-2 mt-6">
+            <div className="flex-1 overflow-y-auto space-y-5 text-sm text-muted-foreground px-2 mt-2">
               <div className="grid grid-cols-3 gap-y-2">
                 <span className="font-medium text-foreground">Nama Setup</span>
                 <span className="col-span-2 text-foreground mb-2">
@@ -160,12 +164,13 @@ export default function SetupTradeDetailDialog({ setup, timeframe, indicator }: 
                   {setup.winrate !== null && setup.winrate !== undefined ? (
                     <Badge
                       variant="default"
-                      className={`text-xs px-2 py-1 rounded-md ${setup.winrate === 0
+                      className={`text-xs px-2 py-1 rounded-md ${
+                        setup.winrate === 0
                           ? "bg-zinc-700 text-white"
                           : setup.winrate <= 50
-                            ? "bg-red-500 text-white"
-                            : "bg-sky-500 text-white"
-                        }`}
+                          ? "bg-red-500 text-white"
+                          : "bg-sky-500 text-white"
+                      }`}
                     >
                       {setup.winrate.toFixed(1)}%
                     </Badge>
@@ -239,14 +244,14 @@ export default function SetupTradeDetailDialog({ setup, timeframe, indicator }: 
                 )}
               </div>
 
-              <div className="bg-zinc-950 rounded-md h-full py-2 px-4">
+              <div className="bg-zinc-950 rounded-md min-h-[120px] py-2 mb-10 px-4">
                 <div className="font-medium text-foreground mb-3">Catatan</div>
                 {editMode ? (
-                  <Textarea
+                  <textarea
                     name="notes"
                     value={formData.notes}
                     onChange={handleChange}
-                    className="border-zinc-800 mb-2"
+                    className="w-full rounded-md border border-muted bg-background p-3 text-sm text-foreground resize-none min-h-[120px] focus:outline-none focus:ring-2 focus:ring-ring "
                   />
                 ) : setup.notes?.trim() ? (
                   <div className="rounded-md p-3 text-sm text-foreground">
@@ -260,39 +265,44 @@ export default function SetupTradeDetailDialog({ setup, timeframe, indicator }: 
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-background pt-6 mt-12 border-t border-zinc-800 flex justify-end">
-              {editMode ? (
-                <div className="flex gap-2 transition-all duration-200">
-                  <DeleteButton
-                    type="setup"
-                    id={setup.id}
-                    title="Yakin ingin menghapus setup ini?"
-                    description="Setup yang dihapus tidak bisa dikembalikan."
-                  />
-                  <Button
-                    variant="ghost"
-                    onClick={() => setEditMode(false)}
-                    disabled={isPending}
-                  >
-                    Batal
+            {/* Footer */}
+            <div className="border-t h-full border-zinc-800 pt-4 px-2 bg-background sticky bottom-0 z-50">
+              <div className="flex justify-end gap-2">
+                {editMode ? (
+                  <>
+                    <DeleteButton
+                      type="setup"
+                      id={setup.id}
+                      title="Yakin ingin menghapus setup ini?"
+                      description="Setup yang dihapus tidak bisa dikembalikan."
+                    />
+                    <Button
+                      variant="ghost"
+                      onClick={() => setEditMode(false)}
+                      disabled={isPending}
+                    >
+                      Batal
+                    </Button>
+                    <SaveChangesButton<SetupPayload>
+                      type="setup"
+                      id={setup.id}
+                      payload={{
+                        ...formData,
+                        indicatorIds: selectedIndicators.map((i) => i.value),
+                        timeframe: selectedTimeframes.map((t) => t.value),
+                      }}
+                      disabled={isPending}
+                      onSuccess={() => setEditMode(false)}
+                    />
+                  </>
+                ) : (
+                  <div className="">
+                  <Button onClick={() => setEditMode(true)} size="sm">
+                    Edit
                   </Button>
-                  <SaveChangesButton<SetupPayload>
-                    type="setup"
-                    id={setup.id}
-                    payload={{
-                      ...formData,
-                      indicatorIds: selectedIndicators.map((i) => i.value),
-                      timeframe: selectedTimeframes.map((t) => t.value),
-                    }}
-                    disabled={isPending}
-                    onSuccess={() => setEditMode(false)}
-                  />
-                </div>
-              ) : (
-                <Button onClick={() => setEditMode(true)} size="sm">
-                  Edit
-                </Button>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </DialogContent>

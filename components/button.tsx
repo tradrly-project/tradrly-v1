@@ -6,8 +6,8 @@ import { Loader2, Trash2 } from "lucide-react"; // spinner icon
 import { Button } from "./ui/button";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { ConfirmDialog } from "./asset/confirm-dialog";
+import { notifyError, notifySuccess } from "./asset/notify";
 
 type RegisterButtonProps = {
   children: React.ReactNode;
@@ -200,12 +200,12 @@ export function DeleteButton({
 
         if (!res.ok) throw new Error("Gagal menghapus data");
 
-        toast.success("Data berhasil dihapus");
+        notifySuccess("Data berhasil dihapus");
         onSuccess?.();
         router.refresh();
       } catch (err) {
         console.error(err);
-        toast.error("Gagal menghapus data");
+        notifyError("Gagal menghapus data");
       }
     });
   };
@@ -276,12 +276,12 @@ export function SaveChangesButton<T extends SetupPayload | TradePayload>({
 
         if (!res.ok) throw new Error("Gagal menyimpan perubahan");
 
-        toast.success("Perubahan berhasil disimpan");
+        notifySuccess("Perubahan berhasil disimpan");
         onSuccess?.();
         router.refresh();
       } catch (err) {
         console.error(err);
-        toast.error("Gagal menyimpan perubahan");
+        notifyError("Gagal menyimpan perubahan");
       }
     });
   };

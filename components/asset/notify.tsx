@@ -1,20 +1,20 @@
-import { toast } from "sonner"
-import { CheckCircle, XCircle } from "lucide-react"
+import { toast } from "sonner";
+import { AnimatedCheckStroke, AnimatedXStroke } from "./animatednotif";
 
-export function notifySuccess(message: string = "Berhasil disimpan!") {
+export function notifySuccess(message = "Berhasil disimpan!") {
   toast.success(message, {
     className: "bg-background text-sky-500 border border-white",
-    icon: <CheckCircle className="text-sky-500 w-5 h-5" />,
+    icon: <AnimatedCheckStroke />, // 👈 ini dia
     position: "top-center",
     duration: 4000,
-  })
+  });
 }
 
-export function notifyError(message: string = "Gagal menyimpan data!") {
+export function notifyError(message = "Gagal menyimpan data!") {
   toast.error(message, {
     className: "bg-background text-red-500 border border-white",
-    icon: <XCircle className="text-red-500 w-5 h-5" />,
+    icon: <AnimatedXStroke />,
     position: "top-center",
     duration: 4000,
-  })
+  });
 }
