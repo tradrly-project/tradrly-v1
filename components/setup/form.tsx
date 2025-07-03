@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createSetupTrade } from "@/lib/actions/setup-trade";
@@ -11,54 +11,68 @@ import { SetupTradeFormState } from "@/lib/types";
 import { TimeframeSelect } from "../select/timeframe-select";
 import FieldError from "../asset/field-error";
 import LabelInputContainer from "../asset/label-input";
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+
+// ✅ Pindahkan ke luar komponen
+const initialState: SetupTradeFormState = {
+  message: "",
+  errors: undefined,
+  values: {
+    name: "",
+    strategy: "",
+    timeframe: [],
+    notes: "",
+    indicatorIds: [],
+  },
+};
 
 type SetupTradeFormProps = {
   indicator: { id: string; name: string; code: string }[];
   timeframe: { id: string; code: string }[];
 };
 
-export default function SetupTradeForm({
-  indicator,
-  timeframe,
-}: SetupTradeFormProps) {
-  const initialState = {
-    message: "",
-    errors: undefined,
-    values: {
-      name: "",
-      strategy: "",
-      timeframe: [] as string[],
-      notes: "",
-      indicatorIds: [] as string[], // ✅ FIXED: harus array
+export default function SetupTradeForm({ indicator, timeframe }: SetupTradeFormProps) {
+  const [state, setState] = useState(initialState);
+  const [selectedIndicators, setSelectedIndicators] = useState<{ label: string; value: string }[]>([]);
+  const [selectedTimeframes, setSelectedTimeframes] = useState<{ label: string; value: string }[]>([]);
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return await createSetupTrade(state, formData);
     },
-  };
+    onSuccess: (data) => {
+      setState(data);
+      queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
+    },
+    onError: () => {
+      notifyError("Gagal menyimpan setup trade.");
+    },
+  });
 
-  const [state, setState] = useState<SetupTradeFormState>(initialState);
-  const [selectedIndicators, setSelectedIndicators] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [selectedTimeframes, setSelectedTimeframes] = useState<
-    { label: string; value: string }[]
-  >([]);
+  const handleSubmit = (formData: FormData) => {
+    formData.set("indicatorIds", JSON.stringify(selectedIndicators.map((i) => i.value)));
+    formData.set("timeframe", JSON.stringify(selectedTimeframes.map((t) => t.value)));
 
-  const handleSubmit = async (formData: FormData) => {
-
-
-    const result = await createSetupTrade(state, formData);
-    setState(result);
+    startTransition(() => mutation.mutate(formData));
   };
 
   useEffect(() => {
     if (state.message) {
       if (state.errors && Object.keys(state.errors).length > 0) {
-        notifyError("Gagal menyimpan setup trade.");
+        notifyError("Gagal menyimpan setup.");
       } else {
         notifySuccess(state.message);
+
+        // ✅ Tidak memicu ESLint karena initialState di luar scope
+        setState(initialState);
         setSelectedIndicators([]);
         setSelectedTimeframes([]);
       }
     }
-  }, [state]);
+  }, [state]); // ✅ No more eslint warning
+
 
   return (
     <form action={handleSubmit} className="space-y-6 h-full">

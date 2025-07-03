@@ -38,6 +38,7 @@ export type TradeFormState = {
 
 // ✅ Ganti ini dari SetupTradeWithPair ke SetupTradeWithIndicator
 export type SetupTradeWithIndicator = SetupTrade & {
+  winrate: number | null;
   indicators: Indicator[] | null;
   timeframes: Timeframe[] | null; // relasi bisa null
 };

@@ -28,7 +28,7 @@ type MainButtonProps = {
 
 type DeleteButtonProps = {
   id: string;
-  type: "setup" | "trade"; // extendable: "user", "journal", dll
+  type: "setup" | "journal"; // extendable: "user", "journal", dll
   title?: string;
   description?: string;
   confirmText?: string;
@@ -70,7 +70,7 @@ export type TradePayload = {
 type SaveChangesButtonProps<T> = {
   id: string;
   payload: T | (() => Promise<T>);
-  type: "setup" | "trade"; // bisa kamu tambah "journal", "user", dll
+  type: "setup" | "journal"; // bisa kamu tambah "journal", "user", dll
   title?: string;
   description?: string;
   confirmText?: string;
@@ -189,7 +189,6 @@ export function DeleteButton({
   iconOnly = false,
 }: DeleteButtonProps) {
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
 
   const handleDelete = () => {
     startTransition(async () => {
@@ -202,7 +201,6 @@ export function DeleteButton({
 
         notifySuccess("Data berhasil dihapus");
         onSuccess?.();
-        router.refresh();
       } catch (err) {
         console.error(err);
         notifyError("Gagal menghapus data");

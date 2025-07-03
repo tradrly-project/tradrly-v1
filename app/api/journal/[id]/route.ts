@@ -169,7 +169,7 @@ export async function PUT(request: Request) {
       });
     }
 
-    revalidatePath("/api/trade");
+    revalidatePath("/api/journal");
 
     return NextResponse.json({ updated });
   } catch (error) {
@@ -247,7 +247,7 @@ export async function DELETE(request: Request) {
       });
     }
 
-    revalidatePath("/api/trade");
+    revalidatePath("/api/journal");
 
     return NextResponse.json({ deleted: true });
   } catch (error) {

@@ -25,6 +25,7 @@ import { ComboBox } from "../asset/combo-box";
 import { calculateDerivedFields as calculateTradeFields } from "@/lib/tradeCalculations";
 import LabelInputContainer from "../asset/label-input";
 import { FileUpload, FileWithMeta } from "../ui/file-upload";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Pair = { id: string; symbol: string };
 type SetupTrade = { id: string; name: string };
@@ -65,6 +66,8 @@ export function TradeDetailDialog({
   const [showUploadBefore, setShowUploadBefore] = useState(false);
   const [showUploadAfter, setShowUploadAfter] = useState(false);
   const [notes, setNotes] = useState(journal.notes || "");
+  const queryClient = useQueryClient();
+
 
   const [formData, setFormData] = useState({
     date: new Date(journal.date).toISOString().slice(0, 10),
@@ -93,9 +96,9 @@ export function TradeDetailDialog({
 
   const handleChange =
     (field: keyof typeof formData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData({ ...formData, [field]: e.target.value });
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [field]: e.target.value });
+      };
 
   const formatDecimal = (
     value: Decimal | number | string | null | undefined,
@@ -286,26 +289,24 @@ export function TradeDetailDialog({
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Result */}
                       <Badge
-                        className={`text-xs rounded-sm ${
-                          calculateDerivedFields().result === "win"
+                        className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
                             ? "bg-sky-500 text-white"
                             : calculateDerivedFields().result === "loss"
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-700 text-white"
-                        }`}
+                              ? "bg-red-500 text-white"
+                              : "bg-zinc-700 text-white"
+                          }`}
                       >
                         {calculateDerivedFields().result.toUpperCase()}
                       </Badge>
 
                       {/* PnL */}
                       <Badge
-                        className={`text-xs rounded-sm ${
-                          calculateDerivedFields().profitLoss > 0
+                        className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
                             ? "bg-sky-500 text-white"
                             : calculateDerivedFields().profitLoss < 0
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-700 text-white"
-                        }`}
+                              ? "bg-red-500 text-white"
+                              : "bg-zinc-700 text-white"
+                          }`}
                       >
                         PnL {formatDollar(calculateDerivedFields().profitLoss)}
                       </Badge>
@@ -342,37 +343,34 @@ export function TradeDetailDialog({
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     {/* Direction */}
                     <Badge
-                      className={`text-xs font-semibold tracking-wide rounded-sm ${
-                        formData.direction === "buy"
+                      className={`text-xs font-semibold tracking-wide rounded-sm ${formData.direction === "buy"
                           ? "bg-sky-500 text-white"
                           : "bg-red-500 text-white"
-                      }`}
+                        }`}
                     >
                       {formData.direction?.toUpperCase()}
                     </Badge>
 
                     {/* Result */}
                     <Badge
-                      className={`text-xs rounded-sm ${
-                        calculateDerivedFields().result === "win"
+                      className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
                           ? "bg-sky-500 text-white"
                           : calculateDerivedFields().result === "loss"
-                          ? "bg-red-500 text-white"
-                          : "bg-zinc-700 text-white"
-                      }`}
+                            ? "bg-red-500 text-white"
+                            : "bg-zinc-700 text-white"
+                        }`}
                     >
                       {calculateDerivedFields().result.toUpperCase()}
                     </Badge>
 
                     {/* Profit / Loss */}
                     <Badge
-                      className={`text-xs rounded-sm ${
-                        calculateDerivedFields().profitLoss > 0
+                      className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
                           ? "bg-sky-500 text-white"
                           : calculateDerivedFields().profitLoss < 0
-                          ? "bg-red-500 text-white"
-                          : "bg-zinc-700 text-white"
-                      }`}
+                            ? "bg-red-500 text-white"
+                            : "bg-zinc-700 text-white"
+                        }`}
                     >
                       PnL {formatDollar(calculateDerivedFields().profitLoss)}
                     </Badge>
@@ -525,7 +523,7 @@ export function TradeDetailDialog({
                     <LabelInputContainer>
                       <p className="text-sm font-medium">Before</p>
                       {screenshots.find((s) => s.type === "BEFORE") &&
-                      !showUploadBefore ? (
+                        !showUploadBefore ? (
                         <div className="relative">
                           <Image
                             unoptimized
@@ -588,7 +586,7 @@ export function TradeDetailDialog({
                     <LabelInputContainer>
                       <p className="text-sm font-medium">After</p>
                       {screenshots.find((s) => s.type === "AFTER") &&
-                      !showUploadAfter ? (
+                        !showUploadAfter ? (
                         <div className="relative">
                           <Image
                             unoptimized
@@ -669,12 +667,14 @@ export function TradeDetailDialog({
             {isEditing ? (
               <>
                 <SaveChangesButton<TradePayload>
-                  type="trade"
+                  type="journal"
                   id={journal.id}
                   disabled={isPending}
                   onSuccess={() => {
                     setIsEditing(false);
                     setDeletedUrls([]);
+                    setOpenDialog(false);
+                    queryClient.invalidateQueries({ queryKey: ["journal-data"] });
                   }}
                   payload={preparePayloadBeforeSave}
                 />
@@ -684,8 +684,12 @@ export function TradeDetailDialog({
                 </Button>
                 <DeleteButton
                   id={journal.id}
-                  type="trade"
-                  onSuccess={() => setOpenDialog(false)}
+                  type="journal"
+                  onSuccess={() => {
+                    setOpenDialog(false)
+                    queryClient.invalidateQueries({ queryKey: ["journal-data"] });
+                  }}
+
                 />
               </>
             ) : (

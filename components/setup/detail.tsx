@@ -7,7 +7,6 @@ import EllipsisHorizontalIcon from "@heroicons/react/24/solid/EllipsisHorizontal
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { DeleteButton, SaveChangesButton } from "../button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useState, useTransition, useEffect } from "react";
 import LabelInputContainer from "../asset/label-input";
 import { TimeframeSelect } from "@/components/select/timeframe-select";
@@ -15,6 +14,7 @@ import { IndicatorSelect } from "../select/indicator-select";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import type { SetupPayload } from "@/components/button";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Setup = {
   id: string;
@@ -80,6 +80,8 @@ export default function SetupTradeDetailDialog({
   const [openTooltip, setOpenTooltip] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const handleClick = () => {
     setOpenTooltip(false); // Tutup tooltip
     setOpenDialog(true); // Buka dialog
@@ -93,7 +95,7 @@ export default function SetupTradeDetailDialog({
             onClick={handleClick}
             variant="ghost"
             size="icon"
-            className="h-6 w-6 rounded-sm p-0 cursor-pointer bg-zinc-900"
+            className="h-6 w-6 rounded-sm p-0 cursor-pointer bg-zinc-950 hover:bg-zinc-900 hover:text-white"
           >
             <EllipsisHorizontalIcon className="h-4 w-4" />
           </Button>
@@ -164,13 +166,12 @@ export default function SetupTradeDetailDialog({
                   {setup.winrate !== null && setup.winrate !== undefined ? (
                     <Badge
                       variant="default"
-                      className={`text-xs px-2 py-1 rounded-md ${
-                        setup.winrate === 0
+                      className={`text-xs px-2 py-1 rounded-md ${setup.winrate === 0
                           ? "bg-zinc-700 text-white"
                           : setup.winrate <= 50
-                          ? "bg-red-500 text-white"
-                          : "bg-sky-500 text-white"
-                      }`}
+                            ? "bg-red-500 text-white"
+                            : "bg-sky-500 text-white"
+                        }`}
                     >
                       {setup.winrate.toFixed(1)}%
                     </Badge>
@@ -275,7 +276,12 @@ export default function SetupTradeDetailDialog({
                       id={setup.id}
                       title="Yakin ingin menghapus setup ini?"
                       description="Setup yang dihapus tidak bisa dikembalikan."
+                      onSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
+                        setOpenDialog(false); // Tutup dialog setelah delete
+                      }}
                     />
+
                     <Button
                       variant="ghost"
                       onClick={() => setEditMode(false)}
@@ -292,14 +298,17 @@ export default function SetupTradeDetailDialog({
                         timeframe: selectedTimeframes.map((t) => t.value),
                       }}
                       disabled={isPending}
-                      onSuccess={() => setEditMode(false)}
+                      onSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
+                        setEditMode(false);
+                      }}
                     />
                   </>
                 ) : (
                   <div className="">
-                  <Button onClick={() => setEditMode(true)} size="sm">
-                    Edit
-                  </Button>
+                    <Button onClick={() => setEditMode(true)} size="sm">
+                      Edit
+                    </Button>
                   </div>
                 )}
               </div>

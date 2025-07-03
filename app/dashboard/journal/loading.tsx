@@ -10,7 +10,7 @@ export default function LoadingJournalPage() {
 
       {/* Spinner */}
       <div className="flex items-center gap-3 text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin" />
+        <Loader2 className="h-10 w-10 animate-spin" />
       </div>
     </div>
   );

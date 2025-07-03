@@ -17,6 +17,7 @@ import { notifyError, notifySuccess } from "../asset/notify";
 import { PsychologySelect } from "../select/psychology-select";
 import LabelInputContainer from "../asset/label-input";
 import FieldError from "../asset/field-error";
+import { useQueryClient } from "@tanstack/react-query";
 
 type TradeFormProps = {
   userPairs: { id: string; symbol: string }[];
@@ -40,6 +41,7 @@ export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
   };
 
   const [state, formAction] = useActionState(createTrade, initialState);
+  const queryClient = useQueryClient();
 
   const [date, setDate] = React.useState<Date>(
     new Date(state.values.date ?? Date.now())
@@ -127,6 +129,8 @@ export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
       } else {
         notifySuccess(state.message);
 
+        queryClient.invalidateQueries({ queryKey: ["journal-data"] });
+
         setEntryPrice(0);
         setExitPrice(0);
         setLotSize(0.01);
@@ -145,7 +149,7 @@ export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
         setAfterFiles([]);
       }
     }
-  }, [state]);
+  }, [queryClient, state]);
 
   // Auto-calculate result, RR, and profit/loss
   useEffect(() => {

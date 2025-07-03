@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { DataTable } from "./data-table";
 import { getColumns } from "./columns";
-import { TradeWithPair } from "@/lib/types";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   Dialog,
@@ -18,28 +17,36 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import TradeForm from "@/components/journal/form";
 import { XIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchJournalData } from "@/lib/api/journal";
 
-interface Psychology {
-  id: string;
-  name: string;
-  // Tambahkan field lain jika ada
-}
-
-interface JournalClientProps {
-  journals: TradeWithPair[];
-  pairs: { id: string; symbol: string }[];
-  setupTrade: { id: string; name: string }[];
-  allPsychologies: Psychology[];
-}
-
-export default function JournalClient({ journals, pairs, setupTrade, allPsychologies }: JournalClientProps) {
+export default function JournalClient() {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
 
   const [filter, setFilter] = useState("");
+
+  const { data, error } = useQuery({
+    queryKey: ["journal-data"],
+    queryFn: fetchJournalData,
+  });
+
+
+  if (error || !data) {
+    return (
+      <div
+        className="h-full p-4 transition-all ease-in-out duration-400"
+        style={{ width: `calc(100vw - ${sidebarWidth})` }}
+      >
+        Gagal memuat data jurnal
+      </div>
+    );
+  }
+
+  const { journals, pairs, setupTrade, allPsychologies } = data;
+
   const columns = getColumns(pairs, setupTrade, allPsychologies);
 
-  // Filter berdasarkan entryPrice, bisa disesuaikan ke kolom lain
   const filteredJournals = journals.filter((journal) => {
     const pair = journal.pair?.pair?.symbol?.toLowerCase() || "";
     const result = journal.result?.toLowerCase() || "";
@@ -48,7 +55,6 @@ export default function JournalClient({ journals, pairs, setupTrade, allPsycholo
 
     return pair.includes(keyword) || result.includes(keyword) || direction.includes(keyword);
   });
-
 
   return (
     <div
@@ -98,10 +104,9 @@ export default function JournalClient({ journals, pairs, setupTrade, allPsycholo
               </div>
             </div>
           </DialogContent>
-
-
         </Dialog>
       </div>
+
       {/* Tabel */}
       <DataTable
         columns={columns}

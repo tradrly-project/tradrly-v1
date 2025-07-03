@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { DataTable } from "./data-table";
 import { createSetupColumns  } from "./columns";
-import { SetupTradeWithIndicator } from "@/lib/types";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   Dialog,
@@ -17,19 +16,29 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import SetupTradeForm from "@/components/setup/form";
 import { XIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchSetupTrade, type SetupTradeResponse } from "@/lib/api/setup";
 
-type SetupClientProps = {
-  setups: SetupTradeWithIndicator[];
-  indicators: { id: string; name: string; code: string }[];
-  timeframes: { id: string; code: string }[];
-};
-
-
-export default function SetupClient({ setups, indicators, timeframes }: SetupClientProps) {
+export default function SetupClient() {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
-
   const [filter, setFilter] = useState("");
+  
+  const {
+    data,
+    isLoading,
+    isError,
+  } = useQuery<SetupTradeResponse>({
+    queryKey: ["setup-trade"],
+    queryFn: fetchSetupTrade,
+  });
+
+  
+
+  if (isLoading) return <div>Memuat data...</div>;
+  if (isError || !data) return <div>Gagal memuat data setup</div>;
+
+  const { setups, indicators, timeframes } = data;
 
   const filteredSetups = setups.filter((setup) => {
     const name = setup.name?.toLowerCase() || "";
@@ -41,6 +50,8 @@ export default function SetupClient({ setups, indicators, timeframes }: SetupCli
       strategy.includes(keyword)
     );
   });
+
+  
 
   return (
     <div
