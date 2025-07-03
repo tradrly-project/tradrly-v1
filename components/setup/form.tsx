@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, startTransition } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createSetupTrade } from "@/lib/actions/setup-trade";
@@ -13,8 +13,7 @@ import FieldError from "../asset/field-error";
 import LabelInputContainer from "../asset/label-input";
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
-// ✅ Pindahkan ke luar komponen
-const initialState: SetupTradeFormState = {
+const initialFormState: SetupTradeFormState = {
   message: "",
   errors: undefined,
   values: {
@@ -31,8 +30,11 @@ type SetupTradeFormProps = {
   timeframe: { id: string; code: string }[];
 };
 
-export default function SetupTradeForm({ indicator, timeframe }: SetupTradeFormProps) {
-  const [state, setState] = useState(initialState);
+export default function SetupTradeForm({
+  indicator,
+  timeframe,
+}: SetupTradeFormProps) {
+  const [state, setState] = useState<SetupTradeFormState>(initialFormState);
   const [selectedIndicators, setSelectedIndicators] = useState<{ label: string; value: string }[]>([]);
   const [selectedTimeframes, setSelectedTimeframes] = useState<{ label: string; value: string }[]>([]);
 
@@ -53,9 +55,12 @@ export default function SetupTradeForm({ indicator, timeframe }: SetupTradeFormP
 
   const handleSubmit = (formData: FormData) => {
     formData.set("indicatorIds", JSON.stringify(selectedIndicators.map((i) => i.value)));
-    formData.set("timeframe", JSON.stringify(selectedTimeframes.map((t) => t.value)));
+    selectedTimeframes.forEach((t, index) => {
+      formData.append(`timeframe[${index}]`, t.value);
+    });
+    
 
-    startTransition(() => mutation.mutate(formData));
+    mutation.mutate(formData);
   };
 
   useEffect(() => {
@@ -65,14 +70,15 @@ export default function SetupTradeForm({ indicator, timeframe }: SetupTradeFormP
       } else {
         notifySuccess(state.message);
 
-        // ✅ Tidak memicu ESLint karena initialState di luar scope
-        setState(initialState);
+        // ✅ Gunakan salinan nilai awal, bukan `initialState` dari dalam fungsi
+        setState({ ...initialFormState });
         setSelectedIndicators([]);
         setSelectedTimeframes([]);
+
+        queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
       }
     }
-  }, [state]); // ✅ No more eslint warning
-
+  }, [state.message, state.errors, queryClient]);
 
   return (
     <form action={handleSubmit} className="space-y-6 h-full">

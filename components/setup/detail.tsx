@@ -79,7 +79,6 @@ export default function SetupTradeDetailDialog({
 
   const [openTooltip, setOpenTooltip] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-
   const queryClient = useQueryClient();
 
   const handleClick = () => {
