@@ -17,7 +17,6 @@ import { PencilSquareIcon } from "@heroicons/react/24/solid";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
@@ -165,8 +164,8 @@ export default function UserSettingsForm() {
     return <div className="text-sm text-muted-foreground">Memuat data...</div>;
 
   return (
-    <div className="w-[40%]">
-      <Card className="bg-background shadow-md rounded-2xl">
+    <div className="w-[40%] h-full">
+      <Card className="bg-background shadow-md rounded-2xl min-h-[100%]">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-foreground text-lg font-semibold tracking-tight">
             Pengaturan User
@@ -220,7 +219,15 @@ export default function UserSettingsForm() {
               {isEditing ? (
                 <div className="flex flex-col gap-2">
                   <ConfirmDialog
-                    trigger={<Button size="sm">Simpan</Button>}
+                    trigger={
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="cursor-pointer"
+                      >
+                        Simpan
+                      </Button>
+                    }
                     title="Konfirmasi Perubahan User"
                     description="Apakah kamu yakin ingin menyimpan perubahan ini?"
                     confirmText="Ya, Simpan"
@@ -229,8 +236,8 @@ export default function UserSettingsForm() {
                   />
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={handleEditToggle}
+                    className="cursor-pointer"
                   >
                     Batal
                   </Button>
@@ -238,7 +245,11 @@ export default function UserSettingsForm() {
               ) : (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button size="sm" onClick={handleEditToggle}>
+                    <Button
+                      size="sm"
+                      onClick={handleEditToggle}
+                      className="cursor-pointer"
+                    >
                       <PencilSquareIcon className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -268,13 +279,21 @@ export default function UserSettingsForm() {
 
             <div className="flex justify-between border-b border-zinc-800 pb-2">
               <Label className="text-sm font-bold">Password</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsPasswordDialogOpen(true)}
-              >
-                Ubah Password
-              </Button>
+              <div className="flex items-center gap-2">
+                {isEditing ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsPasswordDialogOpen(true)}
+                  >
+                    Ubah Password
+                  </Button>
+                ) : (
+                  <span className="text-sm text-muted-foreground font-mono tracking-widest">
+                    ●●●●●●
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-between border-b border-zinc-800 pb-2">
@@ -305,11 +324,14 @@ export default function UserSettingsForm() {
         open={isPasswordDialogOpen}
         onOpenChange={setIsPasswordDialogOpen}
       >
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Ubah Password</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-4 py-2">
+        <DialogContent
+          className="w-[20%] py-4"
+          showCloseButton={false}
+        >
+          <div className="flex justify-between items-center mb-2 w-full">
+            <DialogTitle className="text-xl">Ubah Password</DialogTitle>
+          </div>
+          <div className="flex flex-col gap-6 py-2">
             <Input
               type="password"
               placeholder="Password lama"
@@ -335,12 +357,12 @@ export default function UserSettingsForm() {
               }
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4">
             <Button onClick={() => setIsPasswordDialogOpen(false)}>
               Batal
             </Button>
             <ConfirmDialog
-              trigger={<Button type="button">Simpan</Button>}
+              trigger={<Button type="button" variant="outline" >Simpan</Button>}
               title="Konfirmasi Ubah Password"
               description="Apakah kamu yakin ingin mengubah password?"
               confirmText="Ya, Ubah"

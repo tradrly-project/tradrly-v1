@@ -30,40 +30,56 @@ export const signUpCredentials = async (_prevState: unknown, formData: FormData)
       },
     });
 
-    // 2. Ambil semua data global
-    const [globalPairs, globalIndicators, globalTimeframes] = await Promise.all([
-      prisma.pair.findMany(),
+    // 2. Ambil 5 pair populer dari masing-masing type
+    const selectedSymbols = [
+      // Forex
+      "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD",
+      // Crypto
+      "BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD", "ADAUSD",
+      // Stock
+      "AAPL", "MSFT", "TSLA", "AMZN", "GOOGL",
+      // Index
+      "US100", "US30", "SPX500", "DE40", "JP225",
+    ];
+
+    const [selectedPairs, indicators, timeframes] = await Promise.all([
+      prisma.pair.findMany({
+        where: {
+          symbol: { in: selectedSymbols },
+        },
+      }),
       prisma.indicator.findMany(),
       prisma.timeframe.findMany(),
     ]);
 
-    // 3. Buat user bindings (tanpa membuat ulang data global)
+    // 3. Create user bindings (hanya data yang dibutuhkan)
     await Promise.all([
       prisma.userPair.createMany({
-        data: globalPairs.map((p) => ({
+        data: selectedPairs.map((pair) => ({
           userId: user.id,
-          pairId: p.id,
+          pairId: pair.id,
         })),
       }),
       prisma.userIndicator.createMany({
-        data: globalIndicators.map((i) => ({
+        data: indicators.map((indicator) => ({
           userId: user.id,
-          indicatorId: i.id,
+          indicatorId: indicator.id,
         })),
       }),
       prisma.userTimeframe.createMany({
-        data: globalTimeframes.map((tf) => ({
+        data: timeframes.map((tf) => ({
           userId: user.id,
           timeframeId: tf.id,
         })),
       }),
     ]);
   } catch (error) {
-    console.error("Sign up error:", error);
+    console.error("❌ Sign up error:", error);
     return {
       message: "Pendaftaran gagal. Email mungkin sudah terdaftar atau terjadi kesalahan.",
     };
   }
+
   redirect("/login");
 };
 

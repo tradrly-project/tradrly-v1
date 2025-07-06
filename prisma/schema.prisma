@@ -65,7 +65,7 @@ model SetupTrade {
   strategies Strategy[]
   journals   Journal[]
   indicators UserIndicator[]
-  timeframes  UserTimeframe[]
+  timeframes UserTimeframe[]
 
   @@index([userId])
 }
@@ -112,31 +112,30 @@ model TradeScreenshot {
 }
 
 model Pair {
-  id        String   @id @default(cuid())
-  symbol    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String     @id @default(cuid())
+  symbol    String     @unique
+  type      TypePair
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
-  // Relasi ke UserPair
   userPairs UserPair[]
 }
 
 model UserPair {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
   userId     String
   pairId     String
-  customName String? // Bisa diubah user, default-nya dari pair.symbol
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  customName String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
-  // Relasi
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   pair     Pair      @relation(fields: [pairId], references: [id])
-  journals Journal[] // Relasi ke Trade (jika ada)
+  journals Journal[]
 
-  @@unique([userId, pairId]) // 1 user hanya boleh punya 1 instance dari pair tertentu
+  @@unique([userId, pairId])
 }
+
 
 model Psychology {
   id        String   @id @default(uuid())
@@ -252,6 +251,14 @@ model Payment {
   createdAt     DateTime      @default(now())
 
   @@index([userId])
+}
+
+
+enum TypePair {
+  forex
+  crypto
+  stock
+  index
 }
 
 enum SubscriptionStatus {

@@ -78,7 +78,7 @@ export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
       .then((data: { psychologies: Psychology[] }) => {
         setAvailablePsychologies(
           data.psychologies.map((p) => ({
-            label: p.name,
+            label: p.name, 
             value: p.id,
           }))
         );

@@ -56,17 +56,24 @@ export async function GET() {
       orderBy: { name: "asc" },
     });
 
-    return NextResponse.json({
-      journals,
-      pairs: pairs.map((p) => ({ id: p.id, symbol: p.pair.symbol })),
-      setupTrade,
-      allPsychologies,
-    }, {
-      status: 200,
-      headers: {
-        "Cache-Control": "s-maxage=30, stale-while-revalidate=59",
+    return NextResponse.json(
+      {
+        journals,
+        pairs: pairs.map((p) => ({
+          id: p.id,
+          symbol: p.customName || p.pair.symbol,
+        })),
+
+        setupTrade,
+        allPsychologies,
       },
-    });
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "s-maxage=30, stale-while-revalidate=59",
+        },
+      }
+    );
   } catch (error) {
     console.error("GET /api/journal error:", error);
     return NextResponse.json(
@@ -110,13 +117,13 @@ export async function POST(req: Request) {
         },
         ...(screenshots?.length
           ? {
-            screenshots: {
-              create: screenshots.map((s) => ({
-                url: s.url,
-                type: s.type,
-              })),
-            },
-          }
+              screenshots: {
+                create: screenshots.map((s) => ({
+                  url: s.url,
+                  type: s.type,
+                })),
+              },
+            }
           : {}),
       },
     });

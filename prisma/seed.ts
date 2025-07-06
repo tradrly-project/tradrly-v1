@@ -2,13 +2,16 @@ import { prisma } from "@/lib/prisma";
 import { defaultPairs } from "@/lib/default/pairs";
 import { defaultIndicators } from "@/lib/default/indicator";
 import { defaultTimeframes } from "@/lib/default/timeframe";
-
+        
 async function main() {
   console.log("🌱 Mulai seeding data global...");
 
   // 1. Seed Pair
   await prisma.pair.createMany({
-    data: defaultPairs.map((pair) => ({ symbol: pair.symbol })),
+    data: defaultPairs.map((pair) => ({
+      symbol: pair.symbol,
+      type: pair.type, // Harus sesuai enum TypePair di Prisma schema
+    })),
     skipDuplicates: true,
   });
   console.log("✅ Selesai seeding pairs");
@@ -29,6 +32,8 @@ async function main() {
     skipDuplicates: true,
   });
   console.log("✅ Selesai seeding timeframes");
+
+  console.log("🌱 Seeding data global selesai!");
 }
 
 main()

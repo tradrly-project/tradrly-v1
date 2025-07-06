@@ -1,25 +1,21 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, useRef, useEffect } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
-import UserSettingsForm from "@/components/settings/user";
 import { useSidebar } from "@/components/ui/sidebar";
-import { PairSettingsForm } from "@/components/settings/pair";
-import { PsychologySettingsForm } from "@/components/settings/psychology";
-import { TimeframeSettingsForm } from "@/components/settings/timeframe";
-import { IndicatorSettingsForm } from "@/components/settings/indicator";
+import { useEffect, useRef, useState } from "react";
 
+// Tab config sama seperti page.tsx
 const settingTabs = [
-  { id: "user", label: "User", content: <UserSettingsForm /> },
-  { id: "pair", label: "Pair", content: <PairSettingsForm /> },
-  { id: "psikologi", label: "Psikologi", content: <PsychologySettingsForm/> },
-  { id: "timeframe", label: "Timeframe", content: <TimeframeSettingsForm/> },
-  { id: "indikator", label: "Indikator", content: <IndicatorSettingsForm/> },
+  { id: "user", label: "User" },
+  { id: "pair", label: "Pair" },
+  { id: "psikologi", label: "Psikologi" },
+  { id: "timeframe", label: "Timeframe" },
+  { id: "indikator", label: "Indikator" },
 ];
 
-export default function SettingsPage() {
+export default function SettingsLoading() {
   const [activeTab, setActiveTab] = useState("user");
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
@@ -36,16 +32,17 @@ export default function SettingsPage() {
   }, [activeTab]);
 
   return (
-    <div className="mt-4 px-4"
-    style={{ width: `calc(100vw - ${sidebarWidth})` }}>
+    <div
+      className="mt-4 px-4"
+      style={{ width: `calc(100vw - ${sidebarWidth})` }}
+    >
       <Tabs
-        defaultValue="account"
+        defaultValue="user"
         value={activeTab}
         onValueChange={setActiveTab}
       >
         <div className="relative">
           <TabsList className="relative flex p-1 overflow-hidden bg-background rounded-none">
-            {/* Active tab background (animated) */}
             <motion.div
               layout
               transition={{ type: "spring", stiffness: 500, damping: 50 }}
@@ -56,7 +53,6 @@ export default function SettingsPage() {
               }}
             />
 
-            {/* Tab buttons */}
             {settingTabs.map((tab, i) => (
               <TabsTrigger
                 key={tab.id}
@@ -73,12 +69,10 @@ export default function SettingsPage() {
           <Separator className="mt-2 bg-zinc-800" />
         </div>
 
-        {/* Tab Content */}
-        {settingTabs.map((tab) => (
-          <TabsContent key={tab.id} value={tab.id} className="mt-4">
-             {tab.content}
-          </TabsContent>
-        ))}
+        {/* Spinner Content */}
+        <div className="flex justify-center items-center mt-10">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
       </Tabs>
     </div>
   );
