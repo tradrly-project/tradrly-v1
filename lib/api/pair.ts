@@ -39,8 +39,9 @@ export async function fetchUserPairs() {
 }
 
 interface AddUserPairPayload {
-  pairId: string;
+  pairId?: string;
   customName?: string;
+  customType?: "crypto" | "forex" | "stock" | "index";
 }
 
 export async function addUserPair(payload: AddUserPairPayload) {

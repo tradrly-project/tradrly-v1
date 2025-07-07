@@ -42,7 +42,7 @@ export function normalizeTrade(trade: TradeWithPair): NormalizedTrade {
       ? { name: trade.setupTrade.name }
       : undefined,
     psychologies: trade.psychologies?.map((p) => ({
-      name: p.psychology.name,
+      name: p.psychology?.name ?? "-",
     })),
   };
 }

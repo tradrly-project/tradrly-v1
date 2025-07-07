@@ -18,7 +18,6 @@ export async function GET() {
     const userIndicators = await prisma.userIndicator.findMany({
       where: {
         userId,
-        hidden: false,
       },
       include: {
         indicator: true,
@@ -32,8 +31,8 @@ export async function GET() {
 
     const indicators = userIndicators.map((ui) => ({
       id: ui.id, // <- pakai id dari tabel userIndicator
-      name: ui.indicator.name,
-      code: ui.customCode || ui.indicator.code,
+      name: ui.indicator?.name,
+      code: ui.customCode || ui.indicator?.code,
     }));
     
     

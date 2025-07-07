@@ -20,8 +20,7 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
-import { Check, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 import { notifySuccess } from "../asset/notify";
 
 interface Option {
@@ -77,20 +76,25 @@ export const AddPairForm = ({ onSuccess, onCancel }: AddPairFormProps) => {
     if (!selectedType) return;
 
     if (isCustom) {
-      const basePair = filteredPairs[0];
-      if (!basePair) return alert("Tidak ada pair untuk tipe ini.");
+      if (!customName.trim()) return alert("Nama custom tidak boleh kosong");
+
       addMutation.mutate({
-        pairId: basePair.id,
-        customName,
+        customName: customName.trim(),
+        customType: selectedType?.value as
+          | "crypto"
+          | "forex"
+          | "stock"
+          | "index", // ✅ Type assertion
       });
     } else {
       if (!selectedPair) return;
+
       addMutation.mutate({
         pairId: selectedPair.value,
       });
     }
 
-    // Reset
+    // Reset form
     setIsCustom(false);
     setSelectedType(null);
     setSelectedPair(null);
@@ -215,14 +219,6 @@ export const AddPairForm = ({ onSuccess, onCancel }: AddPairFormProps) => {
                         }}
                         className="cursor-pointer data-[selected=true]:bg-background data-[selected=true]:text-foreground/25"
                       >
-                        <Check
-                          className={cn(
-                            "h-4 w-4",
-                            selectedPair?.value === pair.id
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
                         {pair.symbol}
                       </CommandItem>
                     ))}

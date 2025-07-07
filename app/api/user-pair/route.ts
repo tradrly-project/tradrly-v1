@@ -43,33 +43,46 @@ export async function GET() {
   }
 }
 
-// POST
+// POST /api/user-pair
 export async function POST(req: Request) {
   try {
-    const { pairId, customName } = await req.json();
+    const { pairId, customName, customType } = await req.json();
     const userId = await getUserId();
 
-    const existing = await prisma.userPair.findUnique({
-      where: {
-        userId_pairId: {
-          userId,
-          pairId,
-        },
-      },
-    });
-
-    if (existing) {
+    // Validasi: minimal salah satu harus diisi
+    if (!pairId && !customName?.trim()) {
       return NextResponse.json(
-        { error: "Pair ini sudah ditambahkan sebelumnya." },
+        { error: "pairId atau customName harus diisi" },
         { status: 400 }
       );
     }
 
+    // Cek duplikat hanya jika pairId ada
+    if (pairId) {
+      const existing = await prisma.userPair.findUnique({
+        where: {
+          userId_pairId: {
+            userId,
+            pairId,
+          },
+        },
+      });
+
+      if (existing) {
+        return NextResponse.json(
+          { error: "Pair ini sudah ditambahkan sebelumnya." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Simpan entri baru ke userPair
     const newUserPair = await prisma.userPair.create({
       data: {
         userId,
-        pairId,
-        customName,
+        pairId: pairId || null,
+        customName: customName?.trim() || null,
+        customType: pairId ? null : customType || null,
       },
     });
 
@@ -84,3 +97,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

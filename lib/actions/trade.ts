@@ -54,7 +54,10 @@ export async function createTrade(
     const type = formData.get(`screenshots[${i}][type]`);
     const url = formData.get(`screenshots[${i}][url]`);
     if (!type || !url) break;
-    screenshots.push({ type: type.toString() as "BEFORE" | "AFTER", url: url.toString() });
+    screenshots.push({
+      type: type.toString() as "BEFORE" | "AFTER",
+      url: url.toString(),
+    });
   }
 
   const values: TradeFormValues = {
@@ -76,13 +79,23 @@ export async function createTrade(
   };
 
   // Cek pair & direction minimal jika ada angka
-  const angkaFields = [values.entryPrice, values.takeProfit, values.stoploss, values.exitPrice, values.lotSize];
+  const angkaFields = [
+    values.entryPrice,
+    values.takeProfit,
+    values.stoploss,
+    values.exitPrice,
+    values.lotSize,
+  ];
   const angkaDiisi = angkaFields.some((val) => val && val.trim() !== "");
   if (angkaDiisi && (!values.direction || !values.pairId)) {
     return {
       errors: {
-        direction: !values.direction ? ["Posisi wajib diisi terlebih dahulu."] : undefined,
-        pairId: !values.pairId ? ["Pair wajib diisi terlebih dahulu."] : undefined,
+        direction: !values.direction
+          ? ["Posisi wajib diisi terlebih dahulu."]
+          : undefined,
+        pairId: !values.pairId
+          ? ["Pair wajib diisi terlebih dahulu."]
+          : undefined,
       },
       message: "Lengkapi Pair/Posisi terlebih dahulu.",
       values,
@@ -92,18 +105,28 @@ export async function createTrade(
   // Validasi foreign key: pair, psychology, setupTrade
   const [pairValid, setupValid, validPsychologies] = await Promise.all([
     values.pairId
-      ? prisma.userPair.findFirst({ where: { id: values.pairId, userId }, select: { id: true } })
+      ? prisma.userPair.findFirst({
+          where: { id: values.pairId, userId },
+          select: { id: true },
+        })
       : null,
     values.setupTradeId
-      ? prisma.setupTrade.findFirst({ where: { id: values.setupTradeId, userId }, select: { id: true } })
+      ? prisma.setupTrade.findFirst({
+          where: { id: values.setupTradeId, userId },
+          select: { id: true },
+        })
       : null,
     values.psychology?.length
       ? prisma.userPsychology.findMany({
-        where: { id: { in: values.psychology }, userId },
-        select: { id: true },
-      })
+          where: { id: { in: values.psychology }, userId },
+          select: { id: true },
+        })
       : [],
   ]);
+
+  console.log("→ userId:", userId);
+  console.log("→ values.psychology:", values.psychology);
+  console.log("→ validPsychologies (from DB):", validPsychologies);
 
   if (values.pairId && !pairValid) {
     return {
@@ -119,7 +142,8 @@ export async function createTrade(
     };
   }
 
-  if (values.psychology && validPsychologies.length !== values.psychology.length) {
+  const uniquePsychologies = [...new Set(values.psychology)];
+  if (validPsychologies.length !== uniquePsychologies.length) {
     return {
       message: "Beberapa psikologi tidak ditemukan atau bukan milik user.",
       values,
@@ -156,15 +180,18 @@ export async function createTrade(
   }
 
   try {
-    const { psychologyIds, setupTradeId, screenshots, ...tradeData } = validated.data;
+    const { psychologyIds, setupTradeId, screenshots, ...tradeData } =
+      validated.data;
 
     const trade = await prisma.journal.create({
       data: {
         ...tradeData,
         setupTradeId: setupTradeId || undefined,
-        psychologies: psychologyIds?.length ? {
-          connect: psychologyIds.map((id) => ({ id })),
-        } : undefined,
+        psychologies: psychologyIds?.length
+          ? {
+              connect: psychologyIds.map((id) => ({ id })),
+            }
+          : undefined,
       },
     });
 

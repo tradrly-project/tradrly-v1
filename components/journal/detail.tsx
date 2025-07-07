@@ -20,17 +20,19 @@ import React from "react";
 import { PsychologySelect } from "../select/psychology-select";
 import { DatePickerWithPresets } from "../asset/date-picker";
 import { DropdownMenuSelect } from "../select/direction";
-import { ScreenshotType, TradeDirection, UserPsychology } from "@prisma/client";
+import { ScreenshotType, TradeDirection } from "@prisma/client";
 import { ComboBox } from "../asset/combo-box";
 import { calculateDerivedFields as calculateTradeFields } from "@/lib/tradeCalculations";
 import LabelInputContainer from "../asset/label-input";
 import { FileUpload, FileWithMeta } from "../ui/file-upload";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchUserPsychologies } from "@/lib/api/psychology";
 
 type Pair = { id: string; symbol: string };
 type SetupTrade = { id: string; name: string };
 type Psychology = { id: string; name: string };
 type Option = { label: string; value: string };
+type Screenshot = { type: "BEFORE" | "AFTER"; url: string; file?: File };
 type TradeScreenshot = {
   id: string;
   tradeId: string;
@@ -38,23 +40,28 @@ type TradeScreenshot = {
   url: string;
   createdAt: Date;
 };
-type Screenshot = { type: "BEFORE" | "AFTER"; url: string; file?: File };
+
+export type UserPsychology = {
+  id: string;
+  userId: string;
+  psychologyId: string | null;
+  customName: string | null;
+  psychology: {
+    name: string;
+  } | null;
+};
+
 type Props = {
-  journal: TradeWithPair & {
-    psychologies: (UserPsychology & { psychology: Psychology })[];
+  journal: Omit<TradeWithPair, "psychologies"> & {
+    psychologies: (UserPsychology & { psychology: Psychology | null })[];
     screenshots: TradeScreenshot[];
   };
   pairs: Pair[];
   setupTrades: SetupTrade[];
-  allPsychologies: Psychology[];
+  userPsychologies: UserPsychology[];
 };
 
-export function TradeDetailDialog({
-  journal,
-  pairs,
-  setupTrades,
-  allPsychologies,
-}: Props) {
+export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
   const [openDialog, setOpenDialog] = useState(false);
   const [openTooltip, setOpenTooltip] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -67,7 +74,34 @@ export function TradeDetailDialog({
   const [showUploadAfter, setShowUploadAfter] = useState(false);
   const [notes, setNotes] = useState(journal.notes || "");
   const queryClient = useQueryClient();
+  const [selectedPsychologies, setSelectedPsychologies] = useState<Option[]>(
+    []
+  );
 
+  const { data: userPsychologies = [] } = useQuery<UserPsychology[]>({
+    queryKey: ["user-psychologies"],
+    queryFn: fetchUserPsychologies,
+  });
+  useEffect(() => {
+    if (userPsychologies.length > 0 && journal.psychologies.length > 0) {
+      const matched = userPsychologies
+        .filter((p) => journal.psychologies.some((jp) => jp.id === p.id))
+        .map((p) => ({
+          label: p.psychology?.name || p.customName || "-",
+          value: p.id,
+        }));
+
+      setSelectedPsychologies(matched);
+    }
+  }, [userPsychologies, journal.psychologies]);
+
+  const availablePsychologies = userPsychologies.map((p) => ({
+    label: p.psychology?.name || p.customName || "-",
+    value: p.id, // ← HARUS pakai `id` dari UserPsychology
+  }));
+
+  console.log("JOURNAL PSYCHOLOGIES", journal.psychologies);
+  console.log("USER PSYCHOLOGIES", userPsychologies);
 
   const [formData, setFormData] = useState({
     date: new Date(journal.date).toISOString().slice(0, 10),
@@ -82,23 +116,11 @@ export function TradeDetailDialog({
     lotSize: journal.lotSize.toString(),
   });
 
-  const availablePsychologies = allPsychologies.map((p) => ({
-    label: p.name,
-    value: p.id,
-  }));
-
-  const [selectedPsychologies, setSelectedPsychologies] = useState<Option[]>(
-    journal.psychologies.map((p) => ({
-      label: p.psychology.name,
-      value: p.psychology.id,
-    }))
-  );
-
   const handleChange =
     (field: keyof typeof formData) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [field]: e.target.value });
-      };
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData({ ...formData, [field]: e.target.value });
+    };
 
   const formatDecimal = (
     value: Decimal | number | string | null | undefined,
@@ -289,24 +311,26 @@ export function TradeDetailDialog({
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Result */}
                       <Badge
-                        className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
+                        className={`text-xs rounded-sm ${
+                          calculateDerivedFields().result === "win"
                             ? "bg-sky-500 text-white"
                             : calculateDerivedFields().result === "loss"
-                              ? "bg-red-500 text-white"
-                              : "bg-zinc-700 text-white"
-                          }`}
+                            ? "bg-red-500 text-white"
+                            : "bg-zinc-700 text-white"
+                        }`}
                       >
                         {calculateDerivedFields().result.toUpperCase()}
                       </Badge>
 
                       {/* PnL */}
                       <Badge
-                        className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
+                        className={`text-xs rounded-sm ${
+                          calculateDerivedFields().profitLoss > 0
                             ? "bg-sky-500 text-white"
                             : calculateDerivedFields().profitLoss < 0
-                              ? "bg-red-500 text-white"
-                              : "bg-zinc-700 text-white"
-                          }`}
+                            ? "bg-red-500 text-white"
+                            : "bg-zinc-700 text-white"
+                        }`}
                       >
                         PnL {formatDollar(calculateDerivedFields().profitLoss)}
                       </Badge>
@@ -343,34 +367,37 @@ export function TradeDetailDialog({
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     {/* Direction */}
                     <Badge
-                      className={`text-xs font-semibold tracking-wide rounded-sm ${formData.direction === "buy"
+                      className={`text-xs font-semibold tracking-wide rounded-sm ${
+                        formData.direction === "buy"
                           ? "bg-sky-500 text-white"
                           : "bg-red-500 text-white"
-                        }`}
+                      }`}
                     >
                       {formData.direction?.toUpperCase()}
                     </Badge>
 
                     {/* Result */}
                     <Badge
-                      className={`text-xs rounded-sm ${calculateDerivedFields().result === "win"
+                      className={`text-xs rounded-sm ${
+                        calculateDerivedFields().result === "win"
                           ? "bg-sky-500 text-white"
                           : calculateDerivedFields().result === "loss"
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-700 text-white"
-                        }`}
+                          ? "bg-red-500 text-white"
+                          : "bg-zinc-700 text-white"
+                      }`}
                     >
                       {calculateDerivedFields().result.toUpperCase()}
                     </Badge>
 
                     {/* Profit / Loss */}
                     <Badge
-                      className={`text-xs rounded-sm ${calculateDerivedFields().profitLoss > 0
+                      className={`text-xs rounded-sm ${
+                        calculateDerivedFields().profitLoss > 0
                           ? "bg-sky-500 text-white"
                           : calculateDerivedFields().profitLoss < 0
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-700 text-white"
-                        }`}
+                          ? "bg-red-500 text-white"
+                          : "bg-zinc-700 text-white"
+                      }`}
                     >
                       PnL {formatDollar(calculateDerivedFields().profitLoss)}
                     </Badge>
@@ -455,11 +482,11 @@ export function TradeDetailDialog({
                       journal.psychologies.length > 0 ? (
                       journal.psychologies.map((p) => (
                         <Badge
-                          key={p.psychology.id}
+                          key={p.psychology?.id ?? "-"}
                           variant="secondary"
                           className="text-xs bg-zinc-900 mr-1 text-foreground"
                         >
-                          {p.psychology.name}
+                          {p.psychology?.name || p.customName || "-"}
                         </Badge>
                       ))
                     ) : (
@@ -523,7 +550,7 @@ export function TradeDetailDialog({
                     <LabelInputContainer>
                       <p className="text-sm font-medium">Before</p>
                       {screenshots.find((s) => s.type === "BEFORE") &&
-                        !showUploadBefore ? (
+                      !showUploadBefore ? (
                         <div className="relative">
                           <Image
                             unoptimized
@@ -586,7 +613,7 @@ export function TradeDetailDialog({
                     <LabelInputContainer>
                       <p className="text-sm font-medium">After</p>
                       {screenshots.find((s) => s.type === "AFTER") &&
-                        !showUploadAfter ? (
+                      !showUploadAfter ? (
                         <div className="relative">
                           <Image
                             unoptimized
@@ -674,7 +701,9 @@ export function TradeDetailDialog({
                     setIsEditing(false);
                     setDeletedUrls([]);
                     setOpenDialog(false);
-                    queryClient.invalidateQueries({ queryKey: ["journal-data"] });
+                    queryClient.invalidateQueries({
+                      queryKey: ["journal-data"],
+                    });
                   }}
                   payload={preparePayloadBeforeSave}
                 />
@@ -686,10 +715,11 @@ export function TradeDetailDialog({
                   id={journal.id}
                   type="journal"
                   onSuccess={() => {
-                    setOpenDialog(false)
-                    queryClient.invalidateQueries({ queryKey: ["journal-data"] });
+                    setOpenDialog(false);
+                    queryClient.invalidateQueries({
+                      queryKey: ["journal-data"],
+                    });
                   }}
-
                 />
               </>
             ) : (

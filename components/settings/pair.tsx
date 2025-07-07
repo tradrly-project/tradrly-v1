@@ -38,6 +38,7 @@ type Journal = {
 type PairItem = {
   id: string;
   customName: string | null;
+  customType?: "crypto" | "forex" | "stock" | "index";
   pair: {
     symbol: string;
     type: "crypto" | "forex" | "stock" | "index";
@@ -81,10 +82,14 @@ export const PairSettingsForm = () => {
     }
   };
 
-  const sortedPairs = pairs.slice().sort((a: PairItem, b: PairItem) => {
-    const typeCompare = a.pair.type.localeCompare(b.pair.type);
-    if (typeCompare !== 0) return typeCompare;
-    return a.pair.symbol.localeCompare(b.pair.symbol);
+  const sortedPairs = [...(pairs as PairItem[])].sort((a, b) => {
+    const typeA = a.pair?.type ?? "";
+    const typeB = b.pair?.type ?? "";
+
+    const symbolA = a.pair?.symbol ?? a.customName ?? "";
+    const symbolB = b.pair?.symbol ?? b.customName ?? "";
+
+    return typeA.localeCompare(typeB) || symbolA.localeCompare(symbolB);
   });
 
   const filteredPairs = sortedPairs.filter((pair: PairItem) =>
@@ -92,6 +97,9 @@ export const PairSettingsForm = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
+
+  const capitalizeFirst = (str: string) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
 
   return (
     <div className="w-[40%] h-full">
@@ -138,18 +146,23 @@ export const PairSettingsForm = () => {
 
         <CardContent className="max-h-[400px] overflow-y-auto">
           <Table>
+            <colgroup>
+              <col style={{ width: "40%" }} />
+              <col style={{ width: "30%" }} />
+              <col style={{ width: "20%" }} />
+              <col style={{ width: "10%" }} />
+            </colgroup>
             <TableHeader>
-              <TableRow>
+              <TableRow className="hover:bg-background">
                 <TableHead>Nama Pair</TableHead>
                 <TableHead>Tipe</TableHead>
                 <TableHead>Total Trade</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="text-foreground">
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">
+                  <TableCell colSpan={4} className="text-center h-full">
                     Memuat...
                   </TableCell>
                 </TableRow>
@@ -164,10 +177,21 @@ export const PairSettingsForm = () => {
                 </TableRow>
               ) : (
                 filteredPairs.map((pair: PairItem) => (
-                  <TableRow key={pair.id}>
-                    <TableCell>{pair.customName || pair.pair.symbol}</TableCell>
-                    <TableCell>{pair.pair.type}</TableCell>
-                    <TableCell>{pair.journals?.length ?? 0}</TableCell>
+                  <TableRow key={pair.id} className="hover:bg-background">
+                    <TableCell>
+                      {pair.customName || pair.pair?.symbol}
+                    </TableCell>
+                    <TableCell>
+                      {pair.pair?.type
+                        ? capitalizeFirst(pair.pair.type)
+                        : pair.customType
+                        ? capitalizeFirst(pair.customType)
+                        : "Custom"}
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      {pair.journals?.length ?? 0}
+                    </TableCell>
                     <TableCell className="flex justify-end">
                       <Popover
                         open={editingId === pair.id}
@@ -186,18 +210,25 @@ export const PairSettingsForm = () => {
                               setEditingId(pair.id);
                               setPopoverMode("menu");
                             }}
+                            className="hover:bg-foreground/5 hover:text-foreground"
                           >
                             <EllipsisHorizontalIcon className="h-5 w-5" />
                           </Button>
                         </PopoverTrigger>
 
-                        <PopoverContent className="w-64 bg-background text-foreground">
+                        <PopoverContent
+                          className={`${
+                            popoverMode === "edit" ? "w-64" : "w-36 py-3 px-3 "
+                          } bg-background text-foreground`}
+                          align="start"
+                          side="right"
+                        >
                           {popoverMode === "menu" && (
                             <div className="space-y-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="w-full justify-start text-left"
+                                className="w-full justify-start text-left hover:bg-foreground/10 hover:text-foreground"
                                 onClick={() => {
                                   setEditingName(
                                     pair.customName || pair.pair.symbol
@@ -211,7 +242,7 @@ export const PairSettingsForm = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="w-full justify-start text-left text-red-600 hover:text-red-700"
+                                className="w-full justify-start text-left text-red-600 hover:bg-foreground/10 hover:text-red-600"
                                 onClick={() => handleDelete(pair.id)}
                                 disabled={deleteMutation.isPending}
                               >

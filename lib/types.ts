@@ -8,7 +8,6 @@ import {
   ScreenshotType,
   TradeScreenshot,
   UserPair,
-  UserPsychology,
 } from "@prisma/client";
 
 export type JournalEntry = {
@@ -21,14 +20,22 @@ export type JournalEntry = {
 
 export type TradeWithPair = Journal & {
   pair: UserPair & {
-    pair: Pair; // dari model global
+    pair: Pair | null; // dari model global
   };
   setupTrade?: Pick<SetupTrade, "id" | "name"> | null;
+  customName: string | null;
+  customType: "crypto" | "forex" | "stock" | "index" | null;
   psychologies: (UserPsychology & {
-    psychology: Psychology;
+    psychology: Psychology | null;
   })[];
   screenshots: TradeScreenshot[];
 };
+
+export type TradeWithPairExtended = TradeWithPair & {
+  customName: string | null;
+  customType: "crypto" | "forex" | "stock" | "index" | null;
+};
+
 
 export type TradeFormState = {
   message: string;
@@ -77,4 +84,14 @@ export type TradeFormValues = {
     url: string;
   }[];
   date?: string;
+};
+
+export type UserPsychology = {
+  id: string;
+  userId: string;
+  psychologyId: string | null;
+  customName: string | null;
+  psychology: {
+    name: string;
+  } | null;
 };

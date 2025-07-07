@@ -51,9 +51,9 @@ export default function JournalClient() {
     return null;
   }
 
-  const { journals, pairs, setupTrade, allPsychologies } = data;
+  const { journals, pairs, setupTrade, userPsychologies } = data;
 
-  const columns = getColumns(pairs, setupTrade, allPsychologies);
+  const columns = getColumns(pairs, setupTrade, userPsychologies );
 
   const filteredJournals = journals.filter((journal) => {
     const pair = journal.pair?.pair?.symbol?.toLowerCase() || "";

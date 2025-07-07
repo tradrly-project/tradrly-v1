@@ -17,15 +17,27 @@ import { notifyError, notifySuccess } from "../asset/notify";
 import { PsychologySelect } from "../select/psychology-select";
 import LabelInputContainer from "../asset/label-input";
 import FieldError from "../asset/field-error";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { fetchUserPsychologies } from "@/lib/api/psychology";
+import { useMemo } from "react";
 
 type TradeFormProps = {
   userPairs: { id: string; symbol: string }[];
   setupTrades: { id: string; name: string }[];
 };
 
+type UserPsychology = {
+  id: string;
+  customName?: string;
+  hidden?: boolean;
+  psychology: {
+    id: string;
+    name: string;
+    category?: string;
+  };
+};
+
 type Option = { label: string; value: string };
-type Psychology = { id: string; name: string };
 type Screenshot = { type: "BEFORE" | "AFTER"; url: string; file?: File };
 
 export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
@@ -67,23 +79,28 @@ export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
   const [selectedPsychologies, setSelectedPsychologies] = useState<Option[]>(
     []
   );
-  const [availablePsychologies, setAvailablePsychologies] = useState<Option[]>(
-    []
-  );
+  const {
+  data: userPsychologies = [],
+} = useQuery({
+  queryKey: ["user-psychology"],
+  queryFn: fetchUserPsychologies,
+});
+
 
   // Fetch psychology options
-  useEffect(() => {
-    fetch("/api/psychologies")
-      .then((res) => res.json())
-      .then((data: { psychologies: Psychology[] }) => {
-        setAvailablePsychologies(
-          data.psychologies.map((p) => ({
-            label: p.name, 
-            value: p.id,
-          }))
-        );
-      });
-  }, []);
+  const availablePsychologies: Option[] = useMemo(() => {
+  return userPsychologies
+    .sort((a: UserPsychology, b: UserPsychology) => {
+      const nameA = (a.customName || a.psychology?.name || "").toLowerCase();
+      const nameB = (b.customName || b.psychology?.name || "").toLowerCase();
+      return nameA.localeCompare(nameB);
+    })
+    .map((item: UserPsychology) => ({
+      label: item.customName || item.psychology?.name || "Tanpa Nama",
+      value: item.id,
+    }));
+}, [userPsychologies]);
+
 
   // Submit handler
   const handleSubmit = async (formData: FormData) => {
@@ -112,10 +129,15 @@ export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
       formData.set(`screenshots[${i}][url]`, s.url);
     });
 
-    formData.set(
-      "psychologies",
-      JSON.stringify(selectedPsychologies.map((p) => p.value))
+    // FIXED: gunakan append bukan set + pakai key `psychology`
+    selectedPsychologies.forEach((p) => {
+      formData.append("psychology", p.value);
+    });
+    console.log(
+      "Psychologies dikirim:",
+      selectedPsychologies.map((p) => p.value)
     );
+
     formData.set("setupTradeId", setupTradeId);
 
     startTransition(() => formAction(formData));

@@ -1,12 +1,12 @@
 // lib/api/journal.ts
 
-import { TradeWithPair } from "@/lib/types";
+import { TradeWithPair, UserPsychology } from "@/lib/types";
 
 export interface JournalResponse {
     journals: TradeWithPair[];
     pairs: { id: string; symbol: string }[];
     setupTrade: { id: string; name: string }[];
-    allPsychologies: { id: string; name: string }[];
+    userPsychologies: UserPsychology[]
 }
 
 export async function fetchJournalData(): Promise<JournalResponse> {

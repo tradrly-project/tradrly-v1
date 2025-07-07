@@ -30,7 +30,7 @@ model User {
   payments      Payment[]
   accounts      Account[]
   pairs         UserPair[]
-  strategy      Strategy[]
+  strategy      userStrategy[]
   setupTrades   SetupTrade[]
   indicators    UserIndicator[]
   timeframes    UserTimeframe[]
@@ -62,7 +62,7 @@ model SetupTrade {
   updatedAt DateTime @updatedAt
 
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  strategies Strategy[]
+  strategies userStrategy[]
   journals   Journal[]
   indicators UserIndicator[]
   timeframes UserTimeframe[]
@@ -112,30 +112,30 @@ model TradeScreenshot {
 }
 
 model Pair {
-  id        String     @id @default(cuid())
-  symbol    String     @unique
+  id        String   @id @default(cuid())
+  symbol    String   @unique
   type      TypePair
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   userPairs UserPair[]
 }
 
 model UserPair {
-  id         String     @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
-  pairId     String
+  pairId     String?
   customName String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  customType String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pair     Pair      @relation(fields: [pairId], references: [id])
+  pair     Pair?     @relation(fields: [pairId], references: [id])
   journals Journal[]
 
   @@unique([userId, pairId])
 }
-
 
 model Psychology {
   id        String   @id @default(uuid())
@@ -149,25 +149,39 @@ model Psychology {
 model UserPsychology {
   id           String   @id @default(cuid())
   userId       String
-  psychologyId String
+  psychologyId String?
   customName   String?
-  hidden       Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  psychology Psychology @relation(fields: [psychologyId], references: [id])
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  psychology Psychology? @relation(fields: [psychologyId], references: [id])
   journals   Journal[]
 
   @@unique([userId, psychologyId])
 }
 
 model Strategy {
-  id          String       @id @default(uuid())
-  name        String
+  id           String         @id @default(uuid())
+  name         String
+  userId       String
+  userStrategy userStrategy[]
+}
+
+model userStrategy {
+  id         String   @id @default(uuid())
+  name       String
+  userId     String
+  strategyId String?
+  customName String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
+  strategy    Strategy?    @relation(fields: [strategyId], references: [id])
   setupTrades SetupTrade[]
+
+  @@unique([userId, strategyId])
 }
 
 model Indicator {
@@ -181,14 +195,13 @@ model Indicator {
 model UserIndicator {
   id          String   @id @default(cuid())
   userId      String
-  indicatorId String
+  indicatorId String?
   customCode  String?
-  hidden      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  indicator Indicator    @relation(fields: [indicatorId], references: [id])
+  indicator Indicator?   @relation(fields: [indicatorId], references: [id])
   setups    SetupTrade[]
 
   @@unique([userId, indicatorId])
@@ -252,7 +265,6 @@ model Payment {
 
   @@index([userId])
 }
-
 
 enum TypePair {
   forex
