@@ -24,10 +24,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useQueryClient } from '@tanstack/react-query'
+
 
 export function NavUser() {
   const { isMobile } = useSidebar();
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
 
   if (!session?.user) return null; // or a loading skeleton
 
@@ -61,9 +64,10 @@ export function NavUser() {
     onClick: () => console.log("Logged out"),
   };
 
-  const handleLogout = () => {
-    signOut({ callbackUrl: "/login" }); // redirect otomatis
-  };
+  const handleLogout = async () => {
+  await queryClient.clear(); // bersihkan cache TanStack
+  await signOut({ callbackUrl: "/login" });
+};
 
   return (
     <SidebarMenu>
