@@ -1,4 +1,6 @@
 // app/api/journal/route.ts
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
@@ -90,7 +92,7 @@ export async function GET() {
       {
         status: 200,
         headers: {
-          "Cache-Control": "s-maxage=30, stale-while-revalidate=59",
+          "Cache-Control": "no-store",
         },
       }
     );
