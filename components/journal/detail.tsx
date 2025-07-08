@@ -100,9 +100,6 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
     value: p.id, // ← HARUS pakai `id` dari UserPsychology
   }));
 
-  console.log("JOURNAL PSYCHOLOGIES", journal.psychologies);
-  console.log("USER PSYCHOLOGIES", userPsychologies);
-
   const [formData, setFormData] = useState({
     date: new Date(journal.date).toISOString().slice(0, 10),
     pairId: journal.pair?.id || "",

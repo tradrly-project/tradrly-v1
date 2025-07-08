@@ -28,7 +28,7 @@ export default function JournalClient() {
 
   const { data: session } = useSession();
   const userId = session?.user?.id;
-
+  console.log("Client: Current userId from session:", userId);
   const { data, error, isLoading } = useQuery({
     queryKey: ["journal-data", userId],
     queryFn: fetchJournalData,

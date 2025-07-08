@@ -24,8 +24,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useQueryClient } from '@tanstack/react-query'
-
+import { useQueryClient } from "@tanstack/react-query";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -39,8 +38,7 @@ export function NavUser() {
     userName: session.user.userName ?? "@Unknown",
     avatar: session.user.image ?? "",
   };
-  
-  
+
   const menuItems = [
     {
       label: "Upgrade Account",
@@ -65,9 +63,9 @@ export function NavUser() {
   };
 
   const handleLogout = async () => {
-  await queryClient.clear(); // bersihkan cache TanStack
-  await signOut({ callbackUrl: "/login" });
-};
+    queryClient.removeQueries(); // ✅ ini lebih aman daripada .clear()
+    await signOut({ callbackUrl: "/login" });
+  };
 
   return (
     <SidebarMenu>
