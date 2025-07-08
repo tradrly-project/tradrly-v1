@@ -19,16 +19,20 @@ import TradeForm from "@/components/journal/form";
 import { Loader2, XIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchJournalData } from "@/lib/api/journal";
+import { useSession } from "next-auth/react";
 
 export default function JournalClient() {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
-
   const [filter, setFilter] = useState("");
 
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
   const { data, error, isLoading } = useQuery({
-    queryKey: ["journal-data"],
+    queryKey: ["journal-data", userId],
     queryFn: fetchJournalData,
+    enabled: !!userId,
   });
 
   if (isLoading) {
@@ -53,7 +57,7 @@ export default function JournalClient() {
 
   const { journals, pairs, setupTrade, userPsychologies } = data;
 
-  const columns = getColumns(pairs, setupTrade, userPsychologies );
+  const columns = getColumns(pairs, setupTrade, userPsychologies);
 
   const filteredJournals = journals.filter((journal) => {
     const pair = journal.pair?.pair?.symbol?.toLowerCase() || "";
