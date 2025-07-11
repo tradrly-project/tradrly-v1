@@ -10,11 +10,11 @@ export const createSetupColumns = ({
   timeframe,
 }: {
   indicator: { id: string; name: string; code: string }[];
-  timeframe: { id: string; code: string }[];
+  timeframe: { id: string; name: string }[];
 }): ColumnDef<
   SetupTrade & {
     indicators: { name: string; code: string }[] | null;
-    timeframes: { code: string }[] | null;
+    timeframes: { name: string }[] | null;
   }
 >[] => [
   {
@@ -69,7 +69,7 @@ export const createSetupColumns = ({
     accessorKey: "timeframes",
     header: () => <div className="text-left px-3 py-2">Timeframe</div>,
     cell: ({ row }) => {
-      const timeframes = row.original.timeframes as { code: string }[];
+      const timeframes = row.original.timeframes as { name: string }[];
       const MAX_BADGES = 3;
 
       if (!timeframes?.length) {
@@ -82,11 +82,11 @@ export const createSetupColumns = ({
         <div className="flex items-center flex-wrap gap-1 px-3 py-2 max-w-[95%]">
           {timeframes.slice(0, MAX_BADGES).map((tf) => (
             <Badge
-              key={tf.code}
+              key={tf.name}
               variant="default"
               className="text-xs px-2 py-1 m-0 whitespace-nowrap"
             >
-              {tf.code}
+              {tf.name}
             </Badge>
           ))}
           {hiddenTimeframes.length > 0 && (
@@ -146,7 +146,7 @@ export const createSetupColumns = ({
 
       const mappedTimeframes = setup.timeframes
         ? timeframe.filter((t) =>
-            setup.timeframes!.some((r) => r.code === t.code)
+            setup.timeframes!.some((r) => r.name === t.name)
           )
         : undefined;
 

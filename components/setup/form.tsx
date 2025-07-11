@@ -27,7 +27,7 @@ const initialFormState: SetupTradeFormState = {
 
 type SetupTradeFormProps = {
   indicator: { id: string; name: string; code: string }[];
-  timeframe: { id: string; code: string }[];
+  timeframe: { id: string; name: string }[];
   onSuccess?: () => void
 };
 
@@ -86,7 +86,7 @@ export default function SetupTradeForm({
   }, [state, queryClient, onSuccess]);
 
   return (
-    <form action={handleSubmit} className="space-y-6 h-full">
+    <form action={handleSubmit} className="space-y-6 h-full pb-4">
       {/* Nama Setup */}
       <LabelInputContainer>
         <Input
@@ -113,9 +113,10 @@ export default function SetupTradeForm({
           name="timeframe"
           selected={selectedTimeframes}
           onChange={setSelectedTimeframes}
-          options={timeframe.map((t) => ({ label: t.code, value: t.id }))}
+          options={timeframe.map((t) => ({ label: t.name, value: t.id }))}
           placeholder="Pilih Timeframe"
           error={state.errors?.timeframe}
+          className="pl-2"
         />
         <FieldError>{state.errors?.timeframe}</FieldError>
       </LabelInputContainer>
@@ -132,6 +133,7 @@ export default function SetupTradeForm({
           }))}
           placeholder="Pilih Indikator"
           error={state.errors?.indicatorIds}
+          className="pl-2"
         />
       </LabelInputContainer>
 

@@ -87,7 +87,7 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
       const matched = userPsychologies
         .filter((p) => journal.psychologies.some((jp) => jp.id === p.id))
         .map((p) => ({
-          label: p.psychology?.name || p.customName || "-",
+          label: p.customName || p.psychology?.name || "-",
           value: p.id,
         }));
 
@@ -96,7 +96,7 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
   }, [userPsychologies, journal.psychologies]);
 
   const availablePsychologies = userPsychologies.map((p) => ({
-    label: p.psychology?.name || p.customName || "-",
+    label: p.customName || p.psychology?.name || "-",
     value: p.id, // ← HARUS pakai `id` dari UserPsychology
   }));
 
@@ -483,7 +483,7 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
                           variant="secondary"
                           className="text-xs bg-zinc-900 mr-1 text-foreground"
                         >
-                          {p.psychology?.name || p.customName || "-"}
+                          {p.customName || p.psychology?.name || "-"}
                         </Badge>
                       ))
                     ) : (
@@ -585,7 +585,7 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
                           </button>
                         </div>
                       ) : (
-                        <div className="bg-red-400 max-h-48 flex">
+                        <div className="max-h-48 flex">
                           <FileUpload
                             mode="manual"
                             role="BEFORE"

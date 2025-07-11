@@ -187,6 +187,7 @@ export function DeleteButton({
   cancelText = "Batal",
   buttonText = "Hapus",
   iconOnly = false,
+  
 }: DeleteButtonProps) {
   const [isPending, startTransition] = useTransition();
 

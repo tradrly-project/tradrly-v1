@@ -77,9 +77,6 @@ export async function PUT(request: Request) {
         },
       },
     });
-    
-    
-    
 
     revalidatePath("/api/setup");
     return NextResponse.json({ updated: true });
@@ -100,14 +97,27 @@ export async function DELETE(request: Request) {
     if (!id)
       return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
 
+    // Ambil data setup beserta journal-nya
     const existing = await prisma.setupTrade.findFirst({
       where: { id, userId },
+      include: { journals: true },
     });
 
     if (!existing) {
       return NextResponse.json(
         { error: "Data tidak ditemukan atau tidak diizinkan" },
         { status: 403 }
+      );
+    }
+
+    // Cek apakah masih ada journal terkait
+    if (existing.journals.length > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Setup ini masih digunakan dalam jurnal dan tidak bisa dihapus.",
+        },
+        { status: 400 }
       );
     }
 

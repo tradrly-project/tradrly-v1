@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchUserPsychologies,
   deleteUserPsychology,
-  updateUserPsychology,
 } from "@/lib/api/psychology";
 
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -20,9 +19,11 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { PencilIcon, TrashIcon } from "lucide-react";
+import { TrashIcon } from "lucide-react";
 import { EllipsisHorizontalIcon } from "@heroicons/react/24/solid";
 import { AddPsychologyForm } from "./addpsychology";
+import { notifyError, notifySuccess } from "../asset/notify";
+import { ConfirmDialog } from "../asset/confirm-dialog";
 
 type Journal = {
   id: string;
@@ -47,10 +48,8 @@ type UserPsychology = {
 export const PsychologySettingsForm = () => {
   const queryClient = useQueryClient();
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
+  const [activePopoverId, setActivePopoverId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [popoverMode, setPopoverMode] = useState<"menu" | "edit" | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   const { data: userPsychologies = [], isLoading } = useQuery({
@@ -60,26 +59,22 @@ export const PsychologySettingsForm = () => {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteUserPsychology(id),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["user-psychology"] }),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, customName }: { id: string; customName: string }) =>
-      updateUserPsychology({ id, customName }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-psychology"] });
-      setEditingId(null);
-      setEditingName("");
-      setPopoverMode(null);
+      notifySuccess("Psikologi berhasil dihapus");
     },
   });
 
   const handleDelete = useCallback(
-    (id: string) => {
-      if (confirm("Yakin ingin menghapus psikologi ini?")) {
-        deleteMutation.mutate(id);
+    (item: UserPsychology) => {
+      if ((item.journals?.length ?? 0) > 0) {
+        notifyError(
+          "Psikologi ini tidak bisa dihapus karena sudah digunakan di jurnal."
+        );
+        return;
       }
+
+      deleteMutation.mutate(item.id);
     },
     [deleteMutation]
   );
@@ -129,91 +124,46 @@ export const PsychologySettingsForm = () => {
           </TableCell>
           <TableCell className="flex justify-end">
             <Popover
-              open={editingId === item.id}
+              open={activePopoverId === item.id}
               onOpenChange={(open) => {
-                if (!open) {
-                  setEditingId(null);
-                  setPopoverMode(null);
-                }
+                setActivePopoverId(open ? item.id : null);
               }}
             >
               <PopoverTrigger asChild>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => {
-                    setEditingId(item.id);
-                    setPopoverMode("menu");
-                  }}
+                  onClick={() => setActivePopoverId(item.id)}
                   className="hover:bg-foreground/5 hover:text-foreground"
                 >
                   <EllipsisHorizontalIcon className="h-5 w-5" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className={`${
-                  popoverMode === "edit" ? "w-64" : "w-36 py-3 px-3"
-                } bg-background text-foreground`}
+                className="w-36 py-3 px-3 bg-background text-foreground"
                 align="start"
                 side="right"
               >
-                {popoverMode === "menu" ? (
-                  <div className="space-y-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start hover:bg-foreground/10"
-                      onClick={() => {
-                        setEditingName(name);
-                        setPopoverMode("edit");
-                      }}
-                    >
-                      <PencilIcon className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-red-600 hover:bg-foreground/10 hover:text-red-600"
-                      onClick={() => handleDelete(item.id)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <TrashIcon className="h-4 w-4 mr-2" />
-                      Hapus
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Edit Psikologi</h4>
-                    <input
-                      type="text"
-                      className="w-full border px-2 py-1 rounded text-sm"
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                    />
-                    <div className="flex justify-end gap-2">
+                <div className="space-y-1">
+                  <ConfirmDialog
+                    trigger={
                       <Button
+                        variant="ghost"
                         size="sm"
-                        variant="outline"
-                        onClick={() => setPopoverMode("menu")}
+                        className="w-full justify-start text-red-600 hover:bg-foreground/10 hover:text-red-600"
+                        disabled={deleteMutation.isPending}
                       >
-                        Batal
+                        <TrashIcon className="h-4 w-4 mr-2" />
+                        Hapus
                       </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          updateMutation.mutate({
-                            id: item.id,
-                            customName: editingName,
-                          });
-                        }}
-                        disabled={updateMutation.isPending}
-                      >
-                        Simpan
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                    }
+                    title="Konfirmasi Hapus"
+                    description="Apakah kamu yakin ingin menghapus psikologi ini?"
+                    confirmText="Ya, Hapus"
+                    cancelText="Batal"
+                    onConfirm={() => handleDelete(item)}
+                  />
+                </div>
               </PopoverContent>
             </Popover>
           </TableCell>
@@ -224,7 +174,7 @@ export const PsychologySettingsForm = () => {
 
   return (
     <div className="w-[40%] h-full">
-      <Card className="bg-background shadow-md rounded-2xl max-h-[100%]">
+      <Card className="bg-background shadow-md rounded-2xl h-[100%]">
         <CardHeader className="flex justify-between items-center">
           <CardTitle className="text-foreground text-lg font-semibold tracking-tight">
             Pengaturan Psikologi

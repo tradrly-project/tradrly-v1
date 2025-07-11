@@ -14,8 +14,10 @@ const settingTabs = [
   { id: "user", label: "User" },
   { id: "pair", label: "Pair" },
   { id: "psychology", label: "Psikologi" },
-  { id: "timeframe", label: "Timeframe" },
   { id: "indicator", label: "Indikator" },
+  { id: "timeframe", label: "Timeframe" },
+  { id: "strategy", label: "Strategi" },
+  
 ];
 
 export default function SettingsLayout({

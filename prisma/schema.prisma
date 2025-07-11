@@ -164,13 +164,11 @@ model UserPsychology {
 model Strategy {
   id           String         @id @default(uuid())
   name         String
-  userId       String
   userStrategy userStrategy[]
 }
 
 model userStrategy {
   id         String   @id @default(uuid())
-  name       String
   userId     String
   strategyId String?
   customName String?
@@ -208,21 +206,23 @@ model UserIndicator {
 }
 
 model Timeframe {
-  id   String @id @default(cuid())
-  code String @unique
+  id    String         @id @default(cuid())
+  name  String         @unique
+  group TimeFrameGroup
 
   UserTimeframe UserTimeframe[]
 }
 
 model UserTimeframe {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   userId      String
-  timeframeId String
-  hidden      Boolean @default(false) // kalau user hide TF global
-  customCode  String? // jika user ingin rename TF (opsional)
+  timeframeId String?
+  customName  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  timeframe   Timeframe    @relation(fields: [timeframeId], references: [id], onDelete: Cascade)
+  timeframe   Timeframe?   @relation(fields: [timeframeId], references: [id], onDelete: Cascade)
   setupTrades SetupTrade[]
 
   @@unique([userId, timeframeId]) // satu TF bisa di-override 1x per user
@@ -271,6 +271,13 @@ enum TypePair {
   crypto
   stock
   index
+}
+
+enum TimeFrameGroup {
+  second
+  minute
+  hour
+  dayweekmonth
 }
 
 enum SubscriptionStatus {

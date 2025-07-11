@@ -1,47 +1,31 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 
+// GET semua timeframe global (dengan group)
 export async function GET() {
-    try {
-        const session = await auth();
-        const userId = session?.user?.id;
+  try {
+    const timeframes = await prisma.timeframe.findMany({
+      select: {
+        id: true,
+        name: true,
+        group: true, // ambil enum group
+      },
+      orderBy: { name: "asc" },
+    });
 
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const userTimeframes = await prisma.userTimeframe.findMany({
-            where: {
-                userId,
-                hidden: false,
-            },
-            include: {
-                timeframe: true,
-            },
-            orderBy: {
-                timeframe: {
-                    code: "asc",
-                },
-            },
-        });
-
-        const timeframes = userTimeframes.map((tf) => ({
-            id: tf.id, // << PENTING: kirim userTimeframe.id
-            label: tf.customCode || tf.timeframe.code,
-            value: tf.id, // value harus cocok dengan ID yang kamu `connect` di actions
-        }));
-
-        return NextResponse.json({ timeframes }, {
-            headers: {
-                "Cache-Control": "s-maxage=10, stale-while-revalidate=59",
-            },
-        });
-    } catch (error) {
-        console.error("Error fetching timeframes:", error);
-        return NextResponse.json(
-            { error: "Gagal mengambil data timeframe" },
-            { status: 500 }
-        );
-    }
+    return NextResponse.json(
+      { timeframes },
+      {
+        headers: {
+          "Cache-Control": "s-maxage=60, stale-while-revalidate=59",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("GET /api/timeframe error:", error);
+    return NextResponse.json(
+      { error: "Gagal mengambil daftar timeframe global" },
+      { status: 500 }
+    );
+  }
 }

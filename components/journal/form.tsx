@@ -418,6 +418,7 @@ export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
               onChange={setSetupTradeId}
               placeholder="Pilih Setup Trade"
               options={setupTrades.map((s) => ({ value: s.id, label: s.name }))}
+              className="h-[40px]"
             />
             <input type="hidden" name="setupTradeId" value={setupTradeId} />
             <FieldError>{state.errors?.setupTradeId}</FieldError>

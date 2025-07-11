@@ -42,17 +42,17 @@ export const signUpCredentials = async (_prevState: unknown, formData: FormData)
       "US100", "US30", "SPX500", "DE40", "JP225",
     ];
 
-    const [selectedPairs, indicators, timeframes] = await Promise.all([
-      prisma.pair.findMany({
-        where: {
-          symbol: { in: selectedSymbols },
-        },
-      }),
+    const selectedTimeframeNames = ["1D", "1h", "45m", "15m", "1m"];
+
+    const [selectedPairs, indicators, timeframes, psychologies, strategies] = await Promise.all([
+      prisma.pair.findMany({ where: { symbol: { in: selectedSymbols } } }),
       prisma.indicator.findMany(),
-      prisma.timeframe.findMany(),
+      prisma.timeframe.findMany({ where: { name: { in: selectedTimeframeNames } } }),
+      prisma.psychology.findMany(),
+      prisma.strategy.findMany(),
     ]);
 
-    // 3. Create user bindings (hanya data yang dibutuhkan)
+    // 3. Buat relasi user ke data global
     await Promise.all([
       prisma.userPair.createMany({
         data: selectedPairs.map((pair) => ({
@@ -70,6 +70,18 @@ export const signUpCredentials = async (_prevState: unknown, formData: FormData)
         data: timeframes.map((tf) => ({
           userId: user.id,
           timeframeId: tf.id,
+        })),
+      }),
+      prisma.userPsychology.createMany({
+        data: psychologies.map((p) => ({
+          userId: user.id,
+          psychologyId: p.id,
+        })),
+      }),
+      prisma.userStrategy.createMany({
+        data: strategies.map((s) => ({
+          userId: user.id,
+          strategyId: s.id,
         })),
       }),
     ]);

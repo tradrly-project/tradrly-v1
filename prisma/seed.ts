@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { defaultPairs } from "@/lib/default/pairs";
 import { defaultIndicators } from "@/lib/default/indicator";
 import { defaultTimeframes } from "@/lib/default/timeframe";
-        
+import { defaultPsychologies } from "@/lib/default/psychology";
+import { defaultStrategies } from "@/lib/default/strategy";
+
 async function main() {
   console.log("🌱 Mulai seeding data global...");
 
@@ -10,7 +12,7 @@ async function main() {
   await prisma.pair.createMany({
     data: defaultPairs.map((pair) => ({
       symbol: pair.symbol,
-      type: pair.type, // Harus sesuai enum TypePair di Prisma schema
+      type: pair.type,
     })),
     skipDuplicates: true,
   });
@@ -28,10 +30,28 @@ async function main() {
 
   // 3. Seed Timeframe
   await prisma.timeframe.createMany({
-    data: defaultTimeframes.map((tf) => ({ code: tf.code })),
+    data: defaultTimeframes.map((tf) => ({
+      name: tf.name,
+      group: tf.group,
+    })),
     skipDuplicates: true,
   });
+
   console.log("✅ Selesai seeding timeframes");
+
+  // 4. Seed Psychology
+  await prisma.psychology.createMany({
+    data: defaultPsychologies.map((p) => ({ name: p.name })),
+    skipDuplicates: true,
+  });
+  console.log("✅ Selesai seeding psychologies");
+
+  // 5. Seed Strategy
+  await prisma.strategy.createMany({
+    data: defaultStrategies.map((s) => ({ name: s.name })),
+    skipDuplicates: true,
+  });
+  console.log("✅ Selesai seeding strategies");
 
   console.log("🌱 Seeding data global selesai!");
 }

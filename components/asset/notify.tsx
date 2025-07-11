@@ -12,7 +12,7 @@ export function notifySuccess(message = "Berhasil disimpan!") {
 
 export function notifyError(message = "Gagal menyimpan data!") {
   toast.error(message, {
-    className: "bg-background text-red-500 border border-white",
+    className: "bg-background text-red-500 border border-white ml-1",
     icon: <AnimatedXStroke />,
     position: "top-center",
     duration: 4000,

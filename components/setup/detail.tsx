@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import EllipsisHorizontalIcon from "@heroicons/react/24/solid/EllipsisHorizontalIcon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { DeleteButton, SaveChangesButton } from "../button";
+import { SaveChangesButton } from "../button";
 import { Input } from "@/components/ui/input";
 import { useState, useTransition, useEffect } from "react";
 import LabelInputContainer from "../asset/label-input";
@@ -14,7 +14,10 @@ import { IndicatorSelect } from "../select/indicator-select";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import type { SetupPayload } from "@/components/button";
-import {  useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "../asset/notify";
+import { ConfirmDialog } from "../asset/confirm-dialog";
+import { TrashIcon } from "@heroicons/react/24/solid";
 
 type Setup = {
   id: string;
@@ -22,13 +25,14 @@ type Setup = {
   strategy: string;
   notes?: string | null;
   winrate?: number | null;
+  journals?: { id: string }[];
   indicators?: { id: string; name: string; code: string }[];
-  timeframes?: { id: string; code: string }[];
+  timeframes?: { id: string; name: string }[];
 };
 
 type Props = {
   setup: Setup;
-  timeframe: { id: string; code: string }[];
+  timeframe: { id: string; name: string }[];
   indicator: { id: string; name: string; code: string }[];
 };
 
@@ -63,7 +67,7 @@ export default function SetupTradeDetailDialog({
     if (setup.timeframes) {
       setSelectedTimeframes(
         setup.timeframes.map((t) => ({
-          label: t.code,
+          label: t.name,
           value: t.id,
         }))
       );
@@ -86,6 +90,34 @@ export default function SetupTradeDetailDialog({
     setOpenDialog(true); // Buka dialog
   };
 
+  const handleDelete = async () => {
+    if (setup.journals && setup.journals.length > 0) {
+      notifyError(
+        "Setup ini sedang digunakan, hapus jurnal terlebih dahulu."
+      );
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/setup/${setup.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.error || "Gagal menghapus setup.");
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
+      setOpenDialog(false);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        notifyError(err.message);
+      } else {
+        notifyError("Terjadi kesalahan yang tidak diketahui.");
+      }
+    }
+  };
 
   return (
     <>
@@ -166,12 +198,13 @@ export default function SetupTradeDetailDialog({
                   {setup.winrate !== null && setup.winrate !== undefined ? (
                     <Badge
                       variant="default"
-                      className={`text-xs px-2 py-1 rounded-md ${setup.winrate === 0
+                      className={`text-xs px-2 py-1 rounded-md ${
+                        setup.winrate === 0
                           ? "bg-zinc-700 text-white"
                           : setup.winrate <= 50
-                            ? "bg-red-500 text-white"
-                            : "bg-sky-500 text-white"
-                        }`}
+                          ? "bg-red-500 text-white"
+                          : "bg-sky-500 text-white"
+                      }`}
                     >
                       {setup.winrate.toFixed(1)}%
                     </Badge>
@@ -192,7 +225,7 @@ export default function SetupTradeDetailDialog({
                       selected={selectedTimeframes}
                       onChange={setSelectedTimeframes}
                       options={timeframe.map((t) => ({
-                        label: t.code,
+                        label: t.name,
                         value: t.id,
                       }))}
                       placeholder="Pilih Timeframe"
@@ -206,7 +239,7 @@ export default function SetupTradeDetailDialog({
                         variant="secondary"
                         className="text-xs rounded-md bg-zinc-900 text-foreground"
                       >
-                        {tf.code}
+                        {tf.name}
                       </Badge>
                     ))}
                   </div>
@@ -271,24 +304,6 @@ export default function SetupTradeDetailDialog({
               <div className="flex justify-end gap-2">
                 {editMode ? (
                   <>
-                    <DeleteButton
-                      type="setup"
-                      id={setup.id}
-                      title="Yakin ingin menghapus setup ini?"
-                      description="Setup yang dihapus tidak bisa dikembalikan."
-                      onSuccess={() => {
-                        queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
-                        setOpenDialog(false); // Tutup dialog setelah delete
-                      }}
-                    />
-
-                    <Button
-                      variant="ghost"
-                      onClick={() => setEditMode(false)}
-                      disabled={isPending}
-                    >
-                      Batal
-                    </Button>
                     <SaveChangesButton<SetupPayload>
                       type="setup"
                       id={setup.id}
@@ -299,9 +314,35 @@ export default function SetupTradeDetailDialog({
                       }}
                       disabled={isPending}
                       onSuccess={() => {
-                        queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
+                        queryClient.invalidateQueries({
+                          queryKey: ["setup-trade"],
+                        });
                         setEditMode(false);
                       }}
+                    />
+                    <Button
+                      variant="ghost"
+                      onClick={() => setEditMode(false)}
+                      disabled={isPending}
+                    >
+                      Batal
+                    </Button>
+                    <ConfirmDialog
+                      trigger={
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={isPending}
+                        >
+                          <TrashIcon className="w-4 h-4 mr-2" />
+                          Hapus
+                        </Button>
+                      }
+                      title="Konfirmasi Hapus"
+                      description="Apakah kamu yakin ingin menghapus setup ini? Data tidak bisa dikembalikan."
+                      confirmText="Ya, Hapus"
+                      cancelText="Batal"
+                      onConfirm={handleDelete}
                     />
                   </>
                 ) : (

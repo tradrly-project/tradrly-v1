@@ -24,7 +24,7 @@ import {
   fetchUserPsychologies,
   addUserPsychology,
 } from "@/lib/api/psychology";
-import { notifySuccess } from "../asset/notify";
+import { notifyError, notifySuccess } from "../asset/notify";
 
 interface Option {
   label: string;
@@ -85,6 +85,21 @@ export const AddPsychologyForm = ({
       payload.psychologyId = selectedPsychology.value;
     }
 
+    const trimmedName = customName.trim().toLowerCase();
+
+    const isCustomDuplicate = customUserPsychologies.some(
+      (p: UserPsychology) => p.customName?.toLowerCase() === trimmedName
+    );
+
+    const isGlobalDuplicate = globalPsychologies.some(
+      (p: { name: string }) => p.name.toLowerCase() === trimmedName
+    );
+
+    if (isCustom && (isCustomDuplicate || isGlobalDuplicate)) {
+      notifyError("Nama psikologi sudah digunakan.");
+      return;
+    }
+
     addMutation.mutate(payload);
 
     // Reset form
@@ -93,15 +108,27 @@ export const AddPsychologyForm = ({
     setCustomName("");
   };
 
+  // Ambil ID psychology yang sudah digunakan user
+  const usedPsychologyIds = userPsychologies
+    .filter((p: UserPsychology) => p.psychologyId !== null)
+    .map((p: UserPsychology) => p.psychologyId);
+
+  // Filter globalPsychologies agar tidak menampilkan yang sudah dipakai
+  const availableGlobalPsychologies = globalPsychologies.filter(
+    (p: { id: string }) => !usedPsychologyIds.includes(p.id)
+  );
+
   const customUserPsychologies = userPsychologies.filter(
     (p: UserPsychology) => p.psychologyId === null && p.customName !== null
   );
 
   const combinedOptions: Option[] = [
-    ...globalPsychologies.map((item: { id: string; name: string }) => ({
-      label: item.name,
-      value: item.id,
-    })),
+    ...availableGlobalPsychologies.map(
+      (item: { id: string; name: string }) => ({
+        label: item.name,
+        value: item.id,
+      })
+    ),
     ...customUserPsychologies.map((item: UserPsychology) => ({
       label: item.customName!,
       value: null,

@@ -78,6 +78,7 @@ export async function GET() {
         timeframes: {
           include: { timeframe: true },
         },
+        journals: { select: { id: true } },
       },
       orderBy: {
         createdAt: "desc",
@@ -101,11 +102,10 @@ export async function GET() {
       })),
 
       timeframes: setup.timeframes.map((tf) => ({
-        id: tf.timeframe.id,
-        code: tf.customCode || tf.timeframe.code,
+        id: tf.timeframe?.id ?? "", // fallback ke string kosong jika null
+        name: (tf.customName || tf.timeframe?.name) ?? "",
       })),
     }));
-    
 
     const indicatorsRaw = await prisma.userIndicator.findMany({
       where: { userId },
@@ -122,13 +122,13 @@ export async function GET() {
     }));
 
     const userTimeframes = await prisma.userTimeframe.findMany({
-      where: { userId, hidden: false },
+      where: { userId },
       include: { timeframe: true },
     });
 
     const rawTimeframes = userTimeframes.map((ut) => ({
       id: ut.id,
-      code: ut.customCode || ut.timeframe.code,
+      name: (ut.customName || ut.timeframe?.name) ?? "",
     }));
 
     const timeframes = sortTimeframes(rawTimeframes);
