@@ -19,11 +19,12 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { TrashIcon } from "lucide-react";
+import { Loader2, TrashIcon } from "lucide-react";
 import { EllipsisHorizontalIcon } from "@heroicons/react/24/solid";
 import { AddPsychologyForm } from "./addpsychology";
 import { notifyError, notifySuccess } from "../asset/notify";
 import { ConfirmDialog } from "../asset/confirm-dialog";
+import { useSession } from "next-auth/react";
 
 type Journal = {
   id: string;
@@ -52,9 +53,12 @@ export const PsychologySettingsForm = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
 
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const { data: userPsychologies = [], isLoading } = useQuery({
     queryKey: ["user-psychology"],
     queryFn: fetchUserPsychologies,
+    enabled: !!userId,
   });
 
   const deleteMutation = useMutation({
@@ -96,8 +100,10 @@ export const PsychologySettingsForm = () => {
     if (isLoading) {
       return (
         <TableRow>
-          <TableCell colSpan={3} className="text-center">
-            Memuat...
+          <TableCell colSpan={3} className="h-[200px] p-0">
+            <div className="flex items-center justify-center h-full w-full">
+              <Loader2 className="w-10 h-10 animate-spin" />
+            </div>
           </TableCell>
         </TableRow>
       );

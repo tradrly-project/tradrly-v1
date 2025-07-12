@@ -63,7 +63,7 @@ function convertTimeframeToMinutes(name: string): number {
     s: 1 / 60,
     m: 1,
     h: 60,
-    d: 1440,
+    D: 1440,
     w: 10080,
     M: 43200, // 1 bulan = 30 hari = 43200 menit
   };
@@ -148,7 +148,7 @@ export const AddTimeframeForm = ({
 
       {/* Dropdown GROUP */}
       <div className="space-y-2">
-        <label>Group</label>
+        <label>Interval Waktu</label>
         <Popover open={openGroup} onOpenChange={setOpenGroup}>
           <PopoverTrigger asChild>
             <Button

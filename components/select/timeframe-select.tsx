@@ -122,7 +122,7 @@ export function TimeframeSelect({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "flex min-h-[44px] items-center justify-between p-1",
+              "flex min-h-[44px] items-center justify-between p-1 pl-1.5",
               "w-full max-w-full flex-shrink-0 overflow-x-auto relative focus:border-transparent",
               selected.length
                 ? "bg-background hover:bg-background hover:text-foreground"

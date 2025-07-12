@@ -96,9 +96,9 @@ export async function GET() {
       winrate: setup.winrate, // ✅ ini yang menyebabkan error jika tidak ada
 
       indicators: setup.indicators.map((i) => ({
-        id: i.indicator?.id,
-        name: i.indicator?.name,
-        code: i.customCode || i.indicator?.code,
+        id: i.id,
+        name: i.indicator?.name ?? i.customName,
+        code: i.indicator?.code ?? i.customCode,
       })),
 
       timeframes: setup.timeframes.map((tf) => ({
@@ -117,10 +117,11 @@ export async function GET() {
 
     const indicators = indicatorsRaw.map((ui) => ({
       id: ui.id,
-      name: ui.indicator?.name,
-      code: ui.customCode || ui.indicator?.code,
+      name: ui.indicator?.name || ui.customName || "Tanpa Nama",
+      code: ui.indicator?.code || ui.customCode || "-",
     }));
 
+    console.log("🔍 indicatorsRaw:", indicatorsRaw);
     const userTimeframes = await prisma.userTimeframe.findMany({
       where: { userId },
       include: { timeframe: true },

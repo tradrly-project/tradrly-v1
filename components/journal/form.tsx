@@ -79,9 +79,7 @@ export default function TradeForm({ userPairs, setupTrades }: TradeFormProps) {
   const [selectedPsychologies, setSelectedPsychologies] = useState<Option[]>(
     []
   );
-  const {
-  data: userPsychologies = [],
-} = useQuery({
+  const { data: userPsychologies = [],} = useQuery({
   queryKey: ["user-psychology"],
   queryFn: fetchUserPsychologies,
 });

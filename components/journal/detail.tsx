@@ -66,7 +66,7 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
   const [openTooltip, setOpenTooltip] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isPending] = useTransition();
-
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
   const [beforeFiles, setBeforeFiles] = useState<FileWithMeta[]>([]);
   const [afterFiles, setAfterFiles] = useState<FileWithMeta[]>([]);
@@ -79,7 +79,7 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
   );
 
   const { data: userPsychologies = [] } = useQuery<UserPsychology[]>({
-    queryKey: ["user-psychologies"],
+    queryKey: ["user-psychology"],
     queryFn: fetchUserPsychologies,
   });
   useEffect(() => {
@@ -541,6 +541,37 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
 
               {/* Kanan: Screenshot */}
               <div className="col-span-1 overflow-y-auto p-2 bg-zinc-900 rounded-md space-y-2 h-fit">
+                {selectedImage && (
+                  <div
+                    className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    {/* Modal container dengan lebar auto mengikuti gambar */}
+                    <div
+                      className="relative bg-zinc-800 p-2 rounded-lg shadow-lg"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Tombol X di dalam gambar */}
+                      <button
+                        onClick={() => setSelectedImage(null)}
+                        className="absolute top-2 right-2 z-50 bg-red-900/60 hover:bg-black/80 text-white p-2 rounded-full"
+                      >
+                        ✕
+                      </button>
+
+                      {/* Gambar */}
+                      <Image
+                        src={selectedImage}
+                        alt="Preview"
+                        width={800} // kamu bisa ubah sesuai ukuran ideal
+                        height={600}
+                        className="rounded-md object-contain"
+                        unoptimized
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {isEditing ? (
                   <>
                     {/* BEFORE */}
@@ -671,7 +702,8 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
                             alt={type}
                             width={400}
                             height={400}
-                            className="rounded-md border border-zinc-800 object-cover aspect-square w-full max-h-44"
+                            className="rounded-md border border-zinc-800 object-cover aspect-square w-full max-h-44 cursor-zoom-in"
+                            onClick={() => setSelectedImage(image.url)} // ✅ INI YANG BELUM ADA
                           />
                         ) : (
                           <p className="text-[14px] italic text-muted-foreground">
@@ -687,7 +719,7 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="shrink-0 sticky bottom-0 px-4 py-3 z-50 bg-background flex justify-end gap-2">
+          <div className="shrink-0 sticky bottom-0 px-4 py-3 z-10 bg-background flex justify-end gap-2">
             {isEditing ? (
               <>
                 <SaveChangesButton<TradePayload>
@@ -720,7 +752,9 @@ export function TradeDetailDialog({ journal, pairs, setupTrades }: Props) {
                 />
               </>
             ) : (
-              <Button onClick={() => setIsEditing(true)}>Edit</Button>
+              <div className="pb-1">
+                <Button onClick={() => setIsEditing(true)}>Edit</Button>
+              </div>
             )}
           </div>
         </DialogContent>

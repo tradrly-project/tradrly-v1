@@ -18,6 +18,7 @@ import SetupTradeForm from "@/components/setup/form";
 import { Loader2, XIcon } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchSetupTrade, type SetupTradeResponse } from "@/lib/api/setup";
+import { useSession } from "next-auth/react";
 
 export default function SetupClient() {
   const queryClient = useQueryClient();
@@ -25,9 +26,12 @@ export default function SetupClient() {
   const sidebarWidth = state === "collapsed" ? "6rem" : "16rem";
   const [filter, setFilter] = useState("");
 
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const { data, error, isLoading } = useQuery<SetupTradeResponse>({
     queryKey: ["setup-trade"],
     queryFn: fetchSetupTrade,
+    enabled: !!userId, // Tetap pastikan tidak dijalankan jika belum login
   });
 
   if (isLoading) {

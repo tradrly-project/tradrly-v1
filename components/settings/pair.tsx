@@ -1,3 +1,5 @@
+// components/settings/pair.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -20,12 +22,13 @@ import {
 } from "@/components/ui/popover";
 
 import { Button } from "../ui/button";
-import { TrashIcon } from "lucide-react";
+import { Loader2, TrashIcon } from "lucide-react";
 import { AddPairForm } from "./addpair";
 import { Input } from "../ui/input";
 import { EllipsisHorizontalIcon } from "@heroicons/react/24/solid";
 import { notifyError, notifySuccess } from "../asset/notify";
 import { ConfirmDialog } from "../asset/confirm-dialog";
+import { useSession } from "next-auth/react";
 
 type Journal = {
   id: string;
@@ -52,9 +55,12 @@ export const PairSettingsForm = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
 
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const { data: pairs = [], isLoading } = useQuery({
     queryKey: ["user-pairs"],
     queryFn: fetchUserPairs,
+    enabled: !!userId,
   });
 
   const deleteMutation = useMutation({
@@ -155,8 +161,10 @@ export const PairSettingsForm = () => {
             <TableBody className="text-foreground">
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center h-full">
-                    Memuat...
+                  <TableCell colSpan={4} className="h-[200px] p-0">
+                    <div className="flex items-center justify-center h-full w-full">
+                      <Loader2 className="w-10 h-10 animate-spin" />
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : filteredPairs.length === 0 ? (

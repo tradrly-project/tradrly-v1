@@ -16,11 +16,12 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { TrashIcon } from "lucide-react";
+import { Loader2, TrashIcon } from "lucide-react";
 import { EllipsisHorizontalIcon } from "@heroicons/react/24/solid";
 import { AddTimeframeForm } from "./addtimeframe";
 import { ConfirmDialog } from "../asset/confirm-dialog";
-import { notifyError } from "../asset/notify";
+import { notifyError, notifySuccess } from "../asset/notify";
+import { useSession } from "next-auth/react";
 
 type SetupTrade = {
   id: string;
@@ -45,33 +46,40 @@ export const TimeframeSettingsForm = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
 
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const { data: userTimeframes = [], isLoading } = useQuery({
     queryKey: ["user-timeframe"],
     queryFn: fetchUserTimeframes,
+    enabled: !!userId, // Tetap pastikan tidak dijalankan jika belum login
+    staleTime: 1000 * 60 * 5,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteUserTimeframe(id),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["user-timeframe"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-timeframe"] });
+      notifySuccess("Timeframe berhasil dihapus");
+    },
   });
 
   const handleDelete = useCallback(
-  (id: string) => {
-    const tf = userTimeframes.find((t: UserTimeframe) => t.id === id);
-    if (!tf) return;
+    (id: string) => {
+      const tf = userTimeframes.find((t: UserTimeframe) => t.id === id);
+      if (!tf) return;
 
-    const usageCount = tf.setupTrades?.length ?? 0;
-    if (usageCount > 0) {
-      notifyError("Timeframe tidak bisa dihapus, karena digunakan pada setup.");
-      return;
-    }
+      const usageCount = tf.setupTrades?.length ?? 0;
+      if (usageCount > 0) {
+        notifyError(
+          "Timeframe tidak bisa dihapus, karena digunakan pada setup."
+        );
+        return;
+      }
 
-    deleteMutation.mutate(id);
-  },
-  [deleteMutation, userTimeframes]
-);
-
+      deleteMutation.mutate(id);
+    },
+    [deleteMutation, userTimeframes]
+  );
 
   const filteredTimeframes = userTimeframes.filter((item: UserTimeframe) => {
     const rawName = item.customName || item.timeframe?.name;
@@ -84,7 +92,7 @@ export const TimeframeSettingsForm = () => {
     if (!match) return Infinity; // fallback jika format tidak dikenali
 
     const value = parseInt(match[1]);
-    const unit = match[2].toLowerCase();
+    const unit = match[2];
 
     switch (unit) {
       case "s":
@@ -93,7 +101,7 @@ export const TimeframeSettingsForm = () => {
         return value; // minute
       case "h":
         return value * 60;
-      case "d":
+      case "D":
         return value * 60 * 24;
       case "w":
         return value * 60 * 24 * 7;
@@ -117,8 +125,10 @@ export const TimeframeSettingsForm = () => {
     if (isLoading) {
       return (
         <TableRow>
-          <TableCell colSpan={3} className="text-center">
-            Memuat...
+          <TableCell colSpan={3} className="h-[200px] p-0">
+            <div className="flex items-center justify-center h-full w-full">
+              <Loader2 className="w-10 h-10 animate-spin" />
+            </div>
           </TableCell>
         </TableRow>
       );
@@ -193,7 +203,7 @@ export const TimeframeSettingsForm = () => {
 
   return (
     <div className="w-[40%] h-full">
-      <Card className="bg-background shadow-md rounded-2xl max-h-[100%]">
+      <Card className="bg-background shadow-md rounded-2xl h-[100%]">
         <CardHeader className="flex justify-between items-center">
           <CardTitle className="text-foreground text-lg font-semibold tracking-tight">
             Pengaturan Timeframe

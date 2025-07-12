@@ -194,6 +194,7 @@ model UserIndicator {
   id          String   @id @default(cuid())
   userId      String
   indicatorId String?
+  customName  String?
   customCode  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

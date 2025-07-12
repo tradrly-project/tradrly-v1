@@ -15,7 +15,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import type { SetupPayload } from "@/components/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "../asset/notify";
+import { notifyError, notifySuccess } from "../asset/notify";
 import { ConfirmDialog } from "../asset/confirm-dialog";
 import { TrashIcon } from "@heroicons/react/24/solid";
 
@@ -91,33 +91,35 @@ export default function SetupTradeDetailDialog({
   };
 
   const handleDelete = async () => {
-    if (setup.journals && setup.journals.length > 0) {
-      notifyError(
-        "Setup ini sedang digunakan, hapus jurnal terlebih dahulu."
-      );
-      return;
+  if (setup.journals && setup.journals.length > 0) {
+    notifyError("Setup ini sedang digunakan, hapus jurnal terlebih dahulu.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/setup/${setup.id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data?.error || "Gagal menghapus setup.");
     }
 
-    try {
-      const res = await fetch(`/api/setup/${setup.id}`, {
-        method: "DELETE",
-      });
+    queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
+    setOpenDialog(false);
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.error || "Gagal menghapus setup.");
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["setup-trade"] });
-      setOpenDialog(false);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        notifyError(err.message);
-      } else {
-        notifyError("Terjadi kesalahan yang tidak diketahui.");
-      }
+    // ✅ Tambahkan notifikasi sukses
+    notifySuccess("Setup berhasil dihapus.");
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      notifyError(err.message);
+    } else {
+      notifyError("Terjadi kesalahan yang tidak diketahui.");
     }
-  };
+  }
+};
+
 
   return (
     <>
